@@ -28,6 +28,10 @@ ENV PYTHON_BIN=/app/agents/.venv/bin/python
 ENV PORT=3000
 EXPOSE 3000
 
+# Run from the frontend dir so no `cd` (shell builtin) is needed in the start command.
+# `next start` binds to $PORT automatically (Railway injects it).
+WORKDIR /app/frontend
+
 # Railway injects SUPABASE_DB_URL, GEMINI_API_KEY, AIRTABLE_API_KEY, AIRTABLE_BASE_ID
 # as service variables; the spawned python inherits them (no .env needed in the image).
-CMD ["sh", "-c", "cd frontend && npm run start -- -p ${PORT:-3000} -H 0.0.0.0"]
+CMD ["npm", "run", "start"]
