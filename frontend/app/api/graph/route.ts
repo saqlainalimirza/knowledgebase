@@ -143,6 +143,15 @@ export async function GET() {
 
     }
 
+    // direct client <-> client cross-links when they share a niche (visible line)
+    const byNiche: Record<string, string[]> = {};
+    for (const c of clients) (byNiche[c.niche || "unassigned"] ||= []).push(c.slug);
+    for (const slugs of Object.values(byNiche)) {
+      for (let i = 0; i < slugs.length; i++)
+        for (let j = i + 1; j < slugs.length; j++)
+          link(`client:${slugs[i]}`, `client:${slugs[j]}`, "co-client");
+    }
+
     // niche <-> niche similarity (embeddings)
     try {
       const sims = await q<any>(`

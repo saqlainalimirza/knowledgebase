@@ -170,14 +170,15 @@ function InteractiveGraph({ nodes, edges, defaultExpand, caption, onOpenClient }
               const related = e.kind.startsWith("related");
               const cross = e.kind === "for-campaign";
               const mined = e.kind === "mined-from";
+              const coClient = e.kind === "co-client";
               const lit = hover ? (e.source === hover || e.target === hover) : false;
               const dim = hover && !lit;
-              const color = lit ? "#fbbf24" : related ? "#5b8cff" : cross ? "#818cf8" : mined ? "#fb923c" : "#22304d";
+              const color = lit ? "#fbbf24" : coClient ? "#34d399" : related ? "#5b8cff" : cross ? "#818cf8" : mined ? "#fb923c" : "#22304d";
               return (
                 <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={color}
-                  strokeWidth={lit ? 2.5 : related ? 2 : mined ? 1.4 : 1}
-                  strokeDasharray={!lit && (related || cross || mined) ? "4 4" : undefined}
-                  opacity={dim ? 0.06 : mined ? 0.7 : 1} />
+                  strokeWidth={lit ? 2.5 : coClient ? 2.5 : related ? 2 : mined ? 1.4 : 1}
+                  strokeDasharray={!lit && (related || cross || mined || coClient) ? "6 4" : undefined}
+                  opacity={dim ? 0.06 : mined ? 0.7 : coClient ? 0.85 : 1} />
               );
             })}
             {visible.map((n) => {
