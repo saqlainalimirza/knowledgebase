@@ -15,6 +15,7 @@ const STYLE: Record<string, { r: number; fill: string; ring: string; text: numbe
   client:   { r: 26, fill: "#10b981", ring: "#6ee7b7", text: 13 },
   hub:      { r: 17, fill: "#1f3a5f", ring: "#3b82f6", text: 11 },
   painkind: { r: 13, fill: "#7c2d12", ring: "#fb923c", text: 10 },
+  cluster:  { r: 16, fill: "#7c2d12", ring: "#fb923c", text: 11 },
   pain:     { r: 7,  fill: "#27374d", ring: "#fb923c", text: 9 },
   angle:    { r: 13, fill: "#134e4a", ring: "#2dd4bf", text: 10 },
   campaign: { r: 7,  fill: "#27374d", ring: "#2dd4bf", text: 9 },
@@ -23,140 +24,140 @@ const STYLE: Record<string, { r: number; fill: string; ring: string; text: numbe
   call:     { r: 7,  fill: "#1e293b", ring: "#64748b", text: 9 },
   kbpain:   { r: 7,  fill: "#3b0764", ring: "#c084fc", text: 9 },
   kblingo:  { r: 6,  fill: "#3b0764", ring: "#e9d5ff", text: 9 },
+  unique:   { r: 12, fill: "#1e293b", ring: "#64748b", text: 10 },
 };
 
 export default function GraphView() {
-  const router = useRouter();
   const [g, setG] = useState<Graph | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<"network" | "clusters">("network");
+  const [view, setView] = useState<"network" | "clusters" | "niche">("network");
+
+  useEffect(() => {
+    fetch("/api/graph", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => (d.error ? setError(d.error) : setG(d)))
+      .catch((e) => setError(e.message));
+  }, []);
+
+  if (error) return <div className="card border-rose-500/40 text-sm text-rose-300">Graph error: {error}</div>;
+  if (!g) return <div className="card text-sm text-muted">Building graph…</div>;
+
+  const niches = g.nodes.filter((n) => n.type === "niche").map((n) => n.label);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex overflow-hidden rounded-lg border border-edge">
+          {([["network", "Full graph"], ["clusters", "Pain clusters"], ["niche", "Niche cards"]] as const).map(([k, l]) => (
+            <button key={k} onClick={() => setView(k)} className={`px-3 py-1 text-xs ${view === k ? "bg-accent text-white" : "text-muted"}`}>{l}</button>
+          ))}
+        </span>
+        <Legend view={view} />
+      </div>
+
+      {view === "network" && (
+        <InteractiveGraph nodes={g.nodes} edges={g.edges} defaultExpand={["niche", "client"]}
+          caption="Click a node to expand/collapse · drag to pan · orange dashed = pain mined from that call" />
+      )}
+      {view === "clusters" && <ClusterView niches={niches} />}
+      {view === "niche" && <Clusters g={g} />}
+    </div>
+  );
+}
+
+/* ------- shared interactive force graph with expand/collapse + pan/zoom ------- */
+function InteractiveGraph({ nodes, edges, defaultExpand, caption, onOpenClient }: {
+  nodes: Node[]; edges: Edge[]; defaultExpand: string[]; caption?: string;
+  onOpenClient?: (slug: string) => void;
+}) {
+  const router = useRouter();
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const drag = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
-    fetch("/api/graph", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.error) return setError(d.error);
-        setG(d);
-        // default: expand niches + clients (so hubs are visible, leaves collapsed)
-        const init = new Set<string>(d.nodes.filter((n: Node) => n.type === "niche" || n.type === "client").map((n: Node) => n.id));
-        setExpanded(init);
-      })
-      .catch((e) => setError(e.message));
-  }, []);
+    setExpanded(new Set(nodes.filter((n) => defaultExpand.includes(n.type)).map((n) => n.id)));
+  }, [nodes, defaultExpand.join(",")]); // eslint-disable-line
 
   const childrenOf = useMemo(() => {
     const m: Record<string, number> = {};
-    g?.nodes.forEach((n) => { if (n.parent) m[n.parent] = (m[n.parent] || 0) + 1; });
+    nodes.forEach((n) => { if (n.parent) m[n.parent] = (m[n.parent] || 0) + 1; });
     return m;
-  }, [g]);
+  }, [nodes]);
 
-  if (error) return <div className="card border-rose-500/40 text-sm text-rose-300">Graph error: {error}</div>;
-  if (!g) return <div className="card text-sm text-muted">Building graph…</div>;
+  const visible = computeVisible(nodes, expanded);
+  const vis = new Set(visible.map((n) => n.id));
+  const visEdges = edges.filter((e) => vis.has(e.source) && vis.has(e.target));
 
-  const visible = computeVisible(g.nodes, expanded);
-  const visibleIds = new Set(visible.map((n) => n.id));
-  const visibleEdges = g.edges.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target));
-
-  function toggle(id: string) {
-    if (!childrenOf[id]) return;
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }
-  const expandAll = () => setExpanded(new Set(g!.nodes.filter((n) => childrenOf[n.id]).map((n) => n.id)));
-  const collapseAll = () => setExpanded(new Set(g!.nodes.filter((n) => n.type === "niche" || n.type === "client").map((n) => n.id)));
+  const toggle = (id: string) => { if (childrenOf[id]) setExpanded((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; }); };
+  const expandAll = () => setExpanded(new Set(nodes.filter((n) => childrenOf[n.id]).map((n) => n.id)));
+  const collapse = () => setExpanded(new Set(nodes.filter((n) => defaultExpand.includes(n.type)).map((n) => n.id)));
+  const open = onOpenClient || ((slug: string) => router.push(`/clients/${slug}`));
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex overflow-hidden rounded-lg border border-edge">
-          <button onClick={() => setView("network")} className={`px-3 py-1 text-xs ${view === "network" ? "bg-accent text-white" : "text-muted"}`}>Network</button>
-          <button onClick={() => setView("clusters")} className={`px-3 py-1 text-xs ${view === "clusters" ? "bg-accent text-white" : "text-muted"}`}>Niche clusters</button>
+    <>
+      <div className="flex items-center gap-2">
+        <div className="text-xs text-muted">{caption} · {visible.length}/{nodes.length} shown</div>
+        <span className="ml-auto flex items-center gap-1">
+          <button className="btn-ghost px-2 py-1" onClick={expandAll}>expand all</button>
+          <button className="btn-ghost px-2 py-1" onClick={collapse}>collapse</button>
+          <button className="btn-ghost px-2 py-1" onClick={() => setZoom((z) => Math.max(0.3, z - 0.2))}>−</button>
+          <button className="btn-ghost px-2 py-1" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}>reset</button>
+          <button className="btn-ghost px-2 py-1" onClick={() => setZoom((z) => Math.min(3, z + 0.2))}>+</button>
         </span>
-        <Legend />
-        {view === "network" && (
-          <span className="ml-auto flex items-center gap-1">
-            <button className="btn-ghost px-2 py-1" onClick={expandAll}>expand all</button>
-            <button className="btn-ghost px-2 py-1" onClick={collapseAll}>collapse</button>
-            <button className="btn-ghost px-2 py-1" onClick={() => setZoom((z) => Math.max(0.3, z - 0.2))}>−</button>
-            <button className="btn-ghost px-2 py-1" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}>reset</button>
-            <button className="btn-ghost px-2 py-1" onClick={() => setZoom((z) => Math.min(3, z + 0.2))}>+</button>
-          </span>
-        )}
       </div>
-
-      {view === "network" ? (
-        <div className="text-xs text-muted">Click a node to expand/collapse its children · drag to pan · {visible.length} of {g.nodes.length} nodes shown</div>
-      ) : null}
-
-      {view === "network" ? (
-        <div className="card overflow-hidden p-0">
-          <svg
-            viewBox={`0 0 ${W} ${H}`} className="h-[760px] w-full cursor-grab active:cursor-grabbing"
-            onMouseDown={(e) => (drag.current = { x: e.clientX - pan.x, y: e.clientY - pan.y })}
-            onMouseMove={(e) => { if (drag.current) setPan({ x: e.clientX - drag.current.x, y: e.clientY - drag.current.y }); }}
-            onMouseUp={() => (drag.current = null)}
-            onMouseLeave={() => (drag.current = null)}
-          >
-            <g transform={`translate(${pan.x},${pan.y}) translate(${W / 2},${H / 2}) scale(${zoom}) translate(${-W / 2},${-H / 2})`}>
-              <Network nodes={visible} edges={visibleEdges} childrenOf={childrenOf} expanded={expanded}
-                onToggle={toggle} onOpenClient={(slug) => router.push(`/clients/${slug}`)} />
-            </g>
-          </svg>
-        </div>
-      ) : <Clusters g={g} />}
-    </div>
+      <div className="card overflow-hidden p-0">
+        <svg viewBox={`0 0 ${W} ${H}`} className="h-[760px] w-full cursor-grab active:cursor-grabbing"
+          onMouseDown={(e) => (drag.current = { x: e.clientX - pan.x, y: e.clientY - pan.y })}
+          onMouseMove={(e) => { if (drag.current) setPan({ x: e.clientX - drag.current.x, y: e.clientY - drag.current.y }); }}
+          onMouseUp={() => (drag.current = null)} onMouseLeave={() => (drag.current = null)}>
+          <g transform={`translate(${pan.x},${pan.y}) translate(${W / 2},${H / 2}) scale(${zoom}) translate(${-W / 2},${-H / 2})`}>
+            <NetworkSvg nodes={visible} edges={visEdges} childrenOf={childrenOf} expanded={expanded}
+              onToggle={toggle} onOpenClient={open} />
+          </g>
+        </svg>
+      </div>
+    </>
   );
 }
 
-function Network({ nodes, edges, childrenOf, expanded, onToggle, onOpenClient }: {
+function NetworkSvg({ nodes, edges, childrenOf, expanded, onToggle, onOpenClient }: {
   nodes: Node[]; edges: Edge[]; childrenOf: Record<string, number>;
   expanded: Set<string>; onToggle: (id: string) => void; onOpenClient: (slug: string) => void;
 }) {
   const pos = useForceLayout(nodes, edges);
   const at = (id: string) => pos[id];
-
   return (
     <>
       {edges.map((e, i) => {
         const a = at(e.source), b = at(e.target); if (!a || !b) return null;
         const related = e.kind.startsWith("related");
         const cross = e.kind === "for-campaign";
+        const mined = e.kind === "mined-from";
+        const color = related ? "#5b8cff" : cross ? "#818cf8" : mined ? "#fb923c" : "#22304d";
         return (
-          <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-            stroke={related ? "#5b8cff" : cross ? "#818cf8" : "#22304d"}
-            strokeWidth={related ? 2 : 1}
-            strokeDasharray={related || cross ? "4 4" : undefined} opacity={cross ? 0.8 : 1} />
+          <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={color}
+            strokeWidth={related ? 2 : mined ? 1.4 : 1}
+            strokeDasharray={related || cross || mined ? "4 4" : undefined}
+            opacity={mined ? 0.6 : cross ? 0.8 : 1} />
         );
       })}
       {nodes.map((n) => {
         const p = at(n.id); if (!p) return null;
         const s = STYLE[n.type] || STYLE.pain;
         const kids = childrenOf[n.id] || 0;
-        const isOpen = expanded.has(n.id);
         const small = s.r <= 9;
-        const label = (n.value != null && n.type !== "pain" && n.type !== "campaign") ? `${n.label} ${n.value}` : n.label;
-        const clip = label.length > 26 ? label.slice(0, 25) + "…" : label;
+        const label = (n.value != null && !["pain", "campaign"].includes(n.type)) ? `${n.label} ${n.value}` : n.label;
+        const clip = label.length > 28 ? label.slice(0, 27) + "…" : label;
         return (
-          <g key={n.id} style={{ cursor: kids ? "pointer" : n.type === "client" ? "pointer" : "default" }}
-            onClick={(ev) => { ev.stopPropagation(); if (n.type === "client") onOpenClient(n.id.split(":")[1]); else onToggle(n.id); }}>
+          <g key={n.id} style={{ cursor: kids || n.type === "client" ? "pointer" : "default" }}
+            onClick={(ev) => { ev.stopPropagation(); n.type === "client" ? onOpenClient(n.id.split(":")[1]) : onToggle(n.id); }}>
             <circle cx={p.x} cy={p.y} r={s.r} fill={s.fill} stroke={s.ring} strokeWidth={1.5} />
-            {kids > 0 && (
-              <text x={p.x} y={p.y + 3.5} textAnchor="middle" fontSize={s.r > 14 ? 12 : 9} fill="#cdd9ef" fontWeight={700}>
-                {isOpen ? "−" : "+"}
-              </text>
-            )}
+            {kids > 0 && <text x={p.x} y={p.y + 3.5} textAnchor="middle" fontSize={s.r > 14 ? 12 : 9} fill="#cdd9ef" fontWeight={700}>{expanded.has(n.id) ? "−" : "+"}</text>}
             {(!small || !kids) && (
               <text x={p.x} y={p.y + s.r + 11} textAnchor="middle" fontSize={s.text}
-                fill={small ? "#7e93b8" : "#e2e8f0"} fontWeight={["client", "niche", "hub"].includes(n.type) ? 600 : 400}>
-                {clip}
-              </text>
+                fill={small ? "#7e93b8" : "#e2e8f0"} fontWeight={["client", "niche", "hub", "cluster"].includes(n.type) ? 600 : 400}>{clip}</text>
             )}
           </g>
         );
@@ -165,15 +166,72 @@ function Network({ nodes, edges, childrenOf, expanded, onToggle, onOpenClient }:
   );
 }
 
+/* ------- Pain clusters view ------- */
+function ClusterView({ niches }: { niches: string[] }) {
+  const [niche, setNiche] = useState(niches[0] || "");
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function load(n: string) {
+    setLoading(true); setError(null); setData(null);
+    try {
+      const res = await fetch("/api/clusters", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ niche: n }) });
+      const d = await res.json();
+      res.ok ? setData(d) : setError(d.error || "failed");
+    } catch (e: any) { setError(e.message); } finally { setLoading(false); }
+  }
+  useEffect(() => { if (niche) load(niche); }, [niche]); // eslint-disable-line
+
+  const graph = useMemo(() => {
+    if (!data) return null;
+    const nodes: Node[] = [{ id: "scope", type: "niche", label: niche, niche }];
+    const edges: Edge[] = [];
+    (data.clusters || []).filter((c: any) => c.size > 1).forEach((c: any, i: number) => {
+      const cid = `cl:${i}`;
+      nodes.push({ id: cid, type: "cluster", label: c.representative, value: c.size, parent: "scope", niche });
+      edges.push({ source: "scope", target: cid, kind: "cluster" });
+      (c.members || []).forEach((m: any, j: number) => {
+        const mid = `clm:${i}:${j}`;
+        nodes.push({ id: mid, type: "pain", label: `${m.text}  ·  ${m.client}`, parent: cid, niche });
+        edges.push({ source: cid, target: mid, kind: "member" });
+      });
+    });
+    if (data.singletons) nodes.push({ id: "uniq", type: "unique", label: "unique pains", value: data.singletons, parent: "scope", niche }), edges.push({ source: "scope", target: "uniq", kind: "u" });
+    return { nodes, edges, summary: {} } as Graph;
+  }, [data, niche]);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <select className="input max-w-[220px]" value={niche} onChange={(e) => setNiche(e.target.value)}>
+          {niches.map((n) => <option key={n} value={n}>{n}</option>)}
+        </select>
+        {data && (
+          <span className="text-sm text-muted">
+            <b className="text-slate-200">{data.total_pains}</b> pains →{" "}
+            <b className="text-slate-200">{data.clusters_total}</b> clusters{" "}
+            (<b className="text-amber-300">{data.multi_member_clusters}</b> grouped, {data.singletons} unique) · threshold {data.threshold}
+          </span>
+        )}
+      </div>
+      {loading && <div className="card text-sm text-muted">Clustering pain embeddings…</div>}
+      {error && <div className="card border-rose-500/40 text-sm text-rose-300">{error}</div>}
+      {graph && <InteractiveGraph nodes={graph.nodes} edges={graph.edges} defaultExpand={["niche"]}
+        caption="Each orange node = a group of near-duplicate pains. Click to see the members." />}
+    </div>
+  );
+}
+
 function computeVisible(nodes: Node[], expanded: Set<string>): Node[] {
   const byId = new Map(nodes.map((n) => [n.id, n]));
-  const isVisible = (n: Node): boolean => {
+  const vis = (n: Node): boolean => {
     if (!n.parent) return true;
-    const parent = byId.get(n.parent);
-    if (!parent) return true;
-    return expanded.has(parent.id) && isVisible(parent);
+    const p = byId.get(n.parent);
+    if (!p) return true;
+    return expanded.has(p.id) && vis(p);
   };
-  return nodes.filter(isVisible);
+  return nodes.filter(vis);
 }
 
 function Clusters({ g }: { g: Graph }) {
@@ -196,9 +254,7 @@ function Clusters({ g }: { g: Graph }) {
                 return (
                   <a key={c.id} href={`/clients/${slug}`} className="block rounded-lg border border-edge p-2 hover:border-accent">
                     <div className="text-sm font-medium">{c.label}</div>
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {hubs.map((h) => <span key={h.id} className="chip">{h.label} {h.value}</span>)}
-                    </div>
+                    <div className="mt-1 flex flex-wrap gap-1">{hubs.map((h) => <span key={h.id} className="chip">{h.label} {h.value}</span>)}</div>
                   </a>
                 );
               })}
@@ -211,8 +267,10 @@ function Clusters({ g }: { g: Graph }) {
   );
 }
 
-function Legend() {
-  const items = [["niche", "Niche"], ["kb", "Niche brain"], ["client", "Client"], ["hub", "Category"], ["painkind", "Pain kind"], ["angle", "Vertical"]];
+function Legend({ view }: { view: string }) {
+  const items = view === "clusters"
+    ? [["cluster", "Pain group"], ["pain", "Pain"], ["unique", "Unique pains"]]
+    : [["niche", "Niche"], ["kb", "Niche brain"], ["client", "Client"], ["hub", "Category"], ["painkind", "Pain kind"], ["angle", "Vertical"]];
   return (
     <span className="flex flex-wrap gap-3 text-xs text-muted">
       {items.map(([t, l]) => (
@@ -224,36 +282,29 @@ function Legend() {
   );
 }
 
-// force layout over the currently-visible nodes; re-runs when they change
 function useForceLayout(nodes: Node[], edges: Edge[]) {
   return useMemo(() => {
     const N = nodes.map((n, i) => ({
-      id: n.id, type: n.type, pin: n.type === "niche",
+      id: n.id, pin: n.type === "niche",
       x: W / 2 + Math.cos(i * 1.7) * (120 + i * 4),
       y: H / 2 + Math.sin(i * 1.7) * (120 + i * 4),
       vx: 0, vy: 0,
     }));
     const idx: Record<string, number> = {}; N.forEach((n, i) => (idx[n.id] = i));
     const L = edges.map((e) => ({ s: idx[e.source], t: idx[e.target] })).filter((l) => l.s != null && l.t != null);
-
-    const niches = N.filter((n) => n.pin);
-    niches.forEach((n, i) => { n.x = W * 0.22; n.y = (H / (niches.length + 1)) * (i + 1); });
-
+    const pinned = N.filter((n) => n.pin);
+    pinned.forEach((n, i) => { n.x = W * 0.22; n.y = (H / (pinned.length + 1)) * (i + 1); });
     const iters = Math.min(360, 160 + nodes.length);
     for (let it = 0; it < iters; it++) {
-      for (let i = 0; i < N.length; i++) {
+      for (let i = 0; i < N.length; i++)
         for (let j = i + 1; j < N.length; j++) {
-          let dx = N[i].x - N[j].x, dy = N[i].y - N[j].y;
-          let d2 = dx * dx + dy * dy || 0.01;
+          let dx = N[i].x - N[j].x, dy = N[i].y - N[j].y; let d2 = dx * dx + dy * dy || 0.01;
           const f = 2200 / d2, d = Math.sqrt(d2), ux = dx / d, uy = dy / d;
           N[i].vx += ux * f; N[i].vy += uy * f; N[j].vx -= ux * f; N[j].vy -= uy * f;
         }
-      }
       for (const l of L) {
-        const a = N[l.s], b = N[l.t];
-        let dx = b.x - a.x, dy = b.y - a.y;
-        const d = Math.sqrt(dx * dx + dy * dy) || 0.01;
-        const f = (d - 78) * 0.025, ux = dx / d, uy = dy / d;
+        const a = N[l.s], b = N[l.t]; let dx = b.x - a.x, dy = b.y - a.y;
+        const d = Math.sqrt(dx * dx + dy * dy) || 0.01; const f = (d - 78) * 0.025, ux = dx / d, uy = dy / d;
         a.vx += ux * f; a.vy += uy * f; b.vx -= ux * f; b.vy -= uy * f;
       }
       for (const n of N) {

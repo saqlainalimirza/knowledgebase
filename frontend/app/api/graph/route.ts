@@ -50,9 +50,25 @@ export async function GET() {
       add({ id: cId, type: "client", label: c.client, parent: nicheId, niche });
       link(cId, nicheId, "in-niche");
 
-      // ---- pains by kind ----
+      // ---- calls / docs (built first so pains can link to their source call) ----
+      const calls = await q<any>(
+        `select id, title, source_call_id, source from client_calls where client_slug=$1 order by id`, [c.slug]);
+      const callNodeBySrc: Record<string, string> = {};
+      if (calls.length) {
+        const callHub = `hub:${c.slug}:calls`;
+        add({ id: callHub, type: "hub", label: "Calls / docs", value: calls.length, parent: cId, niche });
+        link(cId, callHub, "has");
+        calls.forEach((cl) => {
+          const id = `call:${c.slug}:${cl.id}`;
+          callNodeBySrc[cl.source_call_id] = id;
+          add({ id, type: "call", label: cl.title || cl.source_call_id, parent: callHub, niche, meta: { source: cl.source } });
+          link(callHub, id, "call");
+        });
+      }
+
+      // ---- pains by kind (each linked back to the call/doc it was mined from) ----
       const pains = await q<any>(
-        `select id, kind, item_text, confidence from master_sheet_pains
+        `select id, kind, item_text, confidence, source from master_sheet_pains
          where client_slug=$1 order by kind, confidence desc`, [c.slug]);
       if (pains.length) {
         const painsHub = `hub:${c.slug}:pains`;
@@ -66,8 +82,11 @@ export async function GET() {
           link(painsHub, kindId, "kind");
           items.slice(0, PAIN_CAP).forEach((p) => {
             const id = `pi:${c.slug}:${p.id}`;
-            add({ id, type: "pain", label: p.item_text, parent: kindId, niche, meta: { confidence: p.confidence } });
+            add({ id, type: "pain", label: p.item_text, parent: kindId, niche, meta: { confidence: p.confidence, source: p.source } });
             link(kindId, id, "item");
+            // provenance: link the pain back to the call/doc it was mined from
+            const m = /^call (.+)$/.exec(p.source || "");
+            if (m && callNodeBySrc[m[1]]) link(id, callNodeBySrc[m[1]], "mined-from");
           });
         }
       }
@@ -122,19 +141,6 @@ export async function GET() {
         });
       }
 
-      // ---- calls (count leaf; expandable list) ----
-      const calls = await q<any>(
-        `select id, title, source_call_id, source from client_calls where client_slug=$1 order by id`, [c.slug]);
-      if (calls.length) {
-        const callHub = `hub:${c.slug}:calls`;
-        add({ id: callHub, type: "hub", label: "Calls / docs", value: calls.length, parent: cId, niche });
-        link(cId, callHub, "has");
-        calls.forEach((cl) => {
-          const id = `call:${c.slug}:${cl.id}`;
-          add({ id, type: "call", label: cl.title || cl.source_call_id, parent: callHub, niche, meta: { source: cl.source } });
-          link(callHub, id, "call");
-        });
-      }
     }
 
     // niche <-> niche similarity (embeddings)
