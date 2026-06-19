@@ -65,19 +65,28 @@ export default function GraphView() {
   );
 }
 
-/* ------- shared interactive force graph with expand/collapse + pan/zoom ------- */
+/* ------- shared interactive graph: draggable nodes, pan/zoom, hover-highlight ------- */
 function InteractiveGraph({ nodes, edges, defaultExpand, caption, onOpenClient }: {
   nodes: Node[]; edges: Edge[]; defaultExpand: string[]; caption?: string;
   onOpenClient?: (slug: string) => void;
 }) {
   const router = useRouter();
+  const svgRef = useRef<SVGSVGElement>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const drag = useRef<{ x: number; y: number } | null>(null);
+  const [pos, setPos] = useState<Record<string, { x: number; y: number }>>({});
+  const [hover, setHover] = useState<string | null>(null);
+
+  const posRef = useRef(pos); posRef.current = pos;
+  const pinned = useRef<Set<string>>(new Set());
+  const panDrag = useRef<{ x: number; y: number } | null>(null);
+  const nodeDrag = useRef<{ id: string; moved: boolean } | null>(null);
 
   useEffect(() => {
     setExpanded(new Set(nodes.filter((n) => defaultExpand.includes(n.type)).map((n) => n.id)));
+    pinned.current = new Set();
+    setPos({});
   }, [nodes, defaultExpand.join(",")]); // eslint-disable-line
 
   const childrenOf = useMemo(() => {
@@ -90,78 +99,112 @@ function InteractiveGraph({ nodes, edges, defaultExpand, caption, onOpenClient }
   const vis = new Set(visible.map((n) => n.id));
   const visEdges = edges.filter((e) => vis.has(e.source) && vis.has(e.target));
 
+  // (re)compute layout when the set of visible nodes changes; keep existing/pinned positions
+  const visKey = visible.map((n) => n.id).join("|");
+  useEffect(() => {
+    setPos((prev) => layoutPositions(visible, visEdges, prev, pinned.current));
+  }, [visKey]); // eslint-disable-line
+
+  // convert a screen point to graph (group) coordinates
+  function toGraph(clientX: number, clientY: number) {
+    const svg = svgRef.current!;
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return { x: 0, y: 0 };
+    const pt = svg.createSVGPoint(); pt.x = clientX; pt.y = clientY;
+    const s = pt.matrixTransform(ctm.inverse()); // svg user units
+    return { x: (s.x - pan.x - W / 2) / zoom + W / 2, y: (s.y - pan.y - H / 2) / zoom + H / 2 };
+  }
+
   const toggle = (id: string) => { if (childrenOf[id]) setExpanded((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; }); };
   const expandAll = () => setExpanded(new Set(nodes.filter((n) => childrenOf[n.id]).map((n) => n.id)));
   const collapse = () => setExpanded(new Set(nodes.filter((n) => defaultExpand.includes(n.type)).map((n) => n.id)));
   const open = onOpenClient || ((slug: string) => router.push(`/clients/${slug}`));
 
+  function onMouseMove(e: React.MouseEvent) {
+    if (nodeDrag.current) {
+      const g = toGraph(e.clientX, e.clientY);
+      nodeDrag.current.moved = true;
+      const id = nodeDrag.current.id;
+      pinned.current.add(id);
+      setPos((p) => ({ ...p, [id]: g }));
+    } else if (panDrag.current) {
+      setPan({ x: e.clientX - panDrag.current.x, y: e.clientY - panDrag.current.y });
+    }
+  }
+  function endDrag() {
+    if (nodeDrag.current && !nodeDrag.current.moved) {
+      const n = nodes.find((x) => x.id === nodeDrag.current!.id);
+      if (n) n.type === "client" ? open(n.id.split(":")[1]) : toggle(n.id);
+    }
+    nodeDrag.current = null; panDrag.current = null;
+  }
+
+  // highlight set: hovered node + its direct neighbors
+  const neighbors = new Set<string>();
+  if (hover) {
+    neighbors.add(hover);
+    visEdges.forEach((e) => { if (e.source === hover) neighbors.add(e.target); if (e.target === hover) neighbors.add(e.source); });
+  }
+
   return (
     <>
       <div className="flex items-center gap-2">
-        <div className="text-xs text-muted">{caption} · {visible.length}/{nodes.length} shown</div>
+        <div className="text-xs text-muted">{caption} · drag nodes to arrange · hover to trace links · {visible.length}/{nodes.length} shown</div>
         <span className="ml-auto flex items-center gap-1">
           <button className="btn-ghost px-2 py-1" onClick={expandAll}>expand all</button>
           <button className="btn-ghost px-2 py-1" onClick={collapse}>collapse</button>
+          <button className="btn-ghost px-2 py-1" onClick={() => { pinned.current = new Set(); setPos((p) => layoutPositions(visible, visEdges, {}, pinned.current)); }}>re-layout</button>
           <button className="btn-ghost px-2 py-1" onClick={() => setZoom((z) => Math.max(0.3, z - 0.2))}>−</button>
           <button className="btn-ghost px-2 py-1" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}>reset</button>
           <button className="btn-ghost px-2 py-1" onClick={() => setZoom((z) => Math.min(3, z + 0.2))}>+</button>
         </span>
       </div>
       <div className="card overflow-hidden p-0">
-        <svg viewBox={`0 0 ${W} ${H}`} className="h-[760px] w-full cursor-grab active:cursor-grabbing"
-          onMouseDown={(e) => (drag.current = { x: e.clientX - pan.x, y: e.clientY - pan.y })}
-          onMouseMove={(e) => { if (drag.current) setPan({ x: e.clientX - drag.current.x, y: e.clientY - drag.current.y }); }}
-          onMouseUp={() => (drag.current = null)} onMouseLeave={() => (drag.current = null)}>
+        <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="h-[760px] w-full"
+          style={{ cursor: panDrag.current ? "grabbing" : "default" }}
+          onMouseDown={(e) => (panDrag.current = { x: e.clientX - pan.x, y: e.clientY - pan.y })}
+          onMouseMove={onMouseMove} onMouseUp={endDrag} onMouseLeave={endDrag}>
           <g transform={`translate(${pan.x},${pan.y}) translate(${W / 2},${H / 2}) scale(${zoom}) translate(${-W / 2},${-H / 2})`}>
-            <NetworkSvg nodes={visible} edges={visEdges} childrenOf={childrenOf} expanded={expanded}
-              onToggle={toggle} onOpenClient={open} />
+            {visEdges.map((e, i) => {
+              const a = pos[e.source], b = pos[e.target]; if (!a || !b) return null;
+              const related = e.kind.startsWith("related");
+              const cross = e.kind === "for-campaign";
+              const mined = e.kind === "mined-from";
+              const lit = hover ? (e.source === hover || e.target === hover) : false;
+              const dim = hover && !lit;
+              const color = lit ? "#fbbf24" : related ? "#5b8cff" : cross ? "#818cf8" : mined ? "#fb923c" : "#22304d";
+              return (
+                <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={color}
+                  strokeWidth={lit ? 2.5 : related ? 2 : mined ? 1.4 : 1}
+                  strokeDasharray={!lit && (related || cross || mined) ? "4 4" : undefined}
+                  opacity={dim ? 0.06 : mined ? 0.7 : 1} />
+              );
+            })}
+            {visible.map((n) => {
+              const p = pos[n.id]; if (!p) return null;
+              const s = STYLE[n.type] || STYLE.pain;
+              const kids = childrenOf[n.id] || 0;
+              const small = s.r <= 9;
+              const dim = hover ? !neighbors.has(n.id) : false;
+              const label = (n.value != null && !["pain", "campaign"].includes(n.type)) ? `${n.label} ${n.value}` : n.label;
+              const clip = label.length > 30 ? label.slice(0, 29) + "…" : label;
+              const showLabel = (!small || !kids || hover === n.id || neighbors.has(n.id));
+              return (
+                <g key={n.id} opacity={dim ? 0.18 : 1} style={{ cursor: "grab" }}
+                  onMouseDown={(ev) => { ev.stopPropagation(); nodeDrag.current = { id: n.id, moved: false }; }}
+                  onMouseEnter={() => setHover(n.id)} onMouseLeave={() => setHover(null)}>
+                  <circle cx={p.x} cy={p.y} r={s.r} fill={s.fill} stroke={hover === n.id ? "#fbbf24" : s.ring} strokeWidth={hover === n.id ? 3 : 1.5} />
+                  {kids > 0 && <text x={p.x} y={p.y + 3.5} textAnchor="middle" fontSize={s.r > 14 ? 12 : 9} fill="#cdd9ef" fontWeight={700}>{expanded.has(n.id) ? "−" : "+"}</text>}
+                  {showLabel && (
+                    <text x={p.x} y={p.y + s.r + 11} textAnchor="middle" fontSize={s.text}
+                      fill={small ? "#7e93b8" : "#e2e8f0"} fontWeight={["client", "niche", "hub", "cluster"].includes(n.type) ? 600 : 400}>{clip}</text>
+                  )}
+                </g>
+              );
+            })}
           </g>
         </svg>
       </div>
-    </>
-  );
-}
-
-function NetworkSvg({ nodes, edges, childrenOf, expanded, onToggle, onOpenClient }: {
-  nodes: Node[]; edges: Edge[]; childrenOf: Record<string, number>;
-  expanded: Set<string>; onToggle: (id: string) => void; onOpenClient: (slug: string) => void;
-}) {
-  const pos = useForceLayout(nodes, edges);
-  const at = (id: string) => pos[id];
-  return (
-    <>
-      {edges.map((e, i) => {
-        const a = at(e.source), b = at(e.target); if (!a || !b) return null;
-        const related = e.kind.startsWith("related");
-        const cross = e.kind === "for-campaign";
-        const mined = e.kind === "mined-from";
-        const color = related ? "#5b8cff" : cross ? "#818cf8" : mined ? "#fb923c" : "#22304d";
-        return (
-          <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={color}
-            strokeWidth={related ? 2 : mined ? 1.4 : 1}
-            strokeDasharray={related || cross || mined ? "4 4" : undefined}
-            opacity={mined ? 0.6 : cross ? 0.8 : 1} />
-        );
-      })}
-      {nodes.map((n) => {
-        const p = at(n.id); if (!p) return null;
-        const s = STYLE[n.type] || STYLE.pain;
-        const kids = childrenOf[n.id] || 0;
-        const small = s.r <= 9;
-        const label = (n.value != null && !["pain", "campaign"].includes(n.type)) ? `${n.label} ${n.value}` : n.label;
-        const clip = label.length > 28 ? label.slice(0, 27) + "…" : label;
-        return (
-          <g key={n.id} style={{ cursor: kids || n.type === "client" ? "pointer" : "default" }}
-            onClick={(ev) => { ev.stopPropagation(); n.type === "client" ? onOpenClient(n.id.split(":")[1]) : onToggle(n.id); }}>
-            <circle cx={p.x} cy={p.y} r={s.r} fill={s.fill} stroke={s.ring} strokeWidth={1.5} />
-            {kids > 0 && <text x={p.x} y={p.y + 3.5} textAnchor="middle" fontSize={s.r > 14 ? 12 : 9} fill="#cdd9ef" fontWeight={700}>{expanded.has(n.id) ? "−" : "+"}</text>}
-            {(!small || !kids) && (
-              <text x={p.x} y={p.y + s.r + 11} textAnchor="middle" fontSize={s.text}
-                fill={small ? "#7e93b8" : "#e2e8f0"} fontWeight={["client", "niche", "hub", "cluster"].includes(n.type) ? 600 : 400}>{clip}</text>
-            )}
-          </g>
-        );
-      })}
     </>
   );
 }
@@ -282,39 +325,51 @@ function Legend({ view }: { view: string }) {
   );
 }
 
-function useForceLayout(nodes: Node[], edges: Edge[]) {
-  return useMemo(() => {
-    const N = nodes.map((n, i) => ({
-      id: n.id, pin: n.type === "niche",
-      x: W / 2 + Math.cos(i * 1.7) * (120 + i * 4),
-      y: H / 2 + Math.sin(i * 1.7) * (120 + i * 4),
-      vx: 0, vy: 0,
-    }));
-    const idx: Record<string, number> = {}; N.forEach((n, i) => (idx[n.id] = i));
-    const L = edges.map((e) => ({ s: idx[e.source], t: idx[e.target] })).filter((l) => l.s != null && l.t != null);
-    const pinned = N.filter((n) => n.pin);
-    pinned.forEach((n, i) => { n.x = W * 0.22; n.y = (H / (pinned.length + 1)) * (i + 1); });
-    const iters = Math.min(360, 160 + nodes.length);
-    for (let it = 0; it < iters; it++) {
-      for (let i = 0; i < N.length; i++)
-        for (let j = i + 1; j < N.length; j++) {
-          let dx = N[i].x - N[j].x, dy = N[i].y - N[j].y; let d2 = dx * dx + dy * dy || 0.01;
-          const f = 2200 / d2, d = Math.sqrt(d2), ux = dx / d, uy = dy / d;
-          N[i].vx += ux * f; N[i].vy += uy * f; N[j].vx -= ux * f; N[j].vy -= uy * f;
-        }
-      for (const l of L) {
-        const a = N[l.s], b = N[l.t]; let dx = b.x - a.x, dy = b.y - a.y;
-        const d = Math.sqrt(dx * dx + dy * dy) || 0.01; const f = (d - 78) * 0.025, ux = dx / d, uy = dy / d;
-        a.vx += ux * f; a.vy += uy * f; b.vx -= ux * f; b.vy -= uy * f;
+/* Force layout that PRESERVES positions the user has set: nodes already in `prev`
+   keep their coords as the starting point, niche + pinned (dragged) nodes are fixed
+   anchors, and only genuinely-new nodes are seeded near their parent and relaxed. */
+function layoutPositions(
+  nodes: Node[], edges: Edge[],
+  prev: Record<string, { x: number; y: number }>,
+  pinnedSet: Set<string>
+) {
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const N = nodes.map((n, i) => {
+    const fixed = n.type === "niche" || pinnedSet.has(n.id);
+    let x: number, y: number;
+    if (prev[n.id]) { x = prev[n.id].x; y = prev[n.id].y; }
+    else if (n.parent && prev[n.parent]) { x = prev[n.parent].x + Math.cos(i) * 60; y = prev[n.parent].y + Math.sin(i) * 60; }
+    else { x = W / 2 + Math.cos(i * 1.7) * (120 + i * 4); y = H / 2 + Math.sin(i * 1.7) * (120 + i * 4); }
+    return { id: n.id, fixed, isNew: !prev[n.id], x, y, vx: 0, vy: 0 };
+  });
+  const idx: Record<string, number> = {}; N.forEach((n, i) => (idx[n.id] = i));
+  const L = edges.map((e) => ({ s: idx[e.source], t: idx[e.target] })).filter((l) => l.s != null && l.t != null);
+
+  // pin niche nodes into a left spine only if they don't already have a position
+  const niches = N.filter((n) => byId.get(n.id)?.type === "niche");
+  niches.forEach((n, i) => { if (!prev[n.id]) { n.x = W * 0.22; n.y = (H / (niches.length + 1)) * (i + 1); } });
+
+  const anyNew = N.some((n) => n.isNew);
+  const iters = anyNew ? Math.min(300, 120 + nodes.length) : 0; // don't reshuffle a settled graph
+  for (let it = 0; it < iters; it++) {
+    for (let i = 0; i < N.length; i++)
+      for (let j = i + 1; j < N.length; j++) {
+        let dx = N[i].x - N[j].x, dy = N[i].y - N[j].y; let d2 = dx * dx + dy * dy || 0.01;
+        const f = 2200 / d2, d = Math.sqrt(d2), ux = dx / d, uy = dy / d;
+        N[i].vx += ux * f; N[i].vy += uy * f; N[j].vx -= ux * f; N[j].vy -= uy * f;
       }
-      for (const n of N) {
-        if (n.pin) { n.vx = 0; n.vy = 0; continue; }
-        n.x += n.vx * 0.85; n.y += n.vy * 0.85; n.vx *= 0.8; n.vy *= 0.8;
-        n.x = Math.max(30, Math.min(W - 30, n.x)); n.y = Math.max(24, Math.min(H - 24, n.y));
-      }
+    for (const l of L) {
+      const a = N[l.s], b = N[l.t]; let dx = b.x - a.x, dy = b.y - a.y;
+      const d = Math.sqrt(dx * dx + dy * dy) || 0.01; const f = (d - 80) * 0.03, ux = dx / d, uy = dy / d;
+      a.vx += ux * f; a.vy += uy * f; b.vx -= ux * f; b.vy -= uy * f;
     }
-    const out: Record<string, { x: number; y: number }> = {};
-    N.forEach((n) => (out[n.id] = { x: n.x, y: n.y }));
-    return out;
-  }, [nodes, edges]);
+    for (const n of N) {
+      if (n.fixed) { n.vx = 0; n.vy = 0; continue; }
+      n.x += n.vx * 0.85; n.y += n.vy * 0.85; n.vx *= 0.8; n.vy *= 0.8;
+      n.x = Math.max(30, Math.min(W - 30, n.x)); n.y = Math.max(24, Math.min(H - 24, n.y));
+    }
+  }
+  const out: Record<string, { x: number; y: number }> = {};
+  N.forEach((n) => (out[n.id] = { x: n.x, y: n.y }));
+  return out;
 }
