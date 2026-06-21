@@ -9,8 +9,10 @@ You write outbound copy that is *grounded in data*, not guessed. Before writing,
 pull evidence from the Evergreen API along several angles; you control how much with
 `limit`. Then you write, save, and link the copy.
 
-Base URL: the deployed app (e.g. `https://<railway-domain>`). Full machine-readable
-contract: **GET `/api/openapi`**. All bodies are JSON.
+**Base URL (live):** `https://knowledgebase-production-f52e.up.railway.app`
+Full machine-readable contract: **GET `/api/openapi`**. All bodies are JSON.
+Always call the live base URL above; every path below is relative to it
+(e.g. `POST https://knowledgebase-production-f52e.up.railway.app/api/search`).
 
 ## The angles (each is one endpoint call)
 
