@@ -201,9 +201,39 @@ Cadence: weekly demo/review call (logic check); engineering owns technical execu
 
 ---
 
-## 13. Team & cadence
+## 13. Team, resourcing & why 2 engineers
 
-- Build lead + 2 AI engineers (scope above).
+The 6-week deadline is only achievable by running **three parallel lanes**. The
+workstreams (§section 4–10) don't fit one person in six weeks — solo this is ~12 weeks.
+Two AI engineers let the lead stay on the hard IP (architecture, retrieval, skills)
+while backend and full-stack proceed in parallel.
+
+**Lane 1 — Lead / architect (Hilal):** schema + tagging design, retrieval core
+(routing, clustering, cross-role), SMS + email skills, coordination, QA sign-off.
+**Lane 2 — AI Engineer A (data / backend):** ingestion pipeline, DB build + migrations,
+Airtable sync (campaigns, **copy_metrics**, **deals**), attribution wiring, embedding
+jobs, indexes/perf.
+**Lane 3 — AI Engineer B (full-stack):** typed API layer, dashboard (full client
+context + **per-variant stats**), graph V1 with tag/role filters, copy editor
+(variant + metrics UX), SOP tooling.
+
+| Week | Lead (Hilal) | Engineer A (data/backend) | Engineer B (full-stack) |
+|---|---|---|---|
+| 0 | ERD + schema lock | provision V1 DB, batch-ingest Drive | scaffold app + API skeleton |
+| 1 | tagging + retrieval design | schema + migrations + ingestion pipeline | API layer + client pages |
+| 2 | retrieval tuning | copy_metrics sync + variant model | copy editor: campaign+variant+metrics UI |
+| 3 | role-scoped retrieval/clusters | **deals** + attribution wiring | graph tag/role filters |
+| 4 | skills prep + few-shot mining | perf/indexes + drafts ingestion | dashboard V1 + attribution views |
+| 5 | **SMS v2 + email skills** | data QA + backfill load | skill-facing UI + SOP tooling |
+| 6 | acceptance + sign-off | hardening/perf + seams (inbox/leads) | polish + recorded-session support |
+
+**Where they add value concretely:** Engineer A owns the two pieces the MVP never had —
+the **attribution loop** (copy→variant→campaign→deal→role) and reliable **Airtable metric
+sync** — plus migration and pgvector performance at scale. Engineer B owns everything the
+strategist and Aaman actually touch — the **dashboard, graph, and copy/variant UI** — so
+it's usable, not just an API. This keeps the lead 100% on the retrieval + skills quality
+that is the product's edge.
+
 - Strategist(s): weekly copy + outcome entry via dashboard.
 - Weekly 30-min review (catch logical/strategy gaps early).
 
