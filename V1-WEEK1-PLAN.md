@@ -6,21 +6,16 @@ prompts, niche routing/clustering, Airtable field mappings) and re-implement it 
 we throw away the MVP's flat schema and patched code. The MVP was the throwaway prototype
 that de-risked the real build.
 
-Week 1 turns the locked Week-0 design into a running foundation: the V1 schema + tagging
-layer live, one hardened ingestion pipeline writing into it, all clients **re-ingested
-fresh from raw sources** (not migrated), and the API/front-end reading V1. Companion to
+Week 1 turns the locked Week-0 design into a running foundation: the V1 schema live, one
+hardened ingestion pipeline writing into it, all clients **re-ingested fresh from raw
+sources** (not migrated), and the API/front-end reading V1. Companion to
 [V1-BUILD-PLAN.md](V1-BUILD-PLAN.md).
-
-> **Why this is the make-or-break week.** Everything downstream (attribution, skills,
-> dashboard) reads the tagging + schema built here. If the taxonomy and migration are
-> right, Weeks 2–6 are additive. If they're rushed, we pay for it every week after. So
-> Week 1 optimizes for a *correct, verified* foundation over feature count.
 
 ---
 
 ## 0. Entry criteria (from Week 0)
 
-- Locked ERD + schema decisions (§15 of the build plan resolved).
+- Locked schema decisions (§12 questions resolved).
 - A **separate V1 Supabase project** (staging) — the live MVP keeps running untouched.
 - Aaman's Drive inputs landing (transcripts, copies+campaigns, drafts).
 
@@ -29,100 +24,66 @@ fresh from raw sources** (not migrated), and the API/front-end reading V1. Compa
 ## 1. Week-1 objectives (Definition of Done)
 
 By Friday, all true if:
-1. V1 schema + **tagging layer** (niches hierarchy, job_titles, employee_ranges,
-   entity_tags) created **and seeded** from real data.
-2. **Ingestion pipeline v2** ingests any input (transcript / case study / onboarding /
-   draft / Airtable) → normalize → chunk → embed → dedup → write → tag → emit edges,
-   idempotently, from a folder drop.
-3. **All 7 clients re-ingested fresh** into V1 from their raw source files (not
-   migrated) — tagged (niche/sub_niche/job_title) and embedded natively on write.
-4. **Vector indexes** (ivfflat/hnsw) on every embedding column; tag FKs indexed.
-5. **API skeleton** reads V1 (clients list/detail, search) + regenerated OpenAPI.
-6. **QA harness** passes: 0 missing embeddings, 0 orphan tags, counts match source.
+1. V1 schema live with the **inference-first tagging model** (inferred niche/title text +
+   embeddings on the rows; small controlled buckets for function/seniority/size).
+2. **Ingestion pipeline v2** ingests any input → normalize → chunk → embed → dedup →
+   write → **AI-infer tags on write** → emit edges, idempotently, from a folder drop.
+3. **All clients re-ingested fresh** into V1 from raw source files (not migrated).
+4. **Vector indexes** (ivfflat/hnsw) on every embedding column.
+5. **API skeleton** reads V1 (clients list/detail, search with scope) + regenerated OpenAPI.
+6. **QA harness** passes: 0 missing embeddings, counts sane, buckets populated.
 
 ---
 
-## 2. Guiding principles (the "why" behind the order)
+## 2. Guiding principles (the "why" behind the design)
 
-- **Staging isolation.** Build on a new project so the live MVP (7 clients, deployed)
-  is never at risk during the rebuild. Cut over only when V1 is proven.
-- **Schema → ingestion → re-ingest → verify**, in that order. We rebuild from the raw
-  source files (transcripts, CSVs, forms, Airtable) — **not** from the MVP database. The
-  raw files are the source of truth; the MVP DB is a derived artifact. Re-ingesting
-  through the V2 pipeline lands data already tagged, so there is no migration/backfill
-  code to write or trust.
-- **Tags are IDs, not strings.** The MVP's #1 failure was free-text `niche`. Every tag
-  becomes a foreign key to a canonical row so search/graph/skills filter identically.
-- **Idempotent everything.** Re-running ingestion or migration must not duplicate. This
-  is what lets us iterate safely all week.
-- **Seed taxonomy from data we already have** (below) — don't hand-invent it.
-- **Attribution comes from Airtable, not from us.** The Airtable **Deals table** already
-  links deal → campaign → **copy variant** → contact → **job title** → company → stage →
-  value → conversation → lost/objection reason. So `contacts`, `deals`, job-title tags,
-  and per-variant attribution are a **sync**, not a build. We mirror the Deals table; we
-  don't reconstruct it. This collapses most of the attribution workstream into a sync job.
+- **Inference-first, not hand-tagging.** The AI infers niche / job title / etc. from raw
+  text **at ingest** — no human tagging, no giant canonical taxonomy to maintain. We just
+  **store the inferred result once** (as text + embedding) so we don't re-infer on every
+  read. (Details §4.)
+- **Embeddings for fuzzy, small buckets for exact.** Approximate grouping/routing ("pains
+  like X", "titles like CMO", route to niche) = embeddings, no tables needed. Only the few
+  dimensions that must be **counted exactly** (job function, seniority, employee-range) get
+  a tiny controlled bucket — because reproducible analytics need a stable key, not a fresh
+  LLM guess each query.
+- **Structural joins are already exact IDs.** client ↔ campaign ↔ deal ↔ copy ↔ variant ↔
+  title all exist as IDs in the Airtable **Deals table** — zero inference; we sync them.
+- **Clean slate, port proven logic.** Fresh code/schema; reuse the MVP's chunker, dedup,
+  prompts, routing.
+- **Rebuild from raw sources**, not the MVP DB (§6). **Staging isolation** — MVP stays live
+  until cutover. **Idempotent everything.**
 
 ---
 
-## 3. The Week-1 schema (DDL built this week)
+## 3. The Week-1 schema (lighter, inference-first)
 
-Core + tagging created this week. `deals`/`contacts` schema is created now; the **sync
-that fills them from the Airtable Deals table** is wired Week 3 (it's a sync job, not a
-model to invent — see §2).
+No `niches`/`job_titles` canonical tables, no polymorphic `entity_tags`. Instead, every
+knowledge row carries the **inferred value + its embedding** inline, plus the **small
+bucket** fields. Structural links are FK IDs synced from Airtable.
 
 ```sql
--- ---------- tagging layer ----------
-create table niches (
-  id            bigserial primary key,
-  name          text not null,
-  parent_id     bigint references niches(id),   -- niche -> sub_niche
-  slug          text unique not null,
-  embedding     vector(1536),                    -- for variant-merge + routing
-  created_at    timestamptz default now(),
-  unique (name, parent_id)
-);
-create table job_titles (
-  id            bigserial primary key,
-  canonical     text unique not null,            -- "VP of Marketing"
-  aliases       text[] default '{}',             -- ["VP Marketing","V.P. Mktg"]
-  function      text,                             -- marketing | sales | exec | ops
-  seniority     text,                             -- C-level | VP | Director | Founder
-  embedding     vector(1536)
-);
-create table employee_ranges (
-  id            bigserial primary key,
-  label         text unique not null,            -- "50-100"
-  min_size      int, max_size int
-);
--- one polymorphic tag row per entity, so pains/copies/contacts/case_studies tag alike
-create table entity_tags (
-  id               bigserial primary key,
-  entity_type      text not null,                -- 'pain'|'copy'|'contact'|'case_study'|'campaign'
-  entity_id        bigint not null,
-  niche_id         bigint references niches(id),
-  sub_niche_id     bigint references niches(id),
-  job_title_id     bigint references job_titles(id),
-  employee_range_id bigint references employee_ranges(id),
-  unique (entity_type, entity_id)
-);
+-- small controlled buckets (AI-assigned at ingest; the ONLY exact-groupable dims)
+-- kept as text-with-check, not big tables:
+--   job_function : 'marketing'|'sales'|'exec'|'ops'|'finance'|'founder'|'other'
+--   seniority    : 'c_level'|'vp'|'director'|'manager'|'founder'|'owner'|'ic'|'other'
+--   employee_range: text band from the campaign segment, e.g. '3-200'
 
--- ---------- entities ----------
 create table clients (
   id bigserial primary key, slug text unique not null, name text not null,
   airtable_client_id text, offer text,
-  primary_niche_id bigint references niches(id),
-  sub_niche_id bigint references niches(id),
+  niche text, sub_niche text, niche_embedding vector(1536),   -- inferred, fuzzy-groupable
   status text, retainer numeric, account_manager text,
   created_at timestamptz default now(), updated_at timestamptz default now()
 );
-create table contacts (                  -- synced from Airtable Deals (Primary contact / Contact Record ID)
+
+create table contacts (                  -- synced from Airtable Deals (Contact Record ID)
   id bigserial primary key, client_id bigint references clients(id),
-  airtable_contact_id text, name text, raw_title text,
-  job_title_id bigint references job_titles(id),
-  employee_range_id bigint references employee_ranges(id), company text, email text, source text
+  airtable_contact_id text, name text, company text, email text,
+  raw_title text, title_embedding vector(1536),               -- inferred/real title, fuzzy
+  job_function text, seniority text,                          -- buckets, exact
+  employee_range text
 );
 
--- ---------- knowledge ----------
 create table calls (
   id bigserial primary key, client_id bigint references clients(id),
   source_call_id text unique, title text, call_date date, source text, raw_transcript text
@@ -131,29 +92,34 @@ create table call_chunks (
   id bigserial primary key, call_id bigint references calls(id),
   client_id bigint references clients(id), chunk_index int, text text, embedding vector(1536)
 );
+
 create table pains (
   id bigserial primary key, client_id bigint references clients(id),
-  contact_id bigint references contacts(id),
   kind text check (kind in ('pain','lingo','dream','belief','objection')),
-  text text not null, confidence text, source_ref text, embedding vector(1536)
+  text text not null, confidence text, source_ref text,
+  raw_title text, job_function text, seniority text,          -- who said it (inferred, bucketed)
+  niche text,                                                 -- inherited/inferred
+  embedding vector(1536)
 );
+
 create table case_studies (
   id bigserial primary key, owner_client_id bigint references clients(id),
   subject_brand text, tier text, before_state text, after_state text,
   notable_results text, timeframe text, mechanism text, unique_mechanism text,
-  source_ref text unique, result_embedding vector(1536),
-  mechanism_embedding vector(1536), niche_embedding vector(1536)
-);
-create table client_drafts (           -- for clients with no calls (GoFish etc.)
-  id bigserial primary key, client_id bigint references clients(id),
-  author text, title text, body text, source text, embedding vector(1536)
+  niche text, source_ref text unique,
+  result_embedding vector(1536), mechanism_embedding vector(1536), niche_embedding vector(1536)
 );
 
--- ---------- copy & results (schema now, behavior Wk2-3) ----------
+create table client_drafts (             -- analyst research for clients with no calls
+  id bigserial primary key, client_id bigint references clients(id),
+  author text, title text, body text, source text, niche text, embedding vector(1536)
+);
+
+-- ---------- copy & results ----------
 create table campaigns (
   id bigserial primary key, airtable_campaign_id text unique, client_id bigint references clients(id),
-  name text, niche_id bigint references niches(id), segment text, angle text,
-  channel text, variant text, start_date date
+  name text, niche text, segment text, angle text, channel text, variant text,
+  employee_range text, start_date date
 );
 create table copies (
   id bigserial primary key, client_id bigint references clients(id),
@@ -166,64 +132,63 @@ create table copy_components (
   id bigserial primary key, copy_id bigint references copies(id),
   component_type text, text text, verdict text, embedding vector(1536)
 );
-create table copy_metrics (
+create table copy_metrics (              -- from Airtable Daily SMS/Email + Relinked Campaigns
   id bigserial primary key, copy_id bigint references copies(id),
   campaign_id bigint references campaigns(id), variant text,
   period_start date, period_end date, sent int, positive_replies int, booked int, region text
 );
-create table deals (                    -- synced from Airtable Deals table (rich source)
+create table deals (                     -- synced from Airtable Deals table (rich source)
   id bigserial primary key, airtable_deal_id text unique,
   campaign_id bigint references campaigns(id), copy_id bigint references copies(id), variant text,
-  contact_id bigint references contacts(id), job_title_id bigint references job_titles(id),
-  employee_range_id bigint references employee_ranges(id),
-  company text, stage text, value numeric,           -- Pipeline stage, closed-amount
-  channel text,                                       -- Source Select: GoHighLevel=sms, Smartlead/EmailBison=email
-  positive_reply_category text, lost_reason text,     -- "why they said no" (Aaman's inbox ask)
-  conversation text,                                  -- Email conversation / Recordings
-  created_at timestamptz
+  contact_id bigint references contacts(id),
+  company text, stage text, value numeric, channel text,     -- Pipeline stage, closed-amount, Source
+  job_function text, seniority text, employee_range text,    -- buckets from Title (from Contacts)
+  positive_reply_category text, lost_reason text,            -- "why they said no"
+  conversation text, created_at timestamptz
 );
-
--- ---------- graph ----------
 create table edges (
   id bigserial primary key, src_type text, src_id bigint, dst_type text, dst_id bigint, kind text,
   unique (src_type, src_id, dst_type, dst_id, kind)
 );
 
 -- ---------- indexes (do NOT skip — retrieval perf depends on this) ----------
-create index on call_chunks       using ivfflat (embedding vector_cosine_ops);
-create index on pains             using ivfflat (embedding vector_cosine_ops);
-create index on case_studies      using ivfflat (result_embedding vector_cosine_ops);
-create index on copies            using ivfflat (full_embedding vector_cosine_ops);
-create index on niches            using ivfflat (embedding vector_cosine_ops);
-create index on entity_tags (niche_id); create index on entity_tags (job_title_id);
-create index on entity_tags (entity_type, entity_id);
+create index on call_chunks  using ivfflat (embedding vector_cosine_ops);
+create index on pains        using ivfflat (embedding vector_cosine_ops);
+create index on case_studies using ivfflat (result_embedding vector_cosine_ops);
+create index on copies       using ivfflat (full_embedding vector_cosine_ops);
+-- btree on the exact buckets + FKs used in analytics:
+create index on deals (job_function, seniority, employee_range);
+create index on pains (job_function); create index on contacts (job_function, seniority);
 ```
+
+**Why this is lighter and still correct:** fuzzy questions ("what do CMO-ish people say
+in DTC-ish niches") run on the embeddings; exact questions ("won deals by function this
+month") run on the buckets + Airtable-synced IDs. No canonical-table maintenance, no
+`entity_tags` bookkeeping.
 
 ---
 
-## 4. Taxonomy seeding — the piece most plans miss
+## 4. Tagging = AI inference at ingest (no hand work, no big taxonomy)
 
-We do **not** hand-invent niches/titles. The signal already exists in our data; Week 1
-extracts and canonicalizes it:
+The whole "tagging" step is: **the LLM infers, we store once.**
 
-1. **Verticals from Airtable campaign names.** Campaigns encode the real segments, e.g.
-   `Acceler8 - CPG Food & Bev | 3-200E | US & Canada | V1` →
-   sub_niche "CPG Food & Bev", employee_range "3-200". Parse all campaign names across the
-   14 active clients → candidate sub-niches + employee ranges.
-2. **Job titles — best source is the Airtable Deals table** (`Title (from Contacts)`):
-   these are the *real* titles of people who replied/booked, not just ICP wish-lists. Also
-   seed from `clietns.txt` ICP titles + onboarding forms. Seed `job_titles` with canonical
-   + aliases + function/seniority.
-3. **Personas from MVP pains.** `master_sheet_pains.persona` and case-study owners give
-   more raw titles → map to canonical job_titles.
-4. **Embedding-dedup the candidates.** Cluster candidate niche/title strings by embedding
-   (cosine) so "DTC ecom" / "DTC Ecommerce" / "D2C" collapse to one canonical row — this
-   is the fix for the exact-string brittleness we hit in the MVP.
-5. **Human confirm the top level.** Hilal + Aaman review the generated niche → sub_niche
-   tree once (30 min) before it's locked. Controlled list, embedding-normalized.
+1. **At ingest**, the extraction LLM already reads the transcript/form — in the same pass
+   it returns `niche`, `sub_niche`, `raw_title`, and the **buckets** (`job_function`,
+   `seniority`). No separate tagging job, no human.
+2. **Store the inferred text + an embedding** on the row. Fuzzy grouping/routing later is
+   pure embedding math — no canonical niche/title tables to keep in sync.
+3. **Buckets are a tiny fixed vocab** (function/seniority/size) the LLM maps into, so the
+   handful of exact reports (deals by role, variant win-rate by seniority) are countable
+   and reproducible. The LLM assigns them; we don't hand-tag.
+4. **Where the value already exists, don't infer — sync.** The Airtable Deals table gives
+   real `Title (from Contacts)`, `Copy Variant`, company, stage — we take those as-is.
+5. **Employee-range** comes free from the campaign segment band (`3-200E` → `3-200`); no
+   inference needed.
 
-**Why in Week 1:** every downstream table tags against these rows, and the migration
-(§6) needs them to backfill. Seeding late blocks everything.
+> This is the answer to "why do any hard work": we don't. AI infers, we persist the
+> result so it's *consistent and countable*. The only thing we'd lose by inferring on
+> every read is reproducible analytics (same question → same number) — which is exactly
+> what a reporting/attribution product cannot lose.
 
 ---
 
@@ -232,76 +197,59 @@ extracts and canonicalizes it:
 One service, one write path, hardened over the MVP agents:
 
 - **Inputs:** transcript, case-study text/CSV, onboarding form, analyst draft, Airtable
-  sync. **Folder-drop**: point it at a per-client Drive folder, it ingests everything.
-- **Transcript splitting (missed in MVP).** MVP ingested multi-call files as one call
-  (Redo/Digital Resource were single huge calls). V2 splits on call boundaries
-  (URL headers / speaker resets / "Call N") so each real call is its own record with
-  correct provenance.
+  sync. **Folder-drop**: point it at a per-client folder, it ingests everything.
+- **Transcript splitting (missed in MVP).** Split multi-call files on call boundaries
+  (URL headers / speaker resets / "Call N") so each call is its own record with correct
+  provenance.
 - **Data contracts.** A JSON schema per input type is the seam between LLM extraction and
-  the dedup-safe writer (extend the MVP contract). LLM fills the contract; the writer
-  validates + inserts; nothing hand-writes SQL.
-- **Tagging on write.** Every pain/case/copy/contact gets an `entity_tags` row
-  (niche/sub_niche/job_title inferred at ingest).
-- **Edges on write.** pain→call, copy→campaign, campaign→client emitted into `edges`.
-- **Idempotent + logged.** Dedup keys enforced; each run writes a log (inserted/updated/
-  skipped) so we can trust the result.
+  the dedup-safe writer. The contract now includes the inferred `niche`/`raw_title`/
+  buckets — filled in the same LLM pass, validated, inserted. Nothing hand-writes SQL.
+- **Inference on write.** Niche/title/function/seniority inferred + embedded as the row is
+  created (§4). Edges (pain→call, copy→campaign) emitted too.
+- **Idempotent + logged.** Dedup keys enforced; each run logs inserted/updated/skipped.
 
 ---
 
 ## 6. Fresh re-ingest into V1 (NOT a migration)
 
-We rebuild V1 by running the V2 pipeline on the **raw source files we already have on
-disk**, not by copying the MVP database. Why this beats migrating:
+Rebuild V1 by running the V2 pipeline on the **raw source files on disk**, not by copying
+the MVP database. No migration code; data lands correct and inferred on write; better
+extraction than the MVP's first pass. The MVP DB is derivable from these sources.
 
-- **No migration code.** No old-column → new-column mapping to write, run, or verify.
-- **Correct on write.** V2 tags (niche/sub_niche/job_title) and emits edges as it
-  ingests, so data lands native — no fragile text→id backfill.
-- **Higher quality.** V2 adds transcript splitting + better extraction prompts, so
-  re-ingesting yields *better* pains/case studies than the MVP's rougher first pass.
-- **Source of truth.** The raw files are canonical; the MVP DB is derivable from them.
+**Raw sources (all present):** `chambermedia/` (transcripts + `gdocs/*.txt`),
+`agents/clients/<slug>/` (Kynship + the 5 new clients), campaigns from Airtable, niche
+brains regenerated by niche-synth.
 
-**Raw sources (all present):**
-| Client(s) | Raw source on disk |
-|---|---|
-| Chamber Media | `chambermedia/` (transcripts.txt split + `gdocs/*.txt`) |
-| Kynship | `agents/clients/kynship/` (onboarding, tabs, 21 transcripts, case studies) |
-| Redo / Go Fish / Digital Resource / Wise / Big Leap | `agents/clients/<slug>/` |
-| Campaigns (all) | Airtable (re-sync) |
-| niche brains | regenerated by niche-synth (derived) |
+Steps: (1) point pipeline v2 at each client folder → creates client + inferred/tagged
+pains/cases/chunks + edges, embedding on write → (2) sync campaigns + Deals from Airtable
+→ (3) niche-synth per niche → (4) QA harness. *(We did the equivalent for all 7 clients in
+~30 min today, so this fits Week 1.)*
 
-Steps: (1) seed taxonomy §4 → (2) point pipeline v2 at each client's raw folder →
-(3) it creates client + tagged pains/cases/chunks + edges, embedding on write →
-(4) re-sync campaigns from Airtable → (5) run niche-synth per niche → (6) QA harness.
-*(We did the equivalent for all 7 clients in ~30 min today with the MVP agents, so this
-fits comfortably in Week 1.)*
-
-**Verification (QA harness — a deliverable, not optional):**
-- per-client counts sane vs. the raw inputs (calls, pains, cases, campaigns).
+**QA harness (a deliverable):**
+- per-client counts sane vs. raw inputs (calls, pains, cases, campaigns).
 - `count(*) where embedding is null` == 0 across all vector columns.
-- every knowledge row has an `entity_tags` row with a non-null `niche_id`.
-- no `entity_tags` pointing at a missing niche/title (referential check).
-- spot-check: routed search for "rising CAC" returns DTC ecom cross-client hits.
+- every pain/contact/deal has non-null buckets where applicable.
+- spot-check: routed search for "rising CAC" returns DTC cross-client hits; "won deals by
+  function" returns a stable count on re-run.
 
 ---
 
-## 7. Embeddings & indexing decisions (lock Week 1)
+## 7. Embeddings & indexing (lock Week 1)
 
-- **Model/dims:** keep Gemini `gemini-embedding-001` @ 1536 (matches MVP; avoids a
-  re-embed later). One path; never embed inside a skill.
-- **Batch worker:** a single re-embed job that fills any NULL vector (reused for
-  migration and ongoing ingestion).
-- **Indexes:** ivfflat/hnsw on every vector column **before** bulk load, tuned `lists`
-  after data lands. Without these, cross-client search degrades as data grows (we're
-  already at 900+ pains in one niche).
+- **Model/dims:** Gemini `gemini-embedding-001` @ 1536 (matches MVP; no re-embed later).
+  One path; never embed inside a skill.
+- **Batch worker:** one re-embed job filling any NULL vector (reused for re-ingest + ongoing).
+- **Indexes:** ivfflat on every vector column before bulk load; btree on the bucket
+  columns used in analytics. Critical at 900+ pains in a niche already.
 
 ---
 
 ## 8. API skeleton (Lane 3, in parallel)
 
-- Typed API reading V1: `GET /clients`, `/clients/{id}` (full context), `POST /search`
-  with `scope:{niche,sub_niche,job_title}`.
-- Regenerate **`/api/openapi`** for the new tag-aware params so the skill/front-end pick
-  it up.
+- Typed API reading V1: `GET /clients`, `/clients/{id}`, `POST /search` with
+  `scope:{niche?, job_function?, seniority?, employee_range?}` — fuzzy scope (niche) via
+  embedding, exact scope (buckets) via filter.
+- Regenerate **`/api/openapi`** for the new scope params.
 - Front-end points at V1 staging; no user-facing change until cutover.
 
 ---
@@ -310,42 +258,32 @@ fits comfortably in Week 1.)*
 
 | Day | Lead (Hilal) | Engineer A (data/backend) | Engineer B (full-stack) |
 |---|---|---|---|
-| **Mon** | Kickoff w/ Jordan; lock schema + taxonomy rules | Create V1 project; run schema DDL + indexes | Scaffold API + point front-end at V1 staging |
-| **Tue** | Build taxonomy seed (parse campaigns/titles/personas) + embedding-dedup; review tree w/ Aaman | Ingestion pipeline v2: contracts + writers + tagging | `GET /clients` + detail reading V1 |
-| **Wed** | Re-ingest config + niche-synth | Re-ingest 7 clients from raw folders (tag on write) | `POST /search` w/ scope params; OpenAPI regen |
-| **Thu** | Transcript-splitting rules; QA harness spec | Re-sync campaigns; ingest Aaman's new folders | Client detail full-context page on V1 |
+| **Mon** | Kickoff w/ Jordan; lock schema + bucket vocab | Create V1 project; run schema DDL + indexes | Scaffold API + point front-end at V1 staging |
+| **Tue** | Extraction contract incl. inferred fields + buckets | Ingestion v2: contracts + writers + inference-on-write | `GET /clients` + detail reading V1 |
+| **Wed** | Re-ingest config + niche-synth | Re-ingest all clients from raw folders | `POST /search` w/ scope params; OpenAPI regen |
+| **Thu** | Transcript-splitting rules; QA harness spec | Sync campaigns + Deals from Airtable | Client detail full-context page on V1 |
 | **Fri** | Run QA harness; sign-off review | Fix QA gaps; idempotency re-run test | Demo V1 read path; weekly review |
 
 ---
 
 ## 10. Deliverables (end of Week 1)
 
-1. V1 Supabase with full schema + indexes.
-2. Seeded, embedding-deduped **taxonomy** (niches tree, job_titles, employee_ranges).
-3. **Ingestion pipeline v2** (folder-drop, contracts, splitting, tagging, edges, logs).
-4. **All 7 MVP clients migrated + re-embedded**, tagged.
-5. **QA harness** green (counts, embeddings, tag integrity).
+1. V1 Supabase with the lighter schema + indexes.
+2. **Ingestion pipeline v2** (folder-drop, contracts, splitting, inference-on-write, edges, logs).
+3. **All clients re-ingested fresh**, inferred + bucketed, embedded.
+4. Campaigns + Deals synced from Airtable (contacts/variants/titles).
+5. **QA harness** green.
 6. API skeleton + regenerated OpenAPI reading V1.
-7. This week's new Drive folders ingested into V1.
 
 ---
 
-## 10b. What Week 1 is NOT (so scope stays honest)
+## 10b. What Week 1 is NOT (scope honesty)
 
-Week 1 is **foundation only**. It looks big because it's schema + tagging + ingestion +
-API at once, but that's the base every later week builds on — not the product. It is
-achievable in one week **only because the MVP already proved the hard parts** (the agents
-work; we're upgrading them, not starting from zero). Explicitly deferred:
-
-- **Attribution wiring** (deals → job title/size) — Week 3.
-- **`copy_metrics` sync** from Airtable / per-variant `positive_rate` — Week 2.
-- **Copy editor with variants** + upload flow — Week 2.
-- **Dashboard V1** (full per-client context, tag/role filters) — Week 4.
-- **Skills v2** (first-take quality) + **email skill** — Week 5.
-- **Inbox / leads** integration — designed-for, built later.
-
-If Week 1 slips, the cut line is: taxonomy + re-ingest + QA must land; API skeleton and
-new-folder ingestion can spill into Week 2.
+Foundation only. Deferred: `copy_metrics` sync + per-variant `positive_rate` (Wk2), copy
+editor with variants (Wk2), full attribution reporting off `deals` (Wk3), dashboard V1
+(Wk4), skills v2 + email (Wk5), inbox/leads (later). It fits one week only because the MVP
+proved the hard parts — we upgrade the agents, not start blind. **Cut line if it slips:**
+schema + re-ingest + QA must land; API skeleton + new-folder ingestion can spill to Wk2.
 
 ---
 
@@ -353,17 +291,17 @@ new-folder ingestion can spill into Week 2.
 
 | Risk | Mitigation |
 |---|---|
-| Taxonomy tree churns and blocks migration | Lock the top 2 levels Tue with Aaman; sub-tags can grow later |
-| Re-embedding cost/time on migration | One batch worker, incremental (NULL-only), off-peak |
-| Multi-call transcript splitting misfires | Fallback to single-call ingest + flag for manual split |
-| Rebuild loses something the MVP had | Fresh re-ingest from raw files (kept on disk); MVP stays live as a fallback until cutover |
-| Job-title canonicalization noisy | Seed alias map + LLM fallback; human-confirm the top functions |
+| Bucket vocab too coarse/fine | Lock function/seniority/size buckets Mon with Aaman; text+embedding still captures nuance for fuzzy queries |
+| Inference inconsistency across runs | Infer once at ingest + store; deterministic buckets for anything counted |
+| Re-embed cost/time | One incremental (NULL-only) batch worker |
+| Multi-call splitting misfires | Fallback to single-call + flag for manual split |
+| Rebuild loses something | Fresh re-ingest from raw files on disk; MVP stays live until cutover |
 
 ---
 
 ## 12. Open questions to confirm Monday
 
-1. Sub-niche granularity — how deep does the tree go (2 levels vs 3)?
-2. Job-title functions/seniority buckets — final list.
-3. Employee-range buckets — adopt Airtable's (`3-200`, `5-1000`…) or normalize.
+1. Bucket vocabularies — final `job_function` / `seniority` / `employee_range` lists.
+2. Sub-niche depth — how granular does inferred `sub_niche` go?
+3. Deals sync cadence — realtime-ish vs. nightly.
 4. Cutover timing — when V1 replaces the live MVP endpoint (target end of sprint).
