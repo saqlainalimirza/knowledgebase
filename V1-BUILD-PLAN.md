@@ -121,17 +121,32 @@ A normalized tag layer instead of free-text columns scattered around.
 
 ---
 
-## 6. Attribution model (the loop that was missing)
+## 6. Attribution model (synced from Airtable — mostly already exists)
+
+The attribution loop is **not something we invent** — the Airtable **Deals table** already
+carries it. We mirror it:
 
 ```
-copy(variant) ──in──▶ campaign ──produced──▶ deals ──by──▶ contact(job_title, employee_range)
-     │                    │                                         │
- copy_metrics(sent, positive, booked, per variant)          conversations (replies)
+copy(variant) ─▶ campaign ─▶ DEAL ─▶ contact(job_title) + company + stage + value
+                                │
+                     Airtable Deals fields, per deal:
+   Copy Variant (from Contacts) · Title (from Contacts) · Company Name · Pipeline stage ·
+   closed-amount · Source Select(sms/email) · Positive Reply Category · Lost reason ·
+   Email conversation / Recordings
 ```
-A strategist uploads a copy, selects **campaign + variant**; metrics auto-attach from
-Airtable; deals link the campaign to real contacts and their roles. The skill can then
-ask: *which lever/variant wins for CMOs at 50–100-person DTC brands* — and see the
-conversations behind those wins.
+
+So per deal we already get **which copy variant** drove it, the **job title** who
+converted, the **stage/value**, the **channel**, the **reason** they said yes/no, and the
+**conversation** — no reconstruction needed. A sync job (Week 3) mirrors the Deals table
+into `deals`/`contacts`; `copy_metrics` (sent/positive/booked per variant) comes from the
+Daily SMS/Email + Relinked Campaigns tables.
+
+The skill can then ask: *which lever/variant wins for CMOs at DTC brands* — and read the
+actual conversations behind those wins, plus *why people said no this week* (from
+`Positive Reply Category` / `Lost reason`), which also serves Aaman's inbox-analysis ask.
+
+**Only gap:** `employee_range` isn't on the Deals table — we derive it from the campaign
+segment band (e.g. `3-200E`) or lead enrichment.
 
 ---
 

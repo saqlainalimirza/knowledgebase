@@ -1,8 +1,14 @@
 # V1 — Week 1 Detailed Plan (Foundation)
 
-Turns the locked Week-0 design into a running foundation: the V1 schema + tagging
-layer live, one hardened ingestion pipeline writing into it, all MVP data migrated and
-re-embedded under the new model, and the API/front-end reading V1. Companion to
+**Clean-slate build.** V1 is a fresh codebase + fresh schema + fresh Supabase — not an
+upgrade of the MVP. We keep the MVP's *proven logic* (chunker, dedup keys, extraction
+prompts, niche routing/clustering, Airtable field mappings) and re-implement it cleanly;
+we throw away the MVP's flat schema and patched code. The MVP was the throwaway prototype
+that de-risked the real build.
+
+Week 1 turns the locked Week-0 design into a running foundation: the V1 schema + tagging
+layer live, one hardened ingestion pipeline writing into it, all clients **re-ingested
+fresh from raw sources** (not migrated), and the API/front-end reading V1. Companion to
 [V1-BUILD-PLAN.md](V1-BUILD-PLAN.md).
 
 > **Why this is the make-or-break week.** Everything downstream (attribution, skills,
@@ -50,12 +56,19 @@ By Friday, all true if:
 - **Idempotent everything.** Re-running ingestion or migration must not duplicate. This
   is what lets us iterate safely all week.
 - **Seed taxonomy from data we already have** (below) — don't hand-invent it.
+- **Attribution comes from Airtable, not from us.** The Airtable **Deals table** already
+  links deal → campaign → **copy variant** → contact → **job title** → company → stage →
+  value → conversation → lost/objection reason. So `contacts`, `deals`, job-title tags,
+  and per-variant attribution are a **sync**, not a build. We mirror the Deals table; we
+  don't reconstruct it. This collapses most of the attribution workstream into a sync job.
 
 ---
 
 ## 3. The Week-1 schema (DDL built this week)
 
-Core + tagging. (Attribution tables `deals`/`conversations` are stubbed now, filled Wk3.)
+Core + tagging created this week. `deals`/`contacts` schema is created now; the **sync
+that fills them from the Airtable Deals table** is wired Week 3 (it's a sync job, not a
+model to invent — see §2).
 
 ```sql
 -- ---------- tagging layer ----------
@@ -102,10 +115,11 @@ create table clients (
   status text, retainer numeric, account_manager text,
   created_at timestamptz default now(), updated_at timestamptz default now()
 );
-create table contacts (
+create table contacts (                  -- synced from Airtable Deals (Primary contact / Contact Record ID)
   id bigserial primary key, client_id bigint references clients(id),
-  name text, raw_title text, job_title_id bigint references job_titles(id),
-  employee_range_id bigint references employee_ranges(id), company text, source text
+  airtable_contact_id text, name text, raw_title text,
+  job_title_id bigint references job_titles(id),
+  employee_range_id bigint references employee_ranges(id), company text, email text, source text
 );
 
 -- ---------- knowledge ----------
@@ -157,10 +171,16 @@ create table copy_metrics (
   campaign_id bigint references campaigns(id), variant text,
   period_start date, period_end date, sent int, positive_replies int, booked int, region text
 );
-create table deals (                    -- stub now, wired Wk3
-  id bigserial primary key, campaign_id bigint references campaigns(id),
+create table deals (                    -- synced from Airtable Deals table (rich source)
+  id bigserial primary key, airtable_deal_id text unique,
+  campaign_id bigint references campaigns(id), copy_id bigint references copies(id), variant text,
   contact_id bigint references contacts(id), job_title_id bigint references job_titles(id),
-  employee_range_id bigint references employee_ranges(id), value numeric, stage text, created_at timestamptz
+  employee_range_id bigint references employee_ranges(id),
+  company text, stage text, value numeric,           -- Pipeline stage, closed-amount
+  channel text,                                       -- Source Select: GoHighLevel=sms, Smartlead/EmailBison=email
+  positive_reply_category text, lost_reason text,     -- "why they said no" (Aaman's inbox ask)
+  conversation text,                                  -- Email conversation / Recordings
+  created_at timestamptz
 );
 
 -- ---------- graph ----------
@@ -190,9 +210,10 @@ extracts and canonicalizes it:
    `Acceler8 - CPG Food & Bev | 3-200E | US & Canada | V1` →
    sub_niche "CPG Food & Bev", employee_range "3-200". Parse all campaign names across the
    14 active clients → candidate sub-niches + employee ranges.
-2. **Job titles from `clietns.txt` + onboarding forms.** The clients table lists ICP job
-   titles (CMO, VP Marketing, Founder, Head of Growth…). Onboarding forms list ICP titles.
-   Seed `job_titles` with canonical + aliases + function/seniority.
+2. **Job titles — best source is the Airtable Deals table** (`Title (from Contacts)`):
+   these are the *real* titles of people who replied/booked, not just ICP wish-lists. Also
+   seed from `clietns.txt` ICP titles + onboarding forms. Seed `job_titles` with canonical
+   + aliases + function/seniority.
 3. **Personas from MVP pains.** `master_sheet_pains.persona` and case-study owners give
    more raw titles → map to canonical job_titles.
 4. **Embedding-dedup the candidates.** Cluster candidate niche/title strings by embedding
