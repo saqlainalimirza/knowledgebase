@@ -21,6 +21,7 @@ from connections.supabase import get_conn, resolve_client
 from connections.gemini import extract_json
 from shared.writers import upsert_case_study
 from shared.embed import embed_all
+from shared.taxonomy import tag_client_and_inherit
 
 SYSTEM = (
     "You are a case-study analyst for a cold-outreach agency. You read messy case "
@@ -93,6 +94,7 @@ def run(client, file_path, source_label):
                 except ValueError as e:
                     print(f"  dropped: {e}")
                     counts["dropped"] += 1
+            tag_client_and_inherit(cur, slug, niche_text=niche)
         conn.commit()
         print(f"case studies: {counts}")
         n = embed_all(conn, only_tables={"case_studies"})

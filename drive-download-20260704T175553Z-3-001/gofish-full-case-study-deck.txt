@@ -1,0 +1,279 @@
+SOURCE: Go Fish Digital / Agital — full case study deck (PDF text dump)
+NOTE: This deck mixes Go Fish Digital and Agital (sister/parent brand) case studies across
+ALL service lines (Paid Search, SEO, Social, SMS, TikTok Shop, TikTok Ads, Affiliate,
+Performance Creative, Integrated, Barracuda, Data Services, Shopify, YouTube, Marketplaces,
+Strategic Consulting, CLV Report). Most non-social lines have weak/modest result numbers.
+The STRONG material for our SMS work lives in the SOCIAL / TIKTOK SHOP / TIKTOK ADS /
+LIVE SHOPPING section — see the curated shortlist in ../output. This file is the raw skim.
+
+================================================================================
+PAID SEARCH
+================================================================================
+
+CAILINI COASTAL — Paid Search
+Challenges: Optimizing ROAS while growing revenue; identifying efficiency; audience-specific
+content + segmentation. After a year in business, paid media wasn't driving sustainable growth.
+Solution: Analyzed/optimized ad performance across channels + campaign types, reallocated budget,
+developed audience behavior insights.
+- 305% Increase in Revenue
+- 274% Increase in Conversions
+- 369% Increase in Website Traffic
+Channels: Data Services | Paid Search | Social Media
+
+COOKING GIFT SET CO. — Paid Search
+Strong keyword strategy + competitive/categorical research. "Popular Cooking Supply Brand
+Maximizes Its Revenue."
+- 59% Increase in conversions YoY
+- 56% Increase in overall Amazon revenue YoY
+- 28% Decrease in ad spend YoY
+- 53% Improvement in Amazon ACoS
+
+BETTERUP — Paid Search
+Go Fish promoted Inner Work Day via multi-channel paid media; tested audience targeting,
+creative, budget allocation. "Smarter Channel Testing Drives 114% Conversion Improvement."
+- 114% Conversion improvement over campaign goals
+- 71% of total conversions driven by LinkedIn & Facebook
+- Lowest CPL identified through structured cross-channel testing
+
+HP — Paid Search / Data Services
+Novel approach to expand HP Canada's paid search coverage. "How We Helped HP Increase Their Market Share."
+- 129% Boost in targeted keyword coverage on day 1
+- 100% Improvement in hardware term coverage
+- 60% Drop in unrealized coverage
+
+SEASIDE VACATIONS — Paid Search
+Hyper-targeted geographic campaigns vs Airbnb/VRBO. "Driving 294% ROI Against Major Travel Competitors."
+- 294% Return on profit from paid campaigns
+- 100%+ ROI goal achieved and surpassed
+- 90% Top of page rate for non-branded terms
+
+HUMAN RIGHTS CAMPAIGN — Paid Search
+"Driving 1,000%+ ROAS for a Mission-Driven Brand."
+- 703% Meta ROAS during Pride Month
+- 1000%+ Google Search ROAS
+- Full-funnel optimization (SEO, paid media, CRO, analytics)
+
+HUDSON'S FURNITURE & MATTRESS — Paid Search
+ZIP code targeting using internal revenue-by-ZIP data. "Sending Store Visits Soaring With ZIP Code Targeting."
+- 78% Increase in ecommerce revenue from paid search YoY
+- 86% Increase in store visit conversion rate in 3 months
+- 43% Increase in ecommerce revenue from paid search PoP
+
+JELLY BELLY — Paid Search / SEO
+Revamped organic + paid search, enhanced paid social targeting. "Jolting Jelly Belly's Website Revenue 600%."
+- 765% ROAS / 622% Increase in Revenue YoY / 747% More revenue from paid ads
+- 498% ROAS for Paid Social YoY / 581% Increase in Purchases YoY / 574% Increase in paid ad conversions
+- 694% Increase in organic revenue / 671% Increase in conversions / 349% Increase in organic traffic
+
+INDIGO WILD — Paid Search
+Multi-channel paid media tied to CLV-based CAC goals. "Scaling Customer Acquisition Without Sacrificing Efficiency."
+- 35k New customers acquired in one year
+- 25% Increase in total customer acquisition YoY
+- 3:1 CLV-to-CPA efficiency target maintained
+
+MORIMOTO — Paid Search
+Rebuilt paid media around full-funnel growth; reduced branded-search reliance; YouTube mid-funnel.
+"Scaling Profit with a Smarter Paid Search Mix."
+- 237% YoY increase in Performance Max revenue
+- 52% Reduction in cost per acquisition
+- 633% Revenue growth from video campaigns
+
+PHELPS DIGITAL — Paid Search
+Rebuilt campaign structure, CRM tracking, reallocated spend. "Turning Vendor Spend Into Measurable Growth."
+- 1.5M Value uncovered through improved attribution + spend optimization
+- +26.9% Increase in form submissions YoY
+
+JOYBIRD — Paid Search
+PMax vs Google Shopping test. "PMax Testing Drives Paid Ads Success for Joybird."
+- 95% Increase in Revenue / 40% Improvement in ROAS / 52% Increase in clicks
+
+JUST FOR JEEPS — Paid Search
+Peak season, 10x ROAS goal. "Boosting Revenue & Efficiency in Peak Season With Google AI."
+- 30% Conversion increase in PMax campaign
+- 216% Conversion increase in Broad Match campaign
+- 47%+ Growth in overall conversion value
+
+NORTH SHORE RESIDENTIAL DOOR — Paid Search / SEO
+SEO + navigation + paid search for garage door supplier. "Expanding Reach & Driving Conversions."
+- 16%+ Increase in organic search / 7%+ Increase in AOV / 6% Boost in conversion rate
+
+SOLLY BABY — Paid Search
+Segmented non-brand terms ("best", "safest") for first-time parents across Google + Microsoft Ads.
+"Solly Baby Grows 46% YoY While Lowering Cost Per Acquisition."
+- 54% Increase in New Customers / 46% Increase in Revenue / 15% Drop in Acquisition Costs
+
+VILLEROY & BOCH — Paid Search / Social (Meta)
+Shifted from brand-awareness to conversion-based campaigns aligned to customer journey.
+"Maximizing New Customer Revenue for Villeroy & Boch With Meta Ads."
+- 6000%+ Increase in New Customer Revenue / 74% Decrease in CPA
+- 1620% Increase in Account Revenue MoM / 850% Increase in CVR
+
+ANONYMOUS BABY ACCESSORY STORE — Paid Search
+"Helping a Baby Accessory Retailer Capture New Customers as Existing Ones Age Out."
+- 8.5% Decrease in CPA / 96% Increase in YoY Net New Customers Per Month / 2.7% Drop in MER
+
+================================================================================
+SEO  (mostly modest numbers; included for completeness)
+================================================================================
+APT2B — 377% site-wide revenue growth / 243% organic channel revenue / 264% increase top-10 SERP / 164% traffic
+  Also: Black Friday hypertargeted YouTube video ads — 622% increase in brand searches, 26% brand-awareness lift, 30% purchase-intent lift
+MONEYGEEK — Transformed 4,000+ page library via GEO/Barracuda. 75% increase organic clicks / 50% increase impressions
+BANDWIDTH — Barracuda-driven non-brand growth. 1061% non-brand clicks YoY / 691% impressions YoY / 153% conversions
+HOMES.COM — Digital PR city-ranking campaign. 44 backlinks / 20+ major-pub citations / 4k+ unique visitors
+CLEAN BEAUTY COLLECTIVE — Barracuda. +17% top-10 rankings / +48% SERP feature visibility
+SKYGEEK — Technical SEO + CRO + email. 80% email remarketing revenue / 71% paid search revenue YoY / 63% SEO revenue YoY
+TURBOHAUL — Migration recovery. 238% booking requests / 80% organic sessions / 159% first-page keyword rankings
+ONLINE TRADING ACADEMY — 49% increase in organic traffic in first quarter
+GETRESPONSE — Digital PR survey. +60% organic traffic YoY / 13 high-authority backlinks / 8000+ new sessions
+TWINKL — Survey-driven digital PR. 222k projected media views / 79+ backlinks / 5x coverage vs goal
+BROBIBLE — Google Discover recovery. +329% Discover clicks / +105% search clicks / +20% programmatic revenue
+SIMPLETEXTING — SEO for SMS software. 500% organic MQLs YoY / 300% organic traffic YoY / 50% domain authority
+BELLA ELLA BOUTIQUE — National press. 299% online sales revenue from organic / 188% organic traffic YoY / 63% SEO ROI
+CHICCO — vs Amazon/Target/Walmart. 158% first-page visibility / 37% YoY quarterly revenue / 14% organic traffic
+COOKING GIFT SET CO. — 59% conversions YoY / 56% Amazon revenue YoY / 53% ACoS improvement
+DOWN & FEATHER CO. — Shopify SEO. 693% SEO ROI / 80% first-page performance / 56% organic revenue
+JELLY BELLY — 694% organic revenue / 671% conversions / 349% organic traffic / 622% website revenue YoY
+EXTRA SPACE STORAGE — Hyperlocal content. 303+ page-1 keywords / 67,000+ organic sessions / #1 for 13 keywords
+RUFFWEAR — 72% traffic in 6 months / 230% page-1 keyword rankings / 64% YoY revenue growth
+SHANE CO. — "Get Paid $1,500 to Go on 15 First Dates" digital PR. 523 backlinks / 24,000+ sessions
+SITEONE — 62% keywords in top 3 / 25% organic traffic YoY / 10% total ranking keywords
+SUR LA TABLE — 600% page-1 keyword rankings QoQ / 189% organic clicks QoQ / 104% higher traffic vs similar sites
+ANONYMOUS FASHION RETAILER — 40% revenue YoY / 6% decrease cost of sales / 65% reduction discount budget
+ANONYMOUS SHOPIFY SITE — 8,300% ROI: 3,891% SEO ROI / 368% sales from organic / 92 keywords #1-3 / 55% organic traffic
+ANONYMOUS B2B LANDSCAPE SUPPLY — Auto-generated meta descriptions. 18.9% higher CTR on product pages
+ANONYMOUS APPAREL BRAND — Bulk product descriptions. 189% avg impressions growth on AI content pages
+
+================================================================================
+SOCIAL  ***** PRIMARY HOT-OFFICE SECTION FOR OUR SMS WORK *****
+================================================================================
+
+BLUE WATERS — Social
+"Making Waves for Blue Waters' Revenue With Meta & TikTok Shop Ads."
+- 87% Increase in purchase rate MoM
+- 72% Decrease in cost per purchase MoM
+- 35% Total revenue increase in 2 quarters
+- 125% Increase in attributed gross revenue for TikTok Shop MoM
+(Site elsewhere cites "125% / 241% Increase in Live GMV in Three Months" and "125% revenue growth MoM")
+
+PRIME BITES — Social / TikTok Shop  [DEEP version in other file]
+"Driving $100K+ in Live Shopping Revenue for Prime Bites."
+- 3,245% Increase in live views
+- $100K+ Revenue generated through livestream shopping in under 30 days
+- 82% Increase in click-through rate
+
+FLIPBELT — Social / SMS
+"Sparking SMS Click Rate 9x That of Email for FlipBelt."
+- 84% Increase in SMS signups
+- 9x Increase in click rate with SMS marketing vs. email
+- 13% place-order rate from first SMS touchpoint (elsewhere "10x place-order rate")
+
+MEDICLO — Social (Meta)
+"Helping Mediclo Increase Site Revenue Rapidly Through Meta Ads."
+- 50% Increase in website revenue in the first 6 months
+- 700% ROAS on new customer acquisition the first month
+- 10% Growth in new customer reach on Meta every month since kickoff
+
+O2 TRAINER (O2Trainer) — Social / TikTok Shop
+"Increasing TikTok Shop Revenue Over 5,000% in 2 Months for O2Trainer."
+- 11,000% Increase in TikTok Shop revenue in 2 months (headline elsewhere "5,000% in 2 months")
+- 25% Gross revenue increase YoY
+
+RUFFWEAR — Social (Meta)
+"Expanding Ruffwear's Reach & Connecting With New Audiences."
+- 336% ROAS / 65% increase in revenue from Meta YoY / 59% increase in conversions / 28% traffic from Meta YoY
+
+VILLEROY & BOCH — Social (Meta) [same as paid search above]
+- 6000%+ New Customer Revenue / 74% Decrease in CPA / 1,620% Account Revenue MoM / 850% CVR
+
+WILLOW BOUTIQUE — Social / TikTok Shop  [DEEP version in other file]
+"Smashing Willow Boutique's TikTok Shop Live Selling Record."
+- $100k+ Monthly Sales in 3 Months / $300k+ Monthly Sales in 8 Months / $100k In One Live Sale / 5.74x ROAS
+- (Also: 2,345% Meta Revenue YoY / 100% TikTok Revenue YoY / 10x ROAS for Paid Social)
+
+ANONYMOUS APPAREL STORE #1 — Social
+- 104% ROAS Above FB / 50% CTR Above Industry / 48% CPM Better than FB
+
+ANONYMOUS APPAREL STORE #2 — Social
+- $8.00 Cost Per Mille / 50% Lower CPM vs FB / 75% Lower CPC vs FB
+
+ANONYMOUS FASHION RETAILER — Social
+- 40% Increase in revenue YoY / 6% YoY decrease in cost of sales / 65% reduction in discount budget
+
+================================================================================
+SMS
+================================================================================
+FLIPBELT — "Sparking SMS Click Rate 9x That of Email." 9x click rate vs email / 84% SMS signups / 10x place-order rate from first SMS touchpoint
+WILLOW BOUTIQUE — "Breaking Willow Boutique's TikTok Shop Live Selling Record With $100k in 1 Livestream." 2,345% Meta Revenue YoY / 100% TikTok Revenue YoY / 10x ROAS Paid Social
+
+================================================================================
+TIKTOK SHOP  ***** HOT OFFICE *****
+================================================================================
+PRIME BITES — 3,245% increase in live views / $100K+ via livestream in under 30 days / 82% CTR increase
+EZ BOMBS — "Tap Into the Fastest-Growing Stage for Social Selling." 30x ROAS first 90 days / $5M+ in 1 Quarter / $3.5M affiliate GMV in 1 Quarter
+MYSMILE — "Boosting MySmiles' GMV With TikTok Livestreams & Affiliates." 500% increase in Live GMV in first 28 days / 6x lives done weekly
+WHISKEY DARLING — "Multiplying Live Sales in 1 Month With Live Shopping Ads." 82% increase in Live GMV / 8x ROAS (within first 28 days)
+WILLOW BOUTIQUE — 126k of total sales driven by TTS ads / 100% decrease in CPA / 11.65x ROAS (Nov–Dec, Q4 2024 strategy)
+
+================================================================================
+TIKTOK ADS
+================================================================================
+GOOD ASS DAY — Affiliate + Ad strategy, scaled 86% Oct→Nov 2024. Affiliate spark ads + in-house content.
+- $3.17 CPA (83% less than industry average) / $32.39 Average Order Value / 10.22x ROAS
+EZ BOMBS — Affiliate, Shop Management, Ads. Scaled aggressively MoM, ad spend peaked at $143,871 in Dec 2024.
+- 36.59 TikTok Shop ROAS / $200k+ GMV in First Month / $0.61 CPA (96% less than industry average)
+
+================================================================================
+AFFILIATE
+================================================================================
+SPORTS RESEARCH — Family-owned wellness brand, 40+ years, sports nutrition/nutraceuticals.
+Challenge: high output / low efficiency / no link between spend and revenue (inherited from prior agency).
+Strategy: shifted from volume to performance — proven converters over broad seeding, structured creative
+briefs, SOPs/automations, feedback loops, low-cost UGC "Product Launch Kits" for launches.
+"How Sports Research Cut Sampling in Half & Grew Affiliate Revenue by 61%."
+- +61% Increase in Affiliate GMV / -55% Reduction in Samples Sent / +68% Increase in Conv. Rate / +44% Increase in Sample-to-Video Efficiency
+
+================================================================================
+PERFORMANCE CREATIVE
+================================================================================
+NA HOKU — "How Performance Creative Paid for Itself at 3,500%+ ROAS."
+Built a performance-driven creative system, producing/testing dozens of variations across Meta during holiday.
+- 3,000%+ ROAS on holiday performance creative / 30% increase in CTR YoY / 90%+ ROAS vs other holiday ads / 75+ creative assets produced
+- (range: 800–3,500%+ ROAS across variations; 1,600–2,000% consistently across top performers)
+
+================================================================================
+INTEGRATED SERVICES  (tourism/B2B/real estate — not our target)
+================================================================================
+TERAVALIS — Real estate launch. +261% impressions YoY / 6,589 leads / 830M earned impressions / 2,000+ event attendees / $36 CPL / +66% CPL reduction YoY
+VISIT PARK CITY — 10+ year partnership, full-funnel B2B tourism
+EXPLORE GWINNETT — 4x higher CTR / +49% returning users / 1.74M impressions
+VISIT RAPID CITY — $11M economic impact / 4x projected growth / 50 meetings hosted
+VALLEYWISE HEALTH — Healthcare rebrand. +42% website sessions / +52% new users / +3% avg display CTR
+
+================================================================================
+BARRACUDA / DATA SERVICES / SHOPIFY / YOUTUBE / MARKETPLACES / CONSULTING / CLV
+================================================================================
+BARRACUDA (marketing intelligence platform): Murphy & Prachthauser (legal, 161% impressions / 104% referring domains), Bandwidth, MoneyGeek, Clean Beauty Collective
+DATA SERVICES: Murphy & Prachthauser, HP, Ruffwear, Anonymous Fashion Retailer
+SHOPIFY: Apt2B (337% revenue / 246% conversions / 26% AOV), Down & Feather Co., Anonymous Shopify (8,300% ROI)
+YOUTUBE: Apt2B (Black Friday hypertargeted video), Brilliant Earth (#1 trending video, 11.7M views, 100+ backlinks, 70K social shares)
+MARKETPLACES: Cooking Gift Set Co. (Amazon)
+STRATEGIC CONSULTING: Atlanta CVB (B2B tourism)
+CLV REPORT: Tactical Gear Brand (192% net new customers YoY / 43% CLV YoY), Online Software Brand (54% CLV / 2.38% MER / 20% revenue), Baby Accessory Store (8.5% CPA decrease / 2.7% MER drop / 96% net new customers YoY)
+
+================================================================================
+SUCCESS-TIMEFRAME / RESULTS-OVER-TIME EXHIBITS
+================================================================================
+Short-term (first 6 mo): 6.6x ROAS Paid Social / $186,295 revenue in one month / +160% conversion rate
+Mid-term (1 yr+): +22% new customers / +46% revenue / +18% AOV
+Long-term (2 yrs+): +31% orders YoY / +36% revenue YoY / +5.6% conversion rate YoY
+Apt2B example: 337% site-wide revenue / 589% paid search revenue / 264% top-10 SERP
+
+================================================================================
+CLIENT TESTIMONIALS (Agital/Go Fish)
+================================================================================
+"Working with Agital made a huge and immediate impact on our growth… Agital helped us break the TikTok Shop product launch record!" — Director of Brand & Ecommerce
+"Their unique approach and out-of-the-box thinking led to significant improvement on day 1, and within weeks we were hitting all of our goals." — North America Paid Search Lead
+"The Agital team is collaborative, dynamic, and able to quickly change direction as new trends emerge… an invaluable long-term partner." — Founder
+"Agital really understood the unique needs of our company and was able to set the groundwork early, setting us up to get the maximum performance." — Representative
+"Agital's expertise is one of a kind… It did not just change our marketing program, it changed our business." — Founder
+"The Agital team has been pivotal in scaling our new customer acquisitions and brand visibility..." — CEO

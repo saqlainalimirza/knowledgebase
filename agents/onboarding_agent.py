@@ -26,6 +26,7 @@ from connections.supabase import get_conn
 from connections.gemini import extract_json
 from shared.writers import upsert_client, upsert_pain
 from shared.embed import embed_all
+from shared.taxonomy import tag_client_and_inherit
 
 SYSTEM = (
     "You are a B2B GTM data extractor for a cold-outreach agency. You read messy "
@@ -106,8 +107,9 @@ def run(client, slug, airtable_id, niche_hint, sub_niche_hint, form_path, accoun
                     counts[upsert_pain(cur, p, slug_, niche_, sub_)] += 1
                 except ValueError as e:
                     print(f"  skipped a pain: {e}")
+            nid = tag_client_and_inherit(cur, slug_, niche_text=niche_)
         conn.commit()
-        print(f"client '{slug_}' upserted (niche={niche_}, sub={sub_}).")
+        print(f"client '{slug_}' upserted (niche={niche_}, sub={sub_}, canonical_niche_id={nid}).")
         print(f"pains: {counts}")
         n = embed_all(conn, only_tables={"master_sheet_pains"})
         print(f"embedded {n} pain rows.")

@@ -3,13 +3,14 @@ import { notFound } from "next/navigation";
 import { q, one } from "@/lib/db";
 import ClientActions from "@/components/ClientActions";
 import ClientStats from "@/components/ClientStats";
+import NicheOverride from "@/components/NicheOverride";
 
 export const dynamic = "force-dynamic";
 
 export default async function ClientPage({ params }: { params: { slug: string } }) {
   const slug = params.slug;
   const client = await one<any>(
-    `select slug, client, niche, sub_niche, offer, airtable_client_id, status
+    `select slug, client, niche, sub_niche, niche_source, offer, airtable_client_id, status
      from client_roster where slug=$1`,
     [slug]
   );
@@ -35,7 +36,7 @@ export default async function ClientPage({ params }: { params: { slug: string } 
         <Link href="/" className="text-xs text-muted hover:text-accent">← all clients</Link>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-semibold">{client.client}</h1>
-          <span className="chip">{client.niche || "no niche"}{client.sub_niche ? ` · ${client.sub_niche}` : ""}</span>
+          <NicheOverride slug={slug} current={client.niche} currentSub={client.sub_niche} source={client.niche_source} />
           <div className="ml-auto flex gap-2">
             <Link href={`/clients/${slug}/copy`} className="btn-ghost">✍️ Copy</Link>
             <Link href="/search" className="btn-ghost">🔎 Search</Link>

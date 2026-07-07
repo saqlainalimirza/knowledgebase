@@ -22,6 +22,7 @@ from connections.gemini import extract_json
 from shared.writers import upsert_call, insert_chunks, upsert_pain
 from shared.chunk import chunk_transcript
 from shared.embed import embed_all
+from shared.taxonomy import tag_client_and_inherit
 
 SYSTEM = (
     "You analyze sales/discovery call transcripts and return STRICT JSON only. You "
@@ -89,6 +90,7 @@ def run(client, source_call_id, file_path, text, title, call_date, participants,
                         counts[upsert_pain(cur, p, slug, niche, _sub)] += 1
                     except ValueError as e:
                         print(f"  skipped a pain: {e}")
+                tag_client_and_inherit(cur, slug, niche_text=niche)
             conn.commit()
             print(f"mined pains: {counts}")
 

@@ -1,0 +1,2105 @@
+https://bajallama.com/ - travel/leisure apparel
+[0:01:28] Colby Stoker: Good. Hello. How are you doing?
+
+
+[0:02:30] Jeff Anderlite: Doing well. How are you doing?
+
+
+[0:02:31] Unknown Speaker 3: Good. Where where are you based out of?
+
+
+[0:02:34] Jeff Anderlite: Uh, right now, I'm in Walnut Creek, California.
+
+
+[0:02:39] Unknown Speaker 3: Not where you're normally at?
+
+
+[0:02:41] Jeff Anderlite: I don't know. I'm all over the place. I was just in Italy for a month. I don't know. I'm gone up in Santa Cruz, Oregon for a week.
+
+
+[0:02:50] Jeff Anderlite: Going to, I don't know, Nicaragua, Iran. Who knows?
+
+
+[0:02:59] Jared Cahoon: That's awesome. That is all over. Colby, I think your your funds are kinda cutting out. It's not catching everything.
+
+
+[0:03:07] Unknown Speaker 3: Yeah. It's like Is this any better?
+
+
+[0:03:18] Jared Cahoon: That is better.
+
+
+[0:03:20] Unknown Speaker 3: I'll use this for the call. Sean, can you
+
+
+[0:03:22] Jared Cahoon: hear us alright? Yeah.
+
+
+[0:03:24] Sean Kolina: All good. Sorry. I'm in next shop, so it's a little loud.
+
+
+[0:03:28] Unknown Speaker 3: No. You're good. Uh, appreciate you both taking time to chat. I know it's probably a very crazy week for you guys. Um, so we'll we'll try to keep this this short for you.
+
+
+[0:03:37] Unknown Speaker 3: But, yeah, I do appreciate you hopping on. A couple intros on our end. I'm Colby. I'm on the sales side of things, uh, specifically for this recover product that I reach out about where we have, uh, humans send these checkout abandonment text to get them to come back and complete purchases. We'll obviously walk through that on on the call.
+
+
+[0:03:55] Unknown Speaker 3: And then Jared, he oversees all of the the marketing products at Redo. So our suite of email, SMS, order tracking products, he oversees that and might be chiming in on some things on the call. But if the two of you don't mind giving quick intros on your end, a bit about the business, that'd be that'd be helpful, and then I'll jump into walking through the the recover product.
+
+
+[0:04:18] Jeff Anderlite: Sure. I we've been going for about seven years now. I'm the creative guy, I guess. So I design products, and Sean deals with, uh, sales and marketing more. And, um, yeah, we are just kind of doing a full overhaul of our entire ecommerce operations from redoing our website, reviewing all the apps and platforms we use, and, you know, looking to improve our conversion rate and, you know, essentially, just going through everything in our ecommerce funnel to try to improve it.
+
+
+[0:04:58] Jeff Anderlite: So hence why we're on the call with you guys.
+
+
+[0:05:01] Unknown Speaker 3: Cool. No. I appreciate you you jumping on. Uh, Sean, yourself?
+
+
+[0:05:08] Sean Kolina: Yeah. I do more of the sales, wholesale, emails, ads, and all that fun stuff.
+
+
+[0:05:16] Unknown Speaker 3: Right on. I appreciate it. And what's I'm curious. What do you guys use for email and SMS today?
+
+
+[0:05:23] Sean Kolina: Currently, we use I mean, sorry, Attentive. We were using Klaviyo, and then we switched, but open to both.
+
+
+[0:05:31] Unknown Speaker 3: Okay. No. That's good to know. So high level on on Redo's end. We've been around for a few years.
+
+
+[0:05:36] Unknown Speaker 3: There's a a few thousand brands that that use Redo. Uh, we have a handful of different products. So we've got stuff on the operational side of the business and then on the marketing side as well that Jared oversees with, uh, email SMS platform, branded order tracking, etcetera. And we've recently rolled out this, uh, recover feature tool, um, that we'll be chatting on that a lot of brands have been pretty excited about. It doesn't change anything that you're currently doing or replace anything that you're currently doing, um, but simply allows you, um, to get in front of abandoned checkouts that you currently are not able to get in front of today.
+
+
+[0:06:10] Unknown Speaker 3: So we we'd align on the messaging. I'll I'll share my screen here. But if someone abandons checkout, uh, we'd be able to, because we have a human sending it, uh, get a text out in front of them even if they've not subscribed to your email or SMS. So, obviously, a lot of people that come to the site aren't subscribed, and we help you just get in front of those that have not subscribed but abandoned their checkout. So let me share my screen real quick.
+
+
+[0:06:34] Unknown Speaker 3: Once again, pretty pretty simple product. So v one of this product this is a a new product we've recently rolled out, but it's like, you come in here, you choose the template that you wanna send. Like, hey. You know, first name of the customer, this is whoever you wanted to say coming from your brand. I saw you were looking at this product.
+
+
+[0:06:51] Unknown Speaker 3: Want me to see if I could get a discount for you? So this template would go to our agent, like, human to to send the text when an abandoned checkout triggers. If they do respond saying they want a discount, uh, here's the template for this that you can edit. Hey. Great.
+
+
+[0:07:06] Unknown Speaker 3: Here's a discount. Let me know if you have any questions. Here's an example of, like, a a conversation of it. Right? Like, hey.
+
+
+[0:07:13] Unknown Speaker 3: This is Jessica from, you know, abc.com. Saw you're looking at this product. Want me to see if I could get a discount? Yes. Great.
+
+
+[0:07:19] Unknown Speaker 3: Here's your discount. Here's a link to your cart. We get them to come back. There's no cost to this unless we recover revenue for you. Um, so if we're not recovering revenue, there's no cost.
+
+
+[0:07:28] Unknown Speaker 3: If we do get them to come back and complete a purchase, it's 10% of the revenue that we're able to to recover for you is is the cost of this. So, honestly, like, really simple. Uh, once again, it's cart abandonment text, checkout abandonment text, but we have humans send it so we could get in front of, uh, those customers who have not subscribed to to SMS.
+
+
+[0:07:48] Sean Kolina: Are you getting their name and numbers because they went to the very final checkout page?
+
+
+[0:07:53] Unknown Speaker 3: Correct. We're getting that from checkout. Yep. Correct.
+
+
+[0:07:59] Sean Kolina: How many people complain about that?
+
+
+[0:08:02] Unknown Speaker 3: Yeah. So we're early on but haven't had, like, negative customer sentiment. I think customers are just used to getting right text. We also do on the page we in the phone field just to, like, double cover our bases and to be more, like, forthright with customers. Well, in the phone field, we'll have, like, some prefilled text that just says receive offers and shopping cart reminders via text.
+
+
+[0:08:28] Unknown Speaker 3: So we'll prefill some text there as well. Um, but, yeah, something that we haven't had negative, like, sentiment from from consumers.
+
+
+[0:08:39] Jared Cahoon: It's not it hasn't been any different than, like, regular abandoned cart text messages. Cool.
+
+
+[0:08:49] Jeff Anderlite: K.
+
+
+[0:08:51] Unknown Speaker 3: Yeah. Honestly, really simple, but curious to hear your your thoughts on it.
+
+
+[0:08:54] Jeff Anderlite: What well, what's the you say on the last page? What's the conversion that you guys typically see on this?
+
+
+[0:08:59] Unknown Speaker 3: Yeah. So based on early results, we're estimating about 25% of the abandoned checkouts that we're able to get in front of will be able to recover for you.
+
+
+[0:09:10] Jeff Anderlite: Alright. And how many of those abandoned checkouts are you able to get in front of?
+
+
+[0:09:16] Unknown Speaker 3: So we're able to get in front of anyone that abandoned checkout and put their phone number in. So, obviously, like, it differs from brand to brand as far as, like, their
+
+
+[0:09:25] Jeff Anderlite: So how does that work? As soon as they type it in, you guys capture it without them saving the page or anything?
+
+
+[0:09:29] Unknown Speaker 3: Good question. So we will put a wait step in. So this is the back end flows that power this experience. Uh, we can do some, like, creative things with different conditions and rules. But by default, we'll typically wait ten minutes.
+
+
+[0:09:43] Unknown Speaker 3: We could wait thirty minutes or longer after they've essentially exited and make sure that they haven't completed a purchase before it then would trigger, like, a text to the queue that our agents would go and send.
+
+
+[0:09:57] Jared Cahoon: Sean, is your your question more like, technically, like, when someone types in their number, at what point do we save it? Yeah. I mean, once they've typed in a phone number and it's validated as a real phone number, like, it's it's Correct. Shop Shopify does does well on that stuff.
+
+
+[0:10:17] Sean Kolina: And then if someone if someone, you know, came on and then they already signed up via email and they submitted as they wanted to sign up for SMS and they did get it. They already got our code, but then they got to check out and they didn't use it. Are you texting them basically the same code or you're sending them a new one?
+
+
+[0:10:37] Unknown Speaker 3: Yeah. So we would have unique codes, um, that we're sending out through Redo. That's how we our attribution works is if they used the code that we generated for them. But you choose the discount that you want it to be. Right?
+
+
+[0:10:48] Unknown Speaker 3: If you want it to be 10%, 15%. Right? Like, you you choose what percentage you want, but we'd be generating unique codes to help with attribution.
+
+
+[0:10:58] Sean Kolina: And then are we able to use those numbers in segments for future, like, SMS promotions?
+
+
+[0:11:05] Unknown Speaker 3: Great question. So I've had this come up actually a a few times. So short answer is no. This so this follows, like, p to p, peer to peer messaging laws as opposed to a to p, um, like, messaging laws. So there is a little bit different, like, laws and red tape around what can and can't be done.
+
+
+[0:11:23] Unknown Speaker 3: But we're building, like, different features and functionality, uh, in this with essentially, like, what merchants are wanting and their feedback. And something that we've heard from a few people now is along those same lines. So what what we have on the, like, tentative road map, uh, in a bit is essentially, like, after we've engaged with the customers, then asking them, like, hey. Would you like to, like, continue to receive, you know, correspondence from us or continue to receive, like, news and updates and deals from us, reply, you know, yes. And then at that point, we can count that as, like, a double opt in where we then can add them to your your other segments and lists.
+
+
+[0:12:02] Sean Kolina: Yeah. I mean, I feel like if they said yes to the code, then you could basically say, would you like to join our VIP SMS?
+
+
+[0:12:11] Unknown Speaker 3: Exactly.
+
+
+[0:12:13] Jared Cahoon: For Yeah. Exactly.
+
+
+[0:12:15] Unknown Speaker 3: Yeah. So right now, no. But that's something that, like, we've actively been talking about building into this.
+
+
+[0:12:22] Jeff Anderlite: Cool. As
+
+
+[0:12:25] Unknown Speaker 3: far as setup goes, like, it really is super simple. It's like installing the app on the Shopify App Store. We'd need an EIN, the brand's EIN number that would allow us to register a phone number for the brand. And then we hop on a call, and, literally, like, within ten minutes, we are set up. We just align on the messaging, the discount that you wanna offer, and we could get it going for you.
+
+
+[0:12:48] Unknown Speaker 3: You'll have visibility into the conversations and everything to see how your customers are interacting with it, and there's no contract. So if it's not working or you're not liking the customer experience, you can stop using it anytime.
+
+
+[0:13:00] Jeff Anderlite: Alright. Is this the only product you guys have?
+
+
+[0:13:03] Unknown Speaker 3: We've we've got quite a bit. Um, so we have stuff on the operational side of things. So we do a lot with, like, returns management, like, returns, exchanges, etcetera. On the marketing side of things, though, Jared, I'll let you touch on the the suite of products we have on
+
+
+[0:13:18] Jared Cahoon: that front. Yeah. On on the marketing side, we actually have a full, like, email and SMS marketing platform. So it it functions in a lot of ways, I would say, similarly to what Colby was showing you. I think one key difference in the supplies to the product we're talking about now as well is we have, like, an AI customer record.
+
+
+[0:13:38] Jared Cahoon: So, for example, this brand actually uses us for email, for SMS, for order tracking, for reviews, for returns. I think they do their outbound shipping through us as well. So they they have quite a bit of information on this customer record. And then we're kinda taking that, and then we use that to create, like, one to one messages. So, like, your brand new card messages instead of just texting the same thing over and over, you can actually, you know, message them more specifically on what they need, which we've seen massive conversion increases on this when we compare, like, the static message people are sending before to, like, an AI message.
+
+
+[0:14:16] Jared Cahoon: So we've got we've got, like, the full email SMS platform capabilities. It's just usually, people start with something less heavy duty, like their cover messages or they do returns with us or something. And then over time, if that's working well, a lot of times, they'll start consolidating Alright.
+
+
+[0:14:41] Jeff Anderlite: Sounds good. Sounds good.
+
+
+[0:14:43] Sean Kolina: Cool. What about the
+
+
+[0:14:45] Unknown Speaker 3: sorry. Wanna
+
+
+[0:14:46] Sean Kolina: take on some of ask this. You mentioned, like, returns. Because currently, we use happy returns. What do you how do you guys compare to them? And I'm not super happy with them.
+
+
+[0:14:55] Sean Kolina: So
+
+
+[0:14:55] Unknown Speaker 3: For sure. So I can I can get in touch with someone to run through it, but super customizable? So similar to those flows that I was just showing you with, like, on the marketing side with these recover, uh, flows or the recover text messages that we'd be sending, similar on the back end of our returns product where we could say, hey. Look. Like, if it's a first time customer, we have different rules for them.
+
+
+[0:15:17] Unknown Speaker 3: Maybe we offer them different incentives to get, like, a first time customer to choose exchange, um, versus, like, a refund. Uh, we also have AI built into we do a lot with AI here. We have AI built into the return side of things as well, where if someone's saying, hey. I wanna return this because it's small, and they order size small, AI will see that and then automatically nudge them towards an exchange and, like, and say, hey. Look.
+
+
+[0:15:42] Unknown Speaker 3: Um, sorry. It was small. We recommend, you know, getting a size medium. So we do a lot to increase exchange rates, uh, with brands on returns, reduce refund rates via AI, also via some of those, like, really cool conditions that we're able to do with with flows. The we the model that most brands have on our return side of things too is it doesn't cost them anything, and we pay for return shipping labels.
+
+
+[0:16:06] Unknown Speaker 3: Uh, so we got a a unique pricing model on that front too that, uh, brands get pretty stoked about.
+
+
+[0:16:12] Jeff Anderlite: How do you pay for return shipping levels?
+
+
+[0:16:15] Unknown Speaker 3: Yeah. Let me pull up let me pull up a quick example. One sec.
+
+
+[0:16:25] Jared Cahoon: Also, Jeff, since you designed it, I assume, the NASCA lines hoodie. Yeah. Super cool.
+
+
+[0:16:31] Jeff Anderlite: Oh, cool. Yeah. So have you ever heard of NASCA lines?
+
+
+[0:16:35] Jared Cahoon: I have. Yeah. Yeah. I I actually lived a couple years in Argentina, and one of the guys that I was with during that time was from Peru.
+
+
+[0:16:43] Jeff Anderlite: I lived in Argentina for over a year as well. Where'd you go? Buenos Aires. I was I was young, studying abroad.
+
+
+[0:16:52] Jared Cahoon: Nice. I was in, uh, more in the Mendoza area and some of the surrounding areas there.
+
+
+[0:16:56] Jeff Anderlite: Mendoza is great.
+
+
+[0:16:59] Unknown Speaker 3: Cool. So let me share my screen here. Sorry. Can you see my screen okay?
+
+
+[0:17:08] Jared Cahoon: Yeah. Cool.
+
+
+[0:17:10] Unknown Speaker 3: So we essentially give customers the option when they're checking out. Once again, this is for our returns product where a customer can choose to pay to get free returns on their order. So it looks similar to this. Customer can choose to pay for that. If they do, Redo will cover any return shipping labels that are needed.
+
+
+[0:17:23] Unknown Speaker 3: If they, um, choose not to pay for this protection, they still go through the same automated returns experience. It's just they would cover the cost of their own return shipping label at that point. Um, this portion right here is a number that's set by Redo based on your return rate, based on average cost of shipping labels. And then you can add an additional amount on top of that for package protection that your team keeps a 100% of. So you're able to monetize off of it as well, little info model that you can customize to communicate a bit more to the customer with what they'd be getting for us.
+
+
+[0:17:54] Unknown Speaker 3: So that's that's a pricing model that that most brands are on with our returns product. Uh, and then it's super flexible, customizable on the back end, do some cool stuff with AI, etcetera.
+
+
+[0:18:05] Jeff Anderlite: What other brands that we would have heard of use use this?
+
+
+[0:18:08] Unknown Speaker 3: For returns?
+
+
+[0:18:10] Jeff Anderlite: Yeah.
+
+
+[0:18:10] Unknown Speaker 3: Yeah. So Nike Strength uses it. Uh, Malvern Golf uses it. Sorry. What was that?
+
+
+[0:18:20] Jeff Anderlite: No. I know, yeah, I know Melbourne.
+
+
+[0:18:23] Jared Cahoon: You know, like, Portland Leather Goods? Are they using it, Colby?
+
+
+[0:18:26] Unknown Speaker 3: Yeah. Portland Leather Goods uses us for returns as well, like Mack Weldon.
+
+
+[0:18:33] Jeff Anderlite: Oh, yeah. No. Mack Weldon.
+
+
+[0:18:35] Jared Cahoon: Trying to
+
+
+[0:18:36] Unknown Speaker 3: think of some others, like, specifically, like, close to your space. Anyway, there's some other, like, brands in other, like, spaces like Liquid Death and stuff that that use us for returns and whatnot. But, anyway Yeah.
+
+
+[0:18:49] Sean Kolina: Maybe can have someone, um, reach out next week after Thanksgiving about the returns,
+
+
+[0:18:56] Jared Cahoon: and we can look at
+
+
+[0:18:57] Sean Kolina: that too just to to see that option because that looks better than what we've got going on right now.
+
+
+[0:19:03] Unknown Speaker 3: We do some cool stuff on that front. So what we could do is so we could have you install the app, and we could put some tentative time on, like, for ten minutes next week, um, as long as things have calmed down for you after Black Friday, Cyber Monday, and we could just set up these, like, recover messages. The only other thing I need from your end is that EIN number to get that number registered. And after the app's installed too, on the return side of things, they can go in and build out an entire experience specifically for your brand on the back end. Then on a call where they walk through it, you can see everything exactly how it looks specifically for for your brand.
+
+
+[0:19:39] Sean Kolina: Okay. Cool. Yeah. It seems seems good. I can I can get the app installed?
+
+
+[0:19:47] Sean Kolina: And then what'd you say? Just the EIN number?
+
+
+[0:19:49] Unknown Speaker 3: Correct. Yep. Those would be the two things needed from your end. I'll send an invite out for next week and connect you with someone on the return side as well.
+
+
+[0:19:56] Sean Kolina: Sweet. Sounds good.
+
+
+[0:19:58] Unknown Speaker 3: Cool. Thank you, guys.
+
+
+[0:19:59] Jeff Anderlite: I appreciate it. Take care.
+
+
+[0:20:00] Jared Cahoon: Take care.
+
+
+[0:20:01] Unknown Speaker 3: Good luck this weekend. Alright. Yep.
+
+
+[0:20:03] Jared Cahoon: See you guys.
+
+
+
+
+
+
+Apparel → https://capsule.nyc/
+
+
+[0:00:17] Colby Stoker: Hey. How you doing?
+
+
+[0:00:19] Daniel Zakkour: I'm doing well. How are you doing?
+
+
+[0:00:21] Colby Stoker: Doing well. Thank you. You're in New York area. Is that right?
+
+
+[0:00:25] Daniel Zakkour: Yes, sir.
+
+
+[0:00:26] Colby Stoker: Right on. Appreciate you taking some time to chat. I'm sure it's one of the busiest weeks of the year for you.
+
+
+[0:00:34] Daniel Zakkour: Yeah. It is. And, also, it's a Monday. It's just when we catch up in a lot online activities over the weekend. So it's always it's always tough on Mondays.
+
+
+[0:00:45] Colby Stoker: For sure. Well, we will we'll keep this short for you then so you can get back to everything else you have. But but excited to to go through it. I appreciate you being on the chat. Quick intros on our end.
+
+
+[0:00:55] Colby Stoker: I'm on on the sales side of things, help brands better understand this recover product that that we have that I was knowing you about. And then Jared, he oversees all of our marketing products. We have a handful of different things that we do on the marketing side at Redo, and he he oversees all of that. So I invited him on the call, and he might chime in on some some places. But, Daniel, if you don't mind giving quick intro on your end, a bit about the business, that'd be super helpful.
+
+
+[0:01:19] Colby Stoker: And then I'll have a couple questions for you, and then I'll I'll share my screen. We'll quickly chat through some things and talk what next steps
+
+
+[0:01:25] Daniel Zakkour: So if
+
+
+[0:01:25] Colby Stoker: you're interested.
+
+
+[0:01:26] Daniel Zakkour: I own a capsule clothing store. We have two physical stores. We're actually working on third one right now. We also have a ecom business, capsuleclothingstore.com, and app on based off ShopMe. We've been doing this I've been my my store is my oldest store is ten years old.
+
+
+[0:01:49] Daniel Zakkour: You know, we we push online, like, all the way. We know that's the way going. We even have, like, a app set up in store where customers can shop on our app. We do Facebook ads. We do TikTok ads.
+
+
+[0:02:02] Daniel Zakkour: We do Google ads. We just, you know, working through technology and always trying to make things better. You know? Just make make it easier for the customer to shop. Also, at the same time, trying to get as much information from the customer so they could be reached.
+
+
+[0:02:17] Daniel Zakkour: And that's why your last email actually caught my attention because I saw that we can we can get engaged with the customer even if post engagement is what actually called me into this.
+
+
+[0:02:31] Colby Stoker: Well, I love it. Yeah. Excited to to look through that. Couple follow-up questions. So, obviously, you have Capsule.
+
+
+[0:02:37] Colby Stoker: Do you have, like, other online stores or, like, you have physical stores, but, like, a few different some physical stores and then just one, like, ecom store. Is that correct?
+
+
+[0:02:46] Daniel Zakkour: Yes. So I have two physical stores and just one ecom.
+
+
+[0:02:50] Colby Stoker: Okay. That's what I thought. Just wanna make sure I I clearly understood. And, yeah, obviously, like, the marketing and technology side of things is always evolving and and different things coming out. So a little background on Redo.
+
+
+[0:03:02] Colby Stoker: So we've been around for a few years. There's a few thousand brands that usually do. We have different products on operational side of things, and we do a lot on the marketing side of things that that Jared helps overseas, like email SMS, order tracking, etcetera, doing some really cool stuff with AI with these products. Um, the specific one I was reaching out to you with, uh, is essentially cart abandonment text. Mhmm.
+
+
+[0:03:24] Colby Stoker: Someone comes to your site, they abandon without purchasing. Uh, we have humans that send these, like, checkout venom and text, and so we're able to get in front of customers who haven't even subscribed to email or SMS because we're least human that's sending it. So you're to get in front of more of your hanging fruit that you currently are today. Cool thing is there's no cost to you unless we're able to recover sales for you. If we do recover some of these lost sales, it's 10% of the revenue we recover.
+
+
+[0:03:52] Colby Stoker: And the cost, if we don't recover any sales for you, there's there's no cost at all to you. Uh, it's a pretty simple product. Doesn't, like, change or replace anything that you're currently doing. Just adds to it, just additive on top of your current tech stack and solutions. And then for the messaging, um, a couple different options.
+
+
+[0:04:10] Colby Stoker: You have an option where you essentially just choose the exact input that you're wanting. Like, hey. This is Jessica. This is Daniel from from Capsule, whatever you wanted to say. So you were looking at this product.
+
+
+[0:04:20] Colby Stoker: Want me to see if I could get a discount? Yes. Great. Here's a discount. Here's a link to your cart.
+
+
+[0:04:24] Colby Stoker: We get them to come back and complete the search. So that's essentially, like, one option with the messaging that we have is these these templates. You have complete control over the messaging. Uh, and what we also we do a lot with AI where we can train AI to, like, speak in your brand voice, and it would essentially send text or, like, create the message that the human sends that's based on the information and data that we have from that customer. So it's a bit more specific to what's in their cart, more specific to their order history with you, etcetera.
+
+
+[0:04:58] Colby Stoker: It'll feel a lot more, you know, natural as they're corresponding and whatnot. And this isn't live right now, but in the the coming weeks, we'll have it live where we essentially can answer product questions as well. So if they start asking specific questions about your product, the material, the sizing, etcetera, we'll be able to effectively answer these these questions that they have and proactively proactively overcome overcome concerns, concerns, hesitations, questions to get them to complete a purchase.
+
+
+[0:05:26] Daniel Zakkour: Okay.
+
+
+[0:05:28] Colby Stoker: I know I'll do that pretty quick, but curious to hear, yeah, your your thoughts and questions.
+
+
+[0:05:32] Daniel Zakkour: I like that. I mean, honestly, AI is the way to go going forward. That one on one conversation with the customer to to to for browser abandonment, I'm definitely interested in that. You guys do some other stuff too, like some color coding and stuff like that too. Right?
+
+
+[0:05:47] Colby Stoker: Say that one more time. Some what?
+
+
+[0:05:48] Daniel Zakkour: You guys do you guys have some other stuff that you do as well. Right?
+
+
+[0:05:51] Colby Stoker: We do a lot. Jared, I'll let you give maybe, like, a high level 800 foot overview of our marketing products and some cool stuff that that we're doing. Yeah. Yeah. And, Dana, did you ask about something specific there?
+
+
+[0:06:03] Daniel Zakkour: I just No. I might have read, like, something else about you guys. Like, something something to do with colors.
+
+
+[0:06:09] Colby Stoker: Colors.
+
+
+[0:06:10] Daniel Zakkour: Yeah. Like, colors and garments, some maybe color coding. I'm not sure. Maybe it's the wrong
+
+
+[0:06:15] Colby Stoker: I don't know. I mean, there's certain l there's elements of the product. Like, we've got tagging systems and different things like that that are color coordinated, but I don't know specifically. But, yeah, it's it's kinda like what Colby said. Our our goal and what he was showing you with those one to one AI messages is, you know, usually people start using Redo through a single product like Recover, or maybe they do returns with us or whatever it is.
+
+
+[0:06:41] Colby Stoker: And then they'll end up adding more and more products because you can kinda centralize a lot of different workflows into one place. Nice thing with that is we get a lot of context about the shopper. Right? You know, we know what they shopped for on the website, what they liked, what they didn't like and returned, why they did that. And then when you're marketing to them, we can get really specific, uh, messages.
+
+
+[0:07:04] Colby Stoker: Kinda like probably had an example pulled up, but we've seen it do stuff like, hey. Saw that you had this shirt in a medium in your cart since the other one you returned because it was too small. Like, we'd actually recommend you recommend you size this up. You wanna you know, do you need help completing your purchase? And then it's like, it's so relevant at that point that we've just seen the conversion rate, um, on that type of marketing go up.
+
+
+[0:07:31] Colby Stoker: So that's kind of our goal. But, usually, somebody will start with with something pretty straightforward like this recover product. It's incremental to your sales. People are pretty happy with it, and then we move on to the other products as you see them being helpful to your business.
+
+
+[0:07:50] Daniel Zakkour: Okay. Well, I'm definitely interested.
+
+
+[0:07:53] Colby Stoker: Well, what I so the setup's super simple. Uh, I'd have you install the Shopify app, uh, and then I'd also have you send over your EIN number, and that just allows us to get a number registered for you that these texts would be sent from. And the onboarding takes about ten minutes where we just align on the messaging, uh, and then we, um, get it up and running for you, and you'd be able to monitor the messages, see what those conversations are like, um, from there. So super simple setup. I'll put some time on for next week after after Black Friday, Cyber Monday.
+
+
+[0:08:22] Colby Stoker: Uh, and we can we can get it set up and rolling. So I'll I'll put some time on for probably mid to end of next week. Okay. And I'll just send an email to you in a minute. Just a link to the Shopify app and just the EIN number, and then we can get started on our end just getting that number registered for you.
+
+
+[0:08:39] Daniel Zakkour: Okay. Sounds good.
+
+
+[0:08:41] Colby Stoker: Great. Well, Daniel, thanks for chatting, good luck, uh, this coming, uh, week and weekends.
+
+
+[0:08:46] Daniel Zakkour: Thank you. You guys enjoy. Happy Thanksgiving.
+
+
+[0:08:48] Colby Stoker: You too. We'll be in touch. Take care. We'll
+
+
+[0:08:49] Daniel Zakkour: see you. Bye. Bye bye.
+
+
+
+
+polkadog.com/ - pet brand
+
+
+[0:00:02] Bill: The company isn't very much in Boston, but Canton. I'm in Canton right now, a little little south of Boston.
+
+
+[0:00:10] Henry: I know exactly where you are. I grew up in Massachusetts. Um, I'm not there anymore, but loved it.
+
+
+[0:00:15] Bill: Oh, nice. Where'd you grow up?
+
+
+[0:00:17] Henry: Yeah. I grew up in Hopkinton.
+
+
+[0:00:19] Bill: Oh, sweet. Yeah.
+
+
+[0:00:22] Henry: That's a I hear
+
+
+[0:00:24] Bill: Go ahead.
+
+
+[0:00:25] Henry: Hear you guys are getting a whole bunch of snow this weekend.
+
+
+[0:00:29] Bill: Yeah. That's what it looks like, unfortunately. Definitely bracing for it. Gonna probably go to Home Depot after this and investigate some snow snow removal equipment.
+
+
+[0:00:42] Henry: Oh, yeah. Yeah. No. It's I I if it's as serious as they're making it sound, it's gonna be quite a storm.
+
+
+[0:00:49] Bill: Yeah.
+
+
+[0:00:50] Henry: It's funny. I'm in Utah right now, and we haven't had very much snow at all this year. So I I was like, why couldn't we get something like this?
+
+
+[0:01:01] Bill: So you get do you usually get a lot where you are?
+
+
+[0:01:05] Henry: Yeah. So our we're located in Draper, Utah, and just on the other side is, like, Park City and all those mountains there.
+
+
+[0:01:13] Bill: Oh,
+
+
+[0:01:13] Henry: okay. So, yeah, a lot of people are big skiers out here, and it just has not been a not been a great start to the season.
+
+
+[0:01:21] Bill: Oh, okay. Yeah. It's we I mean, it's weird. It's like, who knows what's gonna happen with the weather these days. You know?
+
+
+[0:01:28] Henry: Yeah. No. It's a super strange, uh, season. I know three years ago, was, like, record breaking snowfall here. And then this year, I mean, we have, like, a dusting, it feels like, on the mountains.
+
+
+[0:01:40] Bill: Wow. Yeah. There's Katrina.
+
+
+[0:01:42] Henry: Yeah. Hey, Katrina. Hi.
+
+
+[0:01:44] Katrina: Good morning. I'm gonna go off camera, but I am here.
+
+
+[0:01:49] Henry: Okay. Well, happy to have you here. Are you in Canton as well?
+
+
+[0:01:54] Katrina: No. I'm I'm just a little bit further north in Newton, Massachusetts, right outside Boston.
+
+
+[0:02:01] Henry: That's awesome. I was telling Bill I grew up in Hopkinton.
+
+
+[0:02:04] Katrina: Oh, okay. So you know the area. Are you a Patriots fan?
+
+
+[0:02:09] Henry: Oh, yeah. I'm getting ready for this weekend.
+
+
+[0:02:13] Katrina: Great. I've never heard of AskElephant before. It's a one for me.
+
+
+[0:02:19] Henry: Yeah. It's another Utah company as well, and it's a fantastic product. I don't know if you guys normally have a notetaker. I didn't see you guys have one on here, but, man, they are helpful.
+
+
+[0:02:31] Katrina: Yeah. Some of our folks do. Sometimes we have more notetakers in the meeting, I feel like, than people. And
+
+
+[0:02:40] Henry: then I saw Kelsey. Is she gonna be on, or is she not gonna make it?
+
+
+[0:02:45] Katrina: I think she may have a a memorial service now. I'm not sure exactly what time, but I'm not sure she's able to make it.
+
+
+[0:02:53] Henry: Okay. No worries. Well, I know you guys had spoken with Colby on our team about our product recover. I don't know if he covered anything else with you or kinda how far you guys got along with that, but I'm here today to answer any questions that might have come up, um, or kinda just review the product and show you guys, um, how it all works.
+
+
+[0:03:16] Katrina: Great.
+
+
+[0:03:16] Bill: Yeah. We didn't get very far. I I think I got some interesting sales emails that I was like, you know what? Good time to review our, you know, what other apps and tech we could we could layer on to help with. I think our Yeah.
+
+
+[0:03:31] Bill: I I just quickly looked at Redo's site, and I saw the the returns feature. But, yeah, we're kinda we're pretty pretty basic as far as returns go, and I forget exactly what Recover does. But I remember it sounded intriguing, so you can fully educate us.
+
+
+[0:03:48] Henry: Absolutely. Yes. Um, so I'm on the marketing cloud team here at Redo and oversee a couple of our products, Recover being one of them. Um, and what I what I think is so exciting about Recover is that it typically is one of the products that allows for the quickest wins for brands on Redo. Getting returns and everything set up, um, that takes a little bit longer.
+
+
+[0:04:08] Henry: With Recover, we can kinda get it set up in, like, two or three days, and you guys can actually start seeing revenue coming back. So I love it as a product just because it's like brands are on it, and they're like, wow. Redo really is working for us, um, rather than some of our other products like email and SMS, which take a little bit more time to implement and get going. So the premise of Recover, and I don't know if Colby went over this, is that there are people who are coming into your website and they're making it all the way to checkout. And a lot of them will not opt in to your email or SMS flows, which are probably running through, you know, your email provider like Klaviyo.
+
+
+[0:04:46] Henry: So they once they leave, you cannot reach them. You can't contact them. They're gone. But they were super high intent customers. They made it all the way there.
+
+
+[0:04:56] Henry: They were about to place an order, and maybe it was shipping cost or a whole host of reasons that they they left and abandoned that checkout. And what we're able to do is we're able to use their phone number, and we have humans in our office who then send them a text message. And because it's human to human, they didn't have to opt in. So that's how we're able to reach out to these people who didn't necessarily subscribe. Um, and it's crazy to me the win rate that we see of getting these people back.
+
+
+[0:05:30] Henry: But at at the same time, it makes sense because these people, you know, they had their wallets out. They were ready to buy, and something just happened. So offering a 5% discount, 10% discount, or free shipping to kinda get them over the line, we've actually find it super effective.
+
+
+[0:05:47] Bill: Cool. Can I ask
+
+
+[0:05:51] Katrina: Yeah?
+
+
+[0:05:51] Bill: How that how that works? Like, how do you how do you get their phone number? Is it because they've input it?
+
+
+[0:05:57] Henry: Yeah. Yep. So it's someone who's gone to checkout, filled out information, not necessarily opted in, but has entered some information or pulled from the shop app on Shopify.
+
+
+[0:06:09] Katrina: Okay. And you're allowed legally to call them even though they haven't opted in?
+
+
+[0:06:15] Henry: Yes. So we actually have been working with the legal team that developed the language around peer to peer texting, um, and kinda set the precedent around this. Um, so they're working directly with us at Redo. And it's if you think about it, it's like me texting either one of you. It's just human to human contact.
+
+
+[0:06:33] Henry: You didn't necessarily have to consent for me to be able to text you as another human reaching out.
+
+
+[0:06:40] Katrina: And so you normally text them or you call them?
+
+
+[0:06:44] Henry: It's all SMS messages. Okay. So it'll just be a text message. And I can pull share my screen and show you what those kinda look like, just so you get an understanding of how that's working.
+
+
+[0:06:57] Bill: That'll be good.
+
+
+[0:06:58] Henry: Yeah. So I'll go ahead and share my screen and show you one of the brands that we've been working with. So this brand, I'm gonna hop over here. Let me let me back up a bit. So on Redo, you'll have a dashboard that will look something like this.
+
+
+[0:07:20] Henry: And this brand, they have a bunch of our products, like you mentioned, returns. They're also on our email and SMS. They have order tracking, kind of the the full Redo suite for this brand. But Recover lives within this email and SMS right here, and you'll see this icon for Recover down here. And I'm actually gonna jump over to analytics.
+
+
+[0:07:42] Henry: But you can see over the last I'll just double check this is the last thirty days. Yep. So over the last thirty days for this brand, we have been able to recover them about $24,000 in revenue, and that came from 279 carts. So there's been
+
+
+[0:07:59] Katrina: a That's big jump an expensive product.
+
+
+[0:08:03] Henry: Yeah. I mean, we can jump in and see what some of these conversations look like and how much they were actually able to recover. Got a bunch sent out here.
+
+
+[0:08:14] Katrina: So I
+
+
+[0:08:14] Henry: don't know.
+
+
+[0:08:15] Katrina: So the use the user gets a text message that says, hey. We noticed you sell some items in your cart. You know, would you like 5% off? Oh, I see it right here.
+
+
+[0:08:24] Henry: Yep. So for example, this one hey, Britney. And this is you guys can totally customize this to your brand. You can say really whatever you want. Typically, we just tell them, hey.
+
+
+[0:08:36] Henry: This is someone from the brand and list the product that they were looking at. So an example here is, hey, Britney. This is James from Baseballism. Saw you were checking out x y z product. Want me to see if I can get a discount for you.
+
+
+[0:08:48] Henry: Not interested. Just reply stopped. And the customer's store in all caps, great. Just got that for you. And we've actually already applied the discount in your cart right here.
+
+
+[0:08:59] Henry: So then they can just click that link, and it takes them right back to their cart.
+
+
+[0:09:04] Katrina: And what do you link to? Do you link to Klaviyo or Shopify? Or how do we what is how does it work?
+
+
+[0:09:14] Henry: Yeah. So it'll bring them right back to their their cart that they had on your website, on the Shopify site.
+
+
+[0:09:22] Bill: So are these codes premade, Hunter?
+
+
+[0:09:26] Henry: Yeah. They'll they'll generate, and their specific they'll have a specific link that link to that shopper's cart. Um, and, yeah, the link the discount code right there, those are premade and ready to go.
+
+
+[0:09:41] Bill: Gotcha. So, like, we you who makes the codes? Do we make them or you your team makes them?
+
+
+[0:09:47] Henry: Yeah. We make them, and it's really kinda nice for customers because they don't even have to enter in the code. We automatically apply it to their cart. So they're gonna go back on there, and they're gonna see a discount code already applied within there. So they don't need to be like, have their email or sorry.
+
+
+[0:10:04] Henry: Their text, um, and trying to, you know, type in the discount code. It's already automatically inputted.
+
+
+[0:10:10] Bill: Gotcha. So that your team has some access to our to our, like, Shopify portal to be able to enable that?
+
+
+[0:10:17] Henry: Yeah. So we'll if you wanna proceed with next steps, it's actually a pretty easy setup. All we ask is, and I'll stop sharing my screen here, that there's a there's a few things. We'll require an EIN number and the entity name, and this is for us to be able to provision a phone number. And then to be able to pull those products over, like you mentioned, we just request access on Shopify partners to just a few things.
+
+
+[0:10:46] Henry: I believe it's dashboard, products, orders or, like, marketing on there. Gotcha. So, yeah, we just pull that over. And, yeah, if and have you guys decide on a discount in messaging. So, typically, we see brands kinda offering these people, like, 10%.
+
+
+[0:11:06] Henry: You could offer them a free product if you wanna have, like, a perceived value on there. Like, hey. We'll throw this in. Some a brand I just worked with yesterday, like, put a free hat. They added a free hat to cart.
+
+
+[0:11:20] Henry: So there's there's a few different things we could do there.
+
+
+[0:11:23] Katrina: So when How does
+
+
+[0:11:25] Bill: Yeah. Sorry. Go ahead. Yeah. No.
+
+
+[0:11:26] Katrina: I was gonna say, how does it work if they already have a discount from us or they're, you know, there's some offer that's already going on or they're thinking about subscribing?
+
+
+[0:11:38] Henry: That that's a great question, and we've had a bunch of brands with this. Typically, we'll stack. So we'll stack the discount. So it has to be like a discount you guys are comfortable with and make sense with your margins. Um, but say you're offering 15% off sitewide, you could offer an additional five or 10% on that text to win that customer back, and it would stack on top of, um, the site's discount.
+
+
+[0:12:02] Bill: Okay. So would that be, like, a preset rule? Like, if already getting a discount, just add 5% or something?
+
+
+[0:12:10] Henry: Yep. It's it's, again, just a little button on Shopify that you make sure it's checked, um, that order discounts are able to stack.
+
+
+[0:12:19] Bill: But we would give we would give you rules around what what to offer when there's already a discount. Is that how it works?
+
+
+[0:12:26] Henry: Yeah. Absolutely. You guys would let us know, like, hey. We're we're only gonna offer, you know, 10% additionally on top of whatever discount we have currently running on the website, and we never wanna go above that. Or you could you could start with one text being like, hey.
+
+
+[0:12:40] Henry: Here's 5% off. If they don't respond to that, you could have a second text saying, hey. We got another discount for you. And that could be 10% to try to win them back. Mhmm.
+
+
+[0:12:50] Katrina: Or maybe extra points if they've signed up or how long do you recommend waiting? Because I find sometimes I leave something in a cart for, you know, a couple hours intending to go back that night, and I've already gotten offers. I mean, do you recommend waiting twenty four hours or, like, six hours?
+
+
+[0:13:09] Henry: No. We typically send a lot sooner than that. Normally, like, a half hour after someone's abandoned checkout. Yeah. It's it really is kinda like what we've seen is time kills all deals.
+
+
+[0:13:22] Henry: So, like, someone had high intent. They were just at the checkout page. And then if you come along and say, hey. Here's 10% off. A lot of the times, it gets people back.
+
+
+[0:13:31] Katrina: Yeah. I just I wouldn't wanna train consumers so that they learn to do that every single time. Yep. Do you know what I mean? Is there a way to wonder if you can screen out people who've gotten that offer before.
+
+
+[0:13:45] Henry: Well, yeah, that's that's the great thing about Recover is we're reaching out to non subscribers. So these aren't people who are in your normal Klaviyo flows for email and SMS who are already subscribed to your marketing emails. These are people who haven't subscribed to anything from you guys and would otherwise be unreachable. So this is just getting yeah. So it already is kinda segmented out in a way.
+
+
+[0:14:07] Katrina: That makes a lot of sense. Got it. Okay. I missed that.
+
+
+[0:14:12] Bill: I'm curious to see the the brain that came up with this because it's pretty it's pretty interesting. I've never you know? I I don't know. I'm I'm trying to it it makes a lot of sense, and it's just like, wow. Somebody was really thinking that day.
+
+
+[0:14:24] Bill: Really maybe took a good good substance that day when they came up with this.
+
+
+[0:14:28] Katrina: But how do they how does it work that they can that you can link to Shopify, but you can tell who's already getting our either SMS or or emails? Because doesn't doesn't that live in Klaviyo, or are they already they're connected, of course?
+
+
+[0:14:47] Henry: Yeah. Yep. So like I mentioned, this is only pulling from people who haven't been contacted or are on any of those Klaviyo flows. So Klaviyo hasn't even recognized these people. They don't know what to do with them.
+
+
+[0:15:00] Henry: So they're automatically grouped out of that. It's not something, like, we have to do on our end of, like, kinda triggering, like, oh, is this person subscribed or not? We know, like, with that phone number that they they aren't subscribed.
+
+
+[0:15:15] Katrina: Okay.
+
+
+[0:15:16] Bill: Because by this stage of checkout, they would have been logged in. Right? So
+
+
+[0:15:21] Katrina: Okay. Got it. And how long have you guys been in business?
+
+
+[0:15:26] Henry: We have Redo has been around for two and a half years coming up on three, and it's been a wild ride, I'll tell you.
+
+
+[0:15:36] Katrina: Yeah. How many customers do you guys have?
+
+
+[0:15:39] Henry: I think currently, we or actually, it's exciting today. We're announcing our 2026 plans. But we have 3,000 different merchants ranging from Taylor Made to Aviator Nation to Caraway, a whole bunch of really awesome brands.
+
+
+[0:16:00] Katrina: Great. And I don't know how does pricing work? I don't know if Bill already knows that.
+
+
+[0:16:06] Henry: Yeah. So this is the awesome thing about Recover, and this is why I say it's a quick win for brands. It costs nothing to implement. It's free until we make you money. So it's a commission based structure.
+
+
+[0:16:17] Henry: If we pull in a $100 for you, typically, the commission's 10%. So we take $10 of that. So if you think about it, it's like a 10 x ROI. You guys pay nothing unless we make money for you.
+
+
+[0:16:32] Katrina: Yeah. And that's 10% off of the products or off of the total order including tax or shipping?
+
+
+[0:16:40] Henry: It's it's off the total order.
+
+
+[0:16:42] Bill: K. So that does include if they paid, like, some shipping and all that?
+
+
+[0:16:50] Henry: I don't. I think it's just product value.
+
+
+[0:16:52] Bill: Okay.
+
+
+[0:16:53] Henry: Yep.
+
+
+[0:16:54] Bill: That that would be ideal.
+
+
+[0:16:55] Henry: Yep.
+
+
+[0:16:56] Katrina: Yeah.
+
+
+[0:16:58] Bill: Because we, yeah, we obviously typically don't make money on shipping. We Yeah. Yeah. Or negative on that. Yep.
+
+
+[0:17:05] Bill: Yeah.
+
+
+[0:17:08] Henry: That that's how we normally have it set up there. So I like to tell brands like, hey. Try it out three, four weeks. See if you recover sales. If you don't, it costs you nothing, and you can just flip it off with a switch.
+
+
+[0:17:22] Henry: I don't think that's gonna happen. I think you guys are going to recover sales. And then it opens up conversations for some exciting things as well, like email and SMS, which I don't know if you guys are on Klaviyo. It sounds like you are, but we actually have our own email platform that a lot of brands who are on recover end up coming over to us to for email and SMS as well, um, just because we're a lot cheaper, um, than Klaviyo. Um, and we use a usage based model.
+
+
+[0:17:50] Henry: That's how we're able to to get our pricing a lot lower. So I don't know if you guys have any idea how many emails you're sending on average. I always just like to to ask brands and see kinda where they're falling on that.
+
+
+[0:18:06] Bill: That's a good question.
+
+
+[0:18:08] Katrina: Yeah. We could look that up. I mean, would let's say it's eight emails a month.
+
+
+[0:18:13] Henry: Okay.
+
+
+[0:18:14] Katrina: And what's our list size now? Is it around thirty thirty five thousand?
+
+
+[0:18:20] Bill: Yeah. I'm I'm in the I was in the thing. I wanted to see if I could see, like, a quick
+
+
+[0:18:26] Katrina: Yeah.
+
+
+[0:18:27] Bill: A quick, like, overview of that. It's pretty yeah. Third I think it's actually more in the forties.
+
+
+[0:18:34] Katrina: Is it higher? Yeah.
+
+
+[0:18:35] Bill: Yeah. Mean, I it depend obviously, it depends on the segmentation and everything. Yep. How many
+
+
+[0:18:41] Katrina: Yeah. That's true. Good point. Yep. We're not sending to the whole list eight times a month.
+
+
+[0:18:48] Bill: Yeah. All campaign messages. I don't know. We can we can definitely get an answer for you. It's it looks like I'm just looking at well, December is kind of a different animal.
+
+
+[0:18:59] Bill: You know?
+
+
+[0:19:00] Henry: Yep. Yep.
+
+
+[0:19:01] Bill: Would that be recipients? Is that or delivered? What is what are we looking for there? Delivered?
+
+
+[0:19:06] Henry: It would be the the total number of emails you sent. Um, so not active profiles. It would be, um, like Katrina was saying, like, if you're sending eight emails a month to however many people, um, within that list, um, it would be that number.
+
+
+[0:19:20] Bill: Okay. Gotcha. Yeah. Hard to say quickly, it looks like, but we can definitely, uh, try to dig into it and get
+
+
+[0:19:28] Katrina: you Yeah. I mean, I don't know that we're not inclined to change email right now because we've just done a lot of work to our flows and campaigns, but that's good to know.
+
+
+[0:19:38] Henry: Yeah. Yeah. We actually our team migrates everything over for you guys, so it's it it wouldn't be anything on your end with email and SMS that you'd have to switch over. Our team handles all that. And I'm just looking at if it if it's a list of 35,000 people and eight emails, roughly, like, 280,000, that'd be $515 a month.
+
+
+[0:20:02] Henry: I don't know what you guys are currently paying, but that's what it would be on Redo.
+
+
+[0:20:08] Bill: Okay. Yeah. It looks like just to give you a quick ballpark, in January, it's been 25,000 plus another I don't know. Call it two and so it's been more like, call it 250,000.
+
+
+[0:20:25] Henry: 250 k? Yep. So that that would be, like, $468. I don't know what your Klaviyo bills are looking like, but normally, when I talk to brands, they're like, oh, okay.
+
+
+[0:20:35] Bill: Yeah. Yeah. That is I mean, I appreciate, and I'm sure you do too, Katrina, getting a quick number like that because at least we can we can factor that into our conversations and planning. Yeah.
+
+
+[0:20:46] Henry: Yeah. Another thing we're doing, and this is fun. We just launched this this week. I just love showing brands and and talking to them about this stuff. So I wanted to show you this really quick because I think it's exciting and could be meaningful for you guys as well.
+
+
+[0:21:04] Henry: But we actually just launched this week our marketing agent, and this is just like a mock version. But, basically, what this allows you to do say you have your email list of 35,000 people. You could come in here and select, you know, 10% of that 35,000 that you would wanna test our AI agent that is creating flows specifically with the knowledge of each customer and their purchases and all their behavior. So it has essentially perfect context on who this is and knows what they respond to. So you would come in here and kind of like we were mentioning earlier, you know, how many days do we wanna go by before messaging them and then kind of putting in some ranges here for discounts to offer too.
+
+
+[0:21:57] Henry: And then what it allows you guys to do is come in here. It'll give you some preview messages, and you can tell it what you like, what you don't like, and you'll start training the model yourself in in the brand voice and everything. And it will just continue to get smarter as it sends out emails. And then from there, you can a b test it and see what's going on. So in this example, the marketing agent was able to to outperform the legacy automations of the brand, which is just exciting to see.
+
+
+[0:22:29] Katrina: Yeah. Yeah. That's interesting.
+
+
+[0:22:33] Henry: Yeah.
+
+
+[0:22:33] Bill: Yeah. Are Sorry. Do you have a do you have, like, big brands? I know you mentioned some pretty big brands there using that.
+
+
+[0:22:43] Henry: So we just this was this week that we launched it. So we are just starting to onboard some of our current brands onto it and and trialing it with them. But I would say most most of our big brands are just on our traditional email and SMS. This is such a new thing that it's it's just something I like to show and see, like, if brands get excited about it or if they're like, what what is this? Any questions that come up.
+
+
+[0:23:11] Henry: It's just good feedback for us as well.
+
+
+[0:23:13] Katrina: Yeah. Yeah. That seems really cool.
+
+
+[0:23:16] Bill: What's the added cost for something like that?
+
+
+[0:23:19] Henry: It would be included in email and SMS marketing.
+
+
+[0:23:23] Bill: Okay.
+
+
+[0:23:24] Henry: So whatever that price was, I think I said $4.68 for 250,000 emails.
+
+
+[0:23:31] Bill: And then what would SMS look like on top of that just so we have a full picture if we were sending, say, I don't know, uh, 50,000 SMS a month?
+
+
+[0:23:42] Henry: 50,000 SMS. Um, we have it priced at $6.50, but we'll be anyone on any price.
+
+
+[0:23:49] Bill: Got it. Okay.
+
+
+[0:23:52] Katrina: So That's great.
+
+
+[0:23:53] Bill: Good motto.
+
+
+[0:23:56] Henry: We we never want price to be an objection here at Redo. We're we're so efficient because of our platform, um, like, returns and having our order management software and conversion and marketing cloud that we can really play on our side with margins of things. Um, so we will never lose anyone on price.
+
+
+[0:24:14] Bill: Yeah. Um, since you're being transparent, we I we are currently paying $36.40 a month for for Klaviyo. So Katrina, I don't know if that that's really kinda blown out from where I remember it being, probably because we've grown a lot.
+
+
+[0:24:33] Katrina: Yeah. I have to look into that. Is that SMS and email?
+
+
+[0:24:37] Bill: Yeah. It's both. Yep. Yeah.
+
+
+[0:24:39] Henry: Yeah. They Okay. They changed their pricing back in February, I believe, and they switched to active profiles. So they're charging you no matter what. How many emails you're sending, they're charging on that contact list, which, yeah, can make it seem super bloated if you're not sending to everyone on that list every month.
+
+
+[0:24:58] Katrina: Oh, that's interesting.
+
+
+[0:25:00] Bill: I've been getting a ton of ads on Instagram about that. All these ads about Klaviyo's pricing and and how, you know, a lot of a lot of companies are going after them right now.
+
+
+[0:25:11] Katrina: Yeah. I mean something to look at.
+
+
+[0:25:14] Henry: If yeah. If we're able to save, I don't know, just off that, like, close to 2,000 a month, that'd be 24,000 back in your pocket. I think it could be worthwhile for some other marketing expenses.
+
+
+[0:25:27] Katrina: Yes. Definitely. Cool. Well, let's let's start slowly, and Bill
+
+
+[0:25:33] Henry: and I can
+
+
+[0:25:34] Katrina: No way. Absolutely. But do you wanna send us just, you know, whatever your written overview is of of the Redo platform and the commission structure and that kind of stuff so we can look at it? How do you how do you proceed if we wanna move forward?
+
+
+[0:25:53] Henry: What I would say next steps, and it's completely up to you guys as well, but I would love to get you guys on recover and get you that that win and get you guys believing in Redo. Like, I I know you will once we kinda get that revenue back in your pocket. So if that's something you guys are open to and then wanna proceed with, I mentioned earlier, it's just a few pieces of information, like the EIN number, entity name, and then Shopify partners access. We can get that up and running probably mid next week and start getting money back for you guys. And like I said, I I love it for brands too because if we don't recover revenue for you guys, worst case scenario, you didn't pay anything and you switch it off.
+
+
+[0:26:39] Katrina: And do you have a just a marketing slide or something that lays out what you just said so we can share it with one or two people on our team?
+
+
+[0:26:48] Henry: Yeah. Yeah. I can absolutely draft up an email. I can also send you over a case study of the brand I just showed you guys, Baseballism. They agreed to to let us share some of their information.
+
+
+[0:27:00] Henry: So, yeah, I can definitely shoot that over for the rest of the team.
+
+
+[0:27:05] Katrina: Okay. That would be helpful. And then we'll get back to you. It's Friday, so we'll try to get back to you next week whenever Bill and I can regroup.
+
+
+[0:27:15] Henry: Yeah. I always like to throw just a tentative time on whether you guys can make it or not. I was just, like, having something on there to for my own reference. Does Wednesday next week sound good for you guys?
+
+
+[0:27:30] Katrina: That's my favorite salesman technique. I love that. Well done.
+
+
+[0:27:37] Henry: No. I I I unfortunately, I if I don't see it on my calendar for the day, I yeah. I am not Yeah. Gonna follow-up.
+
+
+[0:27:50] Bill: It does look okay for me around midday. I don't know about you, Katrina. We could obviously we can always put it on, and then with the under Yep. There's a chance we could just kick it down the road.
+
+
+[0:28:02] Katrina: Yeah. I would say anytime from twelve on. Afternoon is better for me, so that sounds good.
+
+
+[0:28:09] Henry: Twelve on. Yeah. Okay. Does does 2PM eastern time sound alright?
+
+
+[0:28:14] Bill: Yep. Sure.
+
+
+[0:28:15] Henry: Okay. Perfect. Sweet. I will send that calendar invite after this call, and then I will send over some of that information on recover as well too. I don't know if you want me to include any info on email or SMS.
+
+
+[0:28:29] Henry: I'll certainly include the the kind of quote prices I talked about today. But likely for that, I would I'd love to get another call on just because it's a lot easier to show visually how our email builder actually works rather than trying to explain all of that in an email.
+
+
+[0:28:46] Bill: I think the quote are helpful. Yeah.
+
+
+[0:28:49] Henry: Perfect. Yeah. I'll definitely include that in my email then.
+
+
+[0:28:53] Bill: Should we, um, I don't wanna keep everybody on longer, but should we I don't know if you wanna just send this info or or what priority you think this is, but, um, the, like, the returns part. I I think one of the things that was appealing to me when I saw quickly was, um, I know a lot of companies are doing this now where that it has that, like, more gives you more incentive to take store credit, and I don't think we're doing anything like that.
+
+
+[0:29:17] Henry: Yep. Yeah. Absolutely. I would say let's get you guys set up on recover on Wednesday. I think that'll be fantastic.
+
+
+[0:29:25] Henry: And then I will get coordinated with our returns team and pass along their information. And then probably, if if you guys are open to it, February, I'm I'm certain they'll be happy to talk to you anytime
+
+
+[0:29:37] Bill: Okay.
+
+
+[0:29:38] Henry: And and talk to you about that.
+
+
+[0:29:40] Bill: I like it. One thing at a time. It's good.
+
+
+[0:29:42] Henry: Yep. Yeah. I I like to start brand slow, and I like to get them those quick wins, like I said, and I think Recover is the best way to do it. It's it's risk free. I know that sounds so sales y, but, really, if if you don't make any money, we don't make any money, like, you just turn it off.
+
+
+[0:29:59] Bill: You seem like a trustworthy kid, Henry. I'm I'm I'm
+
+
+[0:30:02] Katrina: buying this. Good.
+
+
+[0:30:05] Bill: Sounds good. A good old Massachusetts boy. We we can
+
+
+[0:30:09] Katrina: That's right. That's right.
+
+
+[0:30:11] Henry: I appreciate it. Yeah. Hey. I mean, I'll be I'll be rooting with you guys on Sunday.
+
+
+[0:30:17] Bill: Oh, yeah. Yeah. Big day.
+
+
+[0:30:19] Katrina: Alright. Well, take care. Thank you very much.
+
+
+[0:30:23] Henry: Absolutely. Look forward to speaking to you soon.
+
+
+[0:30:25] Bill: You too. Take care. Cheers. Alright. Bye bye.
+
+
+[0:30:28] Bill: Bye.
+
+
+
+
+https://biaggi.com/ → Travel/suitcase bag etc.
+
+
+[0:01:56] Colby Stoker: Hey, Steven. How are you doing?
+
+
+[0:01:57] Stephen Hersh: Good. Sorry. I'm, like, a little bit on the on the go today. I thought
+
+
+[0:02:01] Colby Stoker: I'd You're traveling right now?
+
+
+[0:02:03] Stephen Hersh: No. No. I'm in Grand Central Station in New York. I thought I'd be back home by now, but I, uh, had to catch a later train than I thought I would. Sorry about that.
+
+
+[0:02:11] Colby Stoker: No. You're you're completely fine. I appreciate you jumping on.
+
+
+[0:02:15] Stephen Hersh: Yeah. No worries. Alright. Show me.
+
+
+[0:02:18] Colby Stoker: Yeah. Honestly, this call will probably be extremely short. Um, it's a it's a pretty simple product, but we've been chatting with, uh, quite a few merchants about it, and they've been pretty excited. But let me I'll share my screen. There's not a ton to show, but, essentially, like mentioned in the email, we have humans send cart abandonment text so that you're able to get in front of abandoned checkouts that currently you're not able to because they haven't subscribed to email or SMS.
+
+
+[0:02:45] Colby Stoker: So it just allows you to get in front of more of those more of that low hanging fruit that currently you are. We essentially would have you choose a template. Like, you choose what you want the human to send for the text. Like, hey. This is, you know, so and so from abc.com.
+
+
+[0:03:01] Colby Stoker: Saw you were looking at this product. Want me to see if I can get you a discount code. They say, yes. Great. Here's the discount code.
+
+
+[0:03:08] Colby Stoker: Here's a link to your cart. That's that's essentially it. They have be seen.
+
+
+[0:03:11] Stephen Hersh: Day. In other words, they have to reply.
+
+
+[0:03:14] Colby Stoker: Correct. They would have to reply for us to then send them that that discount and a link to their card to come back.
+
+
+[0:03:20] Stephen Hersh: And wait. Now I have to have their number beforehand or not? So
+
+
+[0:03:25] Colby Stoker: yeah. Good question. So we would get these numbers when they abandon checkout. So these are customers who have gotten to the checkout, put their number in, abandoned it. Okay.
+
+
+[0:03:33] Colby Stoker: Okay. And they haven't and these are customers who, you know, I haven't subscribed to SMS or email. So, like, you don't have their number collected, like, in on the email as well. If
+
+
+[0:03:44] Stephen Hersh: subscribed they to SMS, but they would have done that through attentive, because that's who I use for SMS. Do you have their number?
+
+
+[0:03:54] Colby Stoker: So good question. And that's a loaded question. So if they had put their number in on a previous session and they are, like, on the same browser, same cookies, etcetera, then we could see that and see that they abandon and checkout and abandon checkout and then get in front of them that way. But majority of the time, it's gonna be that from them going in and just abandoning checkout and when they put their number in.
+
+
+[0:04:20] Stephen Hersh: But if they're an existing customer and we have their their phone number, then it'll hit them too even if they have it. Yes or no?
+
+
+[0:04:28] Colby Stoker: If if they are logged into their account, and that's something that we could see, that is something that we can look at. Correct.
+
+
+[0:04:34] Stephen Hersh: Okay. And what's the cost of this?
+
+
+[0:04:38] Colby Stoker: So yeah. So how we're doing it is it's 10% of the revenue that we recover for you. So no cost until we recover sales for you, and then it's 10% of that revenue that gets recovered.
+
+
+[0:04:50] Stephen Hersh: And how do you pay how do you get that money? You bill me?
+
+
+[0:04:54] Colby Stoker: Correct. Yep.
+
+
+[0:04:57] Stephen Hersh: Okay. But what about, like are there is there there could also be a situation where a customer abandons the checkout. Well, how long do they have to until they have to purchase it? Let's say they say, yes. I'll take the disc as long as they use the discount code.
+
+
+[0:05:14] Stephen Hersh: That's how that's how you're
+
+
+[0:05:15] Colby Stoker: doing it. Exactly. That's what we attribute off of. And by default, we'll create that discount code so it's good for ten days. After ten days, it expires.
+
+
+[0:05:23] Colby Stoker: But if they said yes, we give them that discount code and they use that discount code to complete the purchase, we would attribute that to Redo that we influence that sale.
+
+
+[0:05:31] Stephen Hersh: Now I wouldn't call this a no brainer because because we're anyways reaching out to these customers who abandon their checkout. You know? Like, it's not like we're not reaching out to them. Also, we do abandon checkout also. You know?
+
+
+[0:05:43] Colby Stoker: Sure. So I sure. So a lot of them, though, you aren't able to, right, because they haven't subscribed. So, like, some of them, obviously, you are, and it's a no brainer to reach out to those. Right?
+
+
+[0:05:53] Colby Stoker: Lowest hanging fruit. And so this is just adding on to that so that you can get in front of more of those that you currently aren't.
+
+
+[0:06:00] Stephen Hersh: Right. So it would have to be, like, people who we don't already have their number. We don't already we aren't already sending them abandoned. Right? So so Right.
+
+
+[0:06:10] Colby Stoker: And that's majority of the time. Right?
+
+
+[0:06:13] Stephen Hersh: That's gonna be a majority of the time, you would say. Yep. I guess so. I guess so. Okay.
+
+
+[0:06:19] Stephen Hersh: When is this live?
+
+
+[0:06:21] Colby Stoker: Yep. So it's currently in the process of being built out, and we'll be onboarding merchants in the next few weeks. So we've typically been scheduling them for, like, um, like, in like, two weeks out or, like, some brands are like, hey. Like, let's schedule the onboarding for a week after, you know, Black Friday. Get through that, and then we do that.
+
+
+[0:06:38] Colby Stoker: It's like a ten minute setup. Super simple. We just align on the the messaging, um, and and get you set up.
+
+
+[0:06:45] Stephen Hersh: I see. Okay. I'd be interested in doing it. I mean, I locked you into a contract or anything. Right?
+
+
+[0:06:51] Colby Stoker: Correct. No contracts. If you don't like it for whatever reason, you could stop.
+
+
+[0:06:55] Stephen Hersh: I would do it. Well, I'll I'll put
+
+
+[0:06:57] Colby Stoker: some time on for tentative onboarding. I'll keep you posted as the product gets rolled out, and we can adjust the time as it gets closer if needed.
+
+
+[0:07:05] Stephen Hersh: Great. Sounds good.
+
+
+[0:07:06] Colby Stoker: Cool. Alright. Appreciate it, Steven.
+
+
+[0:07:08] Stephen Hersh: Take care. Call me big head. Bye.
+
+
+
+Ask about this meeting...
+
+This chat is temporary
+
+Bryan Tiedemann and Tre Rossi (Upgrade to Subscription) - Bryan is redo's sales rep
+Tue, Jun 16
+5:59 PM
+Transcript
+0:00:31
+TR
+Okay, I noticed this guy hasn't, he hasn't read any of my recent emails, and he didn't, he didn't accept the invite.
+0:00:41
+TR
+Never mind, he did accept the invite, so we will, we will see if he joins.
+0:01:09
+TR
+Hey, can you hear me?
+0:01:12
+BT
+Hey. Yes, I can.
+Jump to
+TR
+Awesome. Good, good to meet you, Brian. How's your morning been?
+0:01:18
+BT
+Not bad. How you doing?
+0:01:20
+TR
+It's just starting out, so I guess, uh, too early to tell, but good so far.
+0:01:25
+BT
+Where are you located?
+0:01:27
+TR
+Utah. So it's, uh-
+0:01:28
+BT
+Oh, no way
+0:01:29
+TR
+... I am eastern-
+0:01:30
+BT
+I make my products in St. George.
+0:01:32
+TR
+Oh, yeah?
+0:01:35
+TR
+Awesome, yeah. Not, not far at all.
+0:01:37
+BT
+Where are you?
+0:01:39
+TR
+Salt Lake City.
+0:01:40
+BT
+Oh.
+0:01:40
+TR
+It's north of St. George.
+0:01:42
+BT
+Yeah, like three hours or so, huh?
+0:01:45
+TR
+Yeah. I'm assuming you've been out here for that.
+0:01:49
+BT
+I've been to St. George, not Salt Lake.
+0:01:52
+TR
+Okay, I guess-
+0:01:52
+BT
+I go to Vegas, St. George, back to Vegas, home.
+0:01:56
+TR
+Gotcha. That, that makes sense. But yeah, it's, it's good if you ever come out to Salt Lake. Cool city.
+0:02:02
+BT
+Yeah, I hear it's cool.
+0:02:04
+TR
+Yeah. But I know we got limited time here, but excited to kinda show you more about Recover and answer some questions you have, and ultimately, like, my goal is just to give you some information, and then if you like what you see, we can talk about next steps with that. Did you have anything else you wanted to cover?
+0:02:24
+BT
+No.
+0:02:25
+TR
+Okay. And in terms of Redo, you've never met with us before, but how familiar are you with Redo and what we do essentially?
+0:02:34
+BT
+I just know that it seems as though it's a commission-only structure, and I mean, if you're gonna put your money where your mouth is like that, I'll hear you out.
+0:02:44
+TR
+Fair enough.
+0:02:44
+BT
+And you're going after people that I can't go after, which obviously brings me value, so.
+0:02:49
+TR
+Yeah. Nope, definitely does. And just so you're aware, one thing I like to show, um, just on all of these, essentially 'cause Redo does a lot more than just the Recover piece. We're really focused on... Here it is.
+0:03:08
+TR
+Really just focused on being a one-stop shop for anything e-commerce, and these are just some of the brands that are aligned with that as well, so some of our bigger brands. So you can see, like, a lot of people do trust us and yeah, we do a lot of things here with Redo.
+0:03:24
+BT
+Cool.
+0:03:26
+TR
+And I guess before I show you more about just the Recover piece and all of that, I'm curious, what is your process for recovering abandoned carts right now?
+0:03:37
+BT
+I don't know, whatever our Klaviyo emails are. Maybe a discount code on the, the second or third attempt.
+0:03:46
+TR
+Okay. So you're mostly just sending email and couple discount codes here and there? Okay.
+0:03:55
+TR
+Because with, with the Klaviyo and Klaviyo, they only send emails to people who are subscribed. So everyone who abandons checkout and isn't subscribed, what are they getting?
+0:04:07
+BT
+Probably nothing. I would assume nothing.
+0:04:10
+TR
+Okay. Yeah, I mean, that's, I didn't know if you had anything in place. That's typically what we find as well because legally, like, those emails can't go to people who aren't subscribed, and ultimately they're just, they're highest intent shoppers that aren't able to be captured-
+0:04:26
+BT
+So how are you, how are you able to message them?
+0:04:30
+TR
+So the way it works is it's texting. I can show this. So we're texting them with live agents, so it's a real human sending this message, so it's all P2P, which makes it fully compliant.
+0:04:44
+BT
+Hmm.
+0:04:46
+TR
+The messages-
+0:04:47
+BT
+You have a real human being that goes, "Oh, time to send a message."
+0:04:50
+TR
+Yeah.
+0:04:55
+BT
+Where are these people located?
+0:04:57
+TR
+They're all over. Mostly in-
+0:05:00
+BT
+They're in India.
+0:05:01
+TR
+Not in India 'cause they need to be on a US time zone, so usually in Bahamas and areas like that. But yeah, we hire them out and contract them to do this for us.
+0:05:09
+BT
+And everything they respond back is a script, right? They don't have, they're not smart enough to respond outside-
+0:05:15
+TR
+Correct
+0:05:16
+BT
+... the script.
+0:05:18
+TR
+Yeah. We give, we... You control what they say and-
+0:05:21
+BT
+Yeah, so it's a bot basically just being controlled by a human because you found a loophole. Understood.
+0:05:27
+TR
+Yeah. Wouldn't, wouldn't call it a loophole, though, because it is a human at the end of the day sending the message.
+0:05:32
+BT
+It's a loophole.
+0:05:32
+TR
+That's what makes it compliant. Um, I-
+0:05:35
+BT
+It's a loophole, Troy. You're smart.
+0:05:38
+TR
+I mean-
+0:05:38
+BT
+It's a loophole. Come on now.
+0:05:40
+TR
+I mean-
+0:05:40
+BT
+They can't go off the script. It, it, they're a robot that happens to be a human.
+0:05:47
+TR
+They are human. You know, they got a pulse. You gotta give them some credit there.
+0:05:49
+BT
+They don't respond as a human, so they're a robot. They're a book. It's an AI bot. It's all good.
+0:05:56
+TR
+Yeah, I mean, that's essentially like, if we could do it with AI, we would. I'll just say that much.
+0:06:01
+BT
+Clearly. But they're not gonna respond on their own. When somebody says, "Hey, I have a problem that's outside of the norm, please help me"- They're gonna, they're gonna say, "Please email us at online at support@dirtypelican.com." They're not gonna say, "Let me try to help you here." So it's a bot.
+0:06:18
+TR
+Yeah. And we- they can do that. They can also send, like AI will help them basically type out messages to answer questions if there's simple things. So like that's an example of like using essentially AI, and they're just pressing send on the messages. But yeah, that's how it's all compliant. That's how we're able to get this to work for brands.
+0:06:38
+BT
+I'm with you.
+0:06:40
+TR
+Yeah. Um, messaging, yeah, customizable. And I saw you did like a 10% off discount code when you guys joined the site, like for the welcome offer. So we typically just do the same offer, same welcome offer there for the discount. But is there anything like you would want to send in terms of like how much to kick off?
+0:06:57
+BT
+I mean, I assume you're gonna give me a prompt style document that says, "This question is asked, what response do you want us to give?" And the, the whole workflow is gonna be created by me, I would assume.
+0:07:15
+TR
+Yeah. We can... So typically we can do that, or we can have AI scrape your site and answer like FAQs, use product information to answer questions-
+0:07:24
+BT
+Mm
+0:07:24
+TR
+... that way.
+0:07:25
+BT
+So you can do that ahead of time.
+0:07:26
+TR
+Yeah.
+0:07:27
+BT
+So you're gonna take that workflow, have AI answer it for me. I'm gonna proofread it, make any edits necessary, send it back, and then you can go live.
+0:07:37
+TR
+I mean, yeah. It's, it... Even simpler than that too, like this is if somebody just responds yes to the message, um, that's like the smaller things, just some smaller details. But the, for more detailed questions, yeah, we would get you just make sure it all looks good on your end, scrape the site, and then send it.
+0:07:55
+BT
+Yeah. 'Cause you're saying, "This is James from dirtypelican.com. See you were checking, uh, want me to see if I can get you a, a discount code for you?" Uh,
+0:08:09
+BT
+how do you get their phone number?
+0:08:12
+TR
+That's what's at checkout. So when they go into checkout through Shop Pay or however they check out, they enter in the phone number.
+0:08:21
+BT
+But what if they didn't get that far in the process of the cart?
+0:08:26
+TR
+So we wouldn't message them until they put in their phone number at checkout.
+0:08:33
+BT
+Hmm.
+0:08:35
+BT
+Is there a way for us to see on Shopify how many abandoned carts I have?
+0:08:40
+TR
+Yeah, you can check in the dashboard.
+0:08:43
+BT
+Where?
+0:08:45
+TR
+Should be under analytics.
+0:08:48
+BT
+Mm-hmm.
+0:08:50
+TR
+And then I think it's gonna say abandoned cart. I can try to pull up a store and, and walk through it with you.
+0:08:56
+BT
+Reports.
+0:08:59
+BT
+Abandoned
+0:09:04
+BT
+carts.
+0:09:07
+BT
+Move.
+0:09:10
+BT
+Sessions. Checkout conversion.
+0:09:16
+BT
+That's going to be your op-
+0:09:21
+BT
+Hmm.
+0:09:28
+BT
+I do not see it. Categories.
+0:09:42
+TR
+There is a way. If you're in analytics. Some reason I'm trying to open up a store, but it keeps logging me out.
+0:09:51
+BT
+Yeah. Even if I type in analytics-
+0:09:53
+TR
+I know it's under the analytics
+0:09:54
+BT
+... cart, even just abandoned doesn't show up.
+0:09:58
+TR
+Hmm.
+0:09:59
+BT
+Checkout.
+0:10:03
+BT
+Checkout conversion rate.
+0:10:13
+BT
+Sessions that reach checkout. Checkout conversion rate. Sessions that completed checkout.
+0:10:26
+BT
+Sess- se- uh, sessions that reached checkout. Checkout conversion.
+0:10:33
+TR
+That should be it.
+0:10:34
+BT
+36% conversion rate in the last 30 days.
+0:10:39
+TR
+Okay.
+0:10:41
+TR
+So there's about 60, 60 something percent that are, that are dropping off at checkout.
+0:10:49
+BT
+Sessions that reach checkout.
+0:10:53
+BT
+Yeah. Wow, 35%. It's not terrible. Or is that terrible?
+0:10:59
+TR
+Well, it's... No, it's pretty average, I'd say. That's, and then that's what happens is there's about 60 something percent majority that will leave checkout for whatever reason or not.
+0:11:11
+BT
+Mm-hmm.
+0:11:13
+TR
+And then that's ess... that's essentially where this would come in, just reaching those people.
+0:11:19
+BT
+Okay. So in short, there's a workflow that we agree on, and then what, what's the phone number you're texting them from?
+0:11:27
+TR
+Yeah. When you say phone number, you mean like what kind of phone number?
+0:11:32
+BT
+Yes. Is it an 888 number? Like what is it?
+0:11:35
+TR
+Yeah, so it's 10 DLC, so it'd be something in your area code making, uh, text messages.
+0:11:43
+BT
+In my area code or the customer's area code?
+0:11:46
+TR
+It will be in the company's area code if you have like... I know you don't have a store front, but wherever you guys are registered, 'cause we just take like your, your business name and make it from that.
+0:11:59
+BT
+Mm-hmm. And everybody gets a message from the same phone number?
+0:12:03
+TR
+Yeah. So it's your, it's only your phone number, so all the customers like that shop with you, this is specific.
+0:12:11
+BT
+Mm-hmm.
+0:12:11
+TR
+So if you send out other SMS, it's not the, not the same number as that
+0:12:17
+BT
+Got it. And you take 10%?
+0:12:21
+TR
+Yeah, so only 10% of the recovered revenue. So only, only anything that we influence.
+0:12:29
+BT
+Mm. Okay.
+0:12:34
+BT
+S-
+0:12:34
+TR
+And you can see, we, we make it pretty clear in the dashboard what's, you know, how the texts are doing, and then what percentage we're taking. So if you go to this one, for instance,
+0:12:48
+TR
+total revenue was $157. We just take the 10%, 15 bucks.
+0:12:54
+BT
+I mean, what the hell is the downside for me here?
+0:12:57
+TR
+Um, r- there's really not. That's what's cool about this. And I mean, it's 10% of revenue that you're not otherwise getting.
+0:13:06
+BT
+Mm-hmm.
+0:13:11
+BT
+Okay, so I plug in your app to my Shopify, just like any other app, and we agree on the workflow, and that's it?
+0:13:23
+TR
+Yeah. Yeah, I mean, and being transparent for you, like, this is just our way of getting in the door with people in terms-
+0:13:29
+BT
+Mm
+0:13:30
+TR
+... of Redo. So that's our goal with this, is to, like, get you a win. And then if you wanna look at us for other products, you can totally do that.
+0:13:37
+BT
+Such as?
+0:13:38
+TR
+Obviously, we have... Oh, s- uh, there's a big list here. There's r- our flagship is returns. So I'm, I'm assuming you do returns for th- for your product.
+0:13:50
+BT
+I, I, uh, if people really wanted one, but in four years, I have zero returns.
+0:13:55
+TR
+Okay. So yeah, it wouldn't be super relevant there, but, like, returns is flagship for us. It's where we started out. We also do, like, email, SMS, like, replacing Klaviyo, order tracking as well. I mean, this is the whole list here, but those are just the ones that I'm more under.
+0:14:09
+BT
+Who does the email, uh, creation?
+0:14:13
+TR
+So that would be... It's in the same app on Redo. It's like something, just like Klaviyo, how you do it, you make your own campaigns. You build out your own flows. Um, we can just obviously help with that and-
+0:14:26
+BT
+Yeah, but you're not making them. Y- you're giving me the format, and it's my responsibility to send a human in there to do it, right?
+0:14:33
+TR
+Yeah. Yeah, I don't know if you have, like, someone who does marketing for you now, but they would just-
+0:14:38
+BT
+I have a-
+0:14:38
+TR
+... work inside here
+0:14:38
+BT
+... I actually just got rid of the agency, so I don't have anybody doing these emails for me anymore. So whatever,
+0:14:45
+BT
+you know, whatever's on autopilot currently in Klaviyo is what's happening.
+0:14:49
+TR
+Yeah. Okay. 'Cause that's-
+0:14:51
+BT
+But I'm not gonna hire anybody. So if you guys created the workflow on my behalf and managed it and optimized it, that's of interest to me.
+0:15:02
+TR
+Okay. Yeah, we don't manage it. We do have some partners that we could, like, point you to in the right direction for that.
+0:15:09
+BT
+I would want, like, a freelancer.
+0:15:13
+TR
+You would want a freelancer?
+0:15:14
+BT
+Yeah.
+0:15:15
+TR
+Okay.
+0:15:17
+TR
+Yeah, I mean, we can... I can definitely see if there are freelancers, not, like, a bigger agency, someone who kind of just like a one-man show to help you out with that. I can definitely see. But yeah, it's all in the same app.
+0:15:28
+BT
+And is there value over you over Klaviyo? What's, you know, like, what's your selling point there?
+0:15:34
+TR
+Yeah. Biggest win for us is we beat them on price and have very similar features. I will say Klaviyo wins with, like, integrations and being more, I guess, connected. For instance, they have, like, the Amazon API. Like, we don't have that yet. There's just some small things there.
+0:15:56
+BT
+Hmm. Okay. Let's, so l- let's start here for now. I mean, if you can recover some money from me via text message, and all I have to do is agree on the workflow with you, let's see if we can get some success there and take it from there.
+0:16:10
+TR
+Yeah. Yeah, sounds, sounds like a plan, 'cause I can get you a link to the Redo app just to download that. I mean, it's just Redo on Shopify s- store, but I'll send it to you here.
+0:16:22
+TR
+Just put that in the chat for you.
+0:16:38
+BT
+Uh.
+0:16:55
+BT
+It says that you can...
+0:17:02
+BT
+Uh, it says that you can edit store data, edit products, inventory, product listings, publications.
+0:17:09
+TR
+Yeah. So w- I'm actually gonna send you a collaborator's access request for certain features, but it's only so we can see the, the items essentially and s- make a discount code. 'Cause I take off any settings to delete anything, manage, like, store settings. We don't need any of that.
+0:17:32
+BT
+Yeah, it says edit, edit gift cards, edit store credit, edit store analytics. Sh-
+0:17:39
+BT
+so we,
+0:17:44
+BT
+we r- we change this after I install it? Why is it telling me I need to give you this access to install it?
+0:17:50
+TR
+Is that... So you clicked install, and then it's saying r- that's what it's telling you?
+0:17:54
+BT
+It says, "Install app Redo. This app needs access to
+0:17:58
+BT
+the list."
+0:18:01
+TR
+Do you mind sharing your screen with me so I can see what it says?
+0:18:12
+TR
+Okay. Yeah. So this is just to make the gift cards, and then-
+0:18:19
+BT
+Well, like-
+0:18:19
+TR
+... it says, like, edit products
+0:18:20
+BT
+... you can make a store credit. You can make, you can edit analytics. It's giving you full access.
+0:18:28
+TR
+So what happened, l- like what's been happening is when they... Because what I used to do is always send you guys access to the store, so you could download the app. It wouldn't even ask you for any of this. And for some reason, Shopify changed it like a day ago to where it's having these upfront. But what I'm gonna do is I'm going to send you a different access request that doesn't have all those features.
+0:18:55
+BT
+Okay, cool.
+0:18:57
+BT
+Yeah, that's just a little-
+0:18:58
+TR
+Yeah, apologies
+0:18:58
+BT
+... you know, that, that's a lot of access.
+0:19:01
+TR
+No, I totally agree. Um-
+0:19:03
+BT
+Shopify's our whole life, you know, so.
+0:19:06
+TR
+Yeah. Yeah, and that, and I'm gonna show you what I'm
+0:19:12
+TR
+sending once you, uh, once you click install there.
+0:19:18
+BT
+Oh, wait. Uh, I have to click install and... Yeah, I'm, I'm granting you access to all that stuff if I hit install.
+0:19:27
+TR
+So what, what's gonna happen is I'm gonna send you a different request for access-
+0:19:33
+BT
+So ignore this request
+0:19:33
+TR
+... that doesn't have all those things.
+0:19:36
+BT
+Am I ignoring this request in the chat?
+0:19:41
+TR
+Well, you would have to install the app. So the app needs to be installed, but those permissions aren't going to be valid.
+0:19:55
+TR
+I can show you what I'm doing on my end-
+0:19:57
+BT
+Yeah, I'm just reading your reviews
+0:19:57
+TR
+... in terms of the permissions,
+0:20:00
+TR
+but-
+0:20:00
+BT
+Redo is highly rated. 97% of reviews on Shopify are five stars.
+0:20:07
+BT
+Okay, no problem.
+0:20:10
+BT
+Everybody would've told me, "Don't fucking do it."
+0:20:15
+BT
+Yeah, 4.9 stars.
+0:20:18
+TR
+Yeah, I mean-
+0:20:19
+BT
+That's easy right there. If you have bad reviews,
+0:20:23
+BT
+you're in trouble, you know? This is all people do.
+0:20:27
+TR
+Yeah. I mean, we wouldn't be on this call probably if we had bad reviews.
+0:20:39
+TR
+Okay. So now, now I'll show you, you'll get a, a request from me for the collaborator's access. Like, this is what has, like, the updated permissions once this, uh, refreshes.
+0:21:33
+TR
+And then to create that phone number, all we would need is the EIN and entity name.
+0:21:41
+TR
+So do you have that handy?
+0:21:48
+BT
+How come you need my EIN?
+0:21:51
+TR
+That's to register the phone number to get, like, your own phone number made for the texting.
+0:22:02
+BT
+Uh, who are you giving that to?
+0:22:05
+TR
+Company's called Telnyx.
+0:22:10
+BT
+Yeah, that's like super s- it's like giving my Social Security number. I don't understand why you need these types of-
+0:22:17
+TR
+It's so it identifies to you 'cause e- every store has a different number. We can't just use a shared one.
+0:22:26
+BT
+Telnyx, T-E-L-M-I-X?
+0:22:29
+TR
+T-E-L-N-Y-X. So they just provision the phone number on our behalf.
+0:22:53
+TR
+That you would do the same process if you made a phone number yourself.
+0:23:06
+BT
+Yeah, I mean, if...
+0:23:09
+BT
+I can just set this up in the app, I assume?
+0:23:13
+TR
+Yeah, I mean, you can go through the workflow if you want. There's like a... It'll ask you for the same information.
+0:23:19
+BT
+Yeah.
+0:23:22
+BT
+Uh, yeah, I'm in here now.
+0:23:26
+TR
+Yeah, so if you click on-
+0:23:28
+BT
+Yeah, set up your number
+0:23:30
+TR
+... you're in the app. Yeah.
+0:23:53
+BT
+How do you get paid? Is it residual as long as I, as long as your clients stay a customer?
+0:23:59
+TR
+Yeah.
+0:24:00
+BT
+And you get, like, 1% of the 10% or something like that?
+0:24:05
+TR
+It's, for us, it's more about who, just the number of accounts we have.
+0:24:11
+BT
+They pay you per account, not on a residual?
+0:24:14
+TR
+Correct.
+0:24:16
+BT
+Well, that actually kinda helps you 'cause if you set up a sh- a, an account that doesn't do much business and you get paid on it anyway,
+0:24:23
+BT
+you know, give or take.
+0:24:26
+TR
+Yeah, I mean, we're incentivized obviously for people to stay and, and have more Redo products, but, um, neither here nor there.
+0:24:36
+BT
+Yeah. I mean, everybody has to make money, so...
+0:24:40
+TR
+Yeah.
+0:24:49
+TR
+And typically, it... 'cause you'll go through the flow there, but typically what we also do is set up just, like, 15 minutes with someone on our team to get those flows set up for you and essentially do what we talked about before. Just make sure it all looks kosher before setting it live.
+0:25:11
+BT
+Yeah.
+0:25:11
+TR
+I can see when they have some time for you. Probably be tomorrow or Thursday.
+0:25:51
+BT
+You'll be charged based on how you use the app. You can update the spending limit approval.
+0:26:24
+BT
+I mean, I don't
+0:26:27
+BT
+know. What's that? Accept billing to gain access to the following features.
+0:26:57
+TR
+Yeah. So you can bill through Shopify or if you wanna do a card on file. That's just how we take the 10%. We just take that at end of every month.
+0:27:08
+BT
+Yeah, I'd rather have a card on file, to be honest with you.
+0:27:12
+TR
+Yeah. You can do that in, uh, settings.
+0:27:18
+BT
+Settings.
+0:27:24
+TR
+It's gonna be settings and billing.
+0:27:30
+BT
+Billing.
+0:27:33
+BT
+Add card.
+0:27:54
+BT
+Okay.
+0:27:58
+BT
+It says that it's live. Can we pause it until we agree on everything and, like, see a test run?
+0:28:03
+TR
+Yeah. Yeah, so no flows have been built out yet, so no texts will be sent out.
+0:28:09
+BT
+Mm.
+0:28:10
+TR
+So if you go to marketing in the Redo app, then you can hit automations.
+0:28:17
+BT
+Uh-huh.
+0:28:19
+TR
+So yeah, the recover flow is live, but you can just-- you can click yourself or I can do it on my end. Just hit the de- uh, deactivate button.
+0:28:38
+BT
+Okay. It's inactive. Okay.
+0:28:42
+TR
+Perfect.
+0:28:42
+BT
+So tomorrow.
+0:28:44
+TR
+Yeah. Uh, they have some time.
+0:28:49
+TR
+How's-- So that's-
+0:28:52
+BT
+I'm on Eastern.
+0:28:53
+TR
+Yeah, I was just looking.
+0:28:54
+BT
+It's, it's 10:30 here.
+0:28:56
+TR
+So they, they have 11:30 Eastern, and they have other times as well, but how would 11:30 work for you?
+0:29:02
+BT
+That actually works.
+0:29:04
+TR
+Cool. So yeah, it, it shouldn't take long.
+0:29:06
+BT
+You're gonna send me an invite.
+0:29:09
+TR
+Yeah. Right. Uh, would 11:45 work, actually?
+0:29:14
+BT
+That's fine.
+0:29:14
+TR
+Yeah. So I'll send you an invite from, uh, from Michael as well.
+0:29:21
+TR
+And then did it ask you for the phone number when you were setting up the recover?
+0:29:26
+BT
+Mm-hmm.
+0:29:27
+TR
+So it asked you for, like, the NC name and everything there?
+0:29:32
+BT
+Uh, what's NC?
+0:29:34
+TR
+Oh, entity name. Like the EIN entity name.
+0:29:38
+BT
+Oh, yeah. It did all that. It's all in there.
+0:29:39
+TR
+All right.
+0:29:39
+BT
+That's, like, step number two.
+0:29:41
+TR
+Yeah. I figured. Um, just that saves a step on our end. But yeah-
+0:29:47
+BT
+Okay
+0:29:47
+TR
+... I'm gonna send this to you now, this invite.
+0:29:51
+TR
+And yeah, I'm excited to get you, get you started on this 'cause I think it'll be-- it'll definitely be helpful.
+0:29:57
+BT
+Yeah, for sure. Okay, Trey. Well, I hope it works out.
+0:30:01
+TR
+Yeah. Excited to chat with you tomorrow. Um, just sent you the invite, but let us know if you need anything before then.
+0:30:07
+BT
+Cool, man. Appreciate it. Have a good day.
+0:30:08
+TR
+Of course. You as well, Brian. Take care.
+0:30:10
+BT
+Thanks.
+0:30:11
+TR
+Bye.
+
+Auto scroll
