@@ -25,11 +25,52 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from connections.supabase import get_conn
 from connections.gemini import embed_query
 
-# ---- copy weighting knobs ----
-RECENCY_HALF_LIFE_DAYS = 180   # a copy's recency weight halves every ~6 months
+# ---- weighting knobs ----
+RECENCY_HALF_LIFE_DAYS = 180   # copies: recency halves every ~6 months (they age fast)
+PAIN_HALF_LIFE_DAYS = 540      # pains/proof age slower — recency is a mild tiebreaker
 UNPROVEN_PRIOR = 0.30          # performance score for copies with no metrics yet
 AGED_DAYS = 365               # older than this → flagged so the skill modernizes it
 WILSON_Z = 1.0                # confidence bound tightness
+
+CONF_FACTOR = {"confirmed": 1.0, "needs_more": 0.8}
+TIER_FACTOR = {"S": 1.0, "A": 0.85, "B": 0.7, "C": 0.5, "D": 0.35}
+
+
+def _recency(created, half_life_days):
+    """Time-decay 0..1 from a created_at value. Returns (recency, age_days)."""
+    if not created:
+        return 1.0, None
+    if isinstance(created, str):
+        try:
+            created = datetime.fromisoformat(created.replace("Z", "+00:00"))
+        except ValueError:
+            return 1.0, None
+    if created.tzinfo is None:
+        created = created.replace(tzinfo=timezone.utc)
+    age = max(0.0, (datetime.now(timezone.utc) - created).total_seconds() / 86400)
+    return 0.5 ** (age / half_life_days), age
+
+
+def weight_pains(rows):
+    """Rank pains by relevance × confidence × recency (confidence dominates; recency mild)."""
+    for r in rows:
+        rec, _ = _recency(r.get("created_at"), PAIN_HALF_LIFE_DAYS)
+        conf = CONF_FACTOR.get(r.get("confidence"), 0.8)
+        r["recency"] = round(rec, 4)
+        r["weight"] = round((r.get("score") or 0.0) * conf * rec, 5)
+    rows.sort(key=lambda r: r.get("weight", 0), reverse=True)
+    return rows
+
+
+def weight_cases(rows):
+    """Rank case studies by relevance × tier × recency (tier dominates; recency mild)."""
+    for r in rows:
+        rec, _ = _recency(r.get("created_at"), PAIN_HALF_LIFE_DAYS)
+        tier = TIER_FACTOR.get((r.get("tier") or "").strip().upper(), 0.5)
+        r["recency"] = round(rec, 4)
+        r["weight"] = round((r.get("score") or 0.0) * tier * rec, 5)
+    rows.sort(key=lambda r: r.get("weight", 0), reverse=True)
+    return rows
 
 
 def _wilson(k, n, z=WILSON_Z):
@@ -90,7 +131,7 @@ def weight_copies(rows):
 SPECS = {
     "pains": (
         "master_sheet_pains", "embedding",
-        "id, client_slug, kind, persona, item_text, confidence", "niche",
+        "id, client_slug, kind, persona, item_text, confidence, created_at", "niche",
     ),
     "calls": (
         "call_chunks", "embedding",
@@ -98,7 +139,7 @@ SPECS = {
     ),
     "case_studies": (
         "case_studies", "result_embedding",
-        "id, owner_client_slug as client_slug, subject_brand, tier, after_state, unique_mechanism", "niche",
+        "id, owner_client_slug as client_slug, subject_brand, tier, after_state, unique_mechanism, created_at", "niche",
     ),
     "copies": (
         "copies", "full_copy_embedding",
@@ -188,6 +229,10 @@ def run(stype, query, niche, status, limit, route=False):
             for r in rows:
                 r.update(perf.get(r["id"], {}))
             rows = weight_copies(rows)
+        elif stype == "pains" and rows:
+            rows = weight_pains(rows)
+        elif stype == "case_studies" and rows:
+            rows = weight_cases(rows)
         print(json.dumps(
             {"type": stype, "query": query, "routed": [{"niche": n, "score": s} for n, s in routed],
              "results": rows},
