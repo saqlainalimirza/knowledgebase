@@ -17,11 +17,74 @@ Usage:
 import os
 import sys
 import json
+import math
 import argparse
+from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from connections.supabase import get_conn
 from connections.gemini import embed_query
+
+# ---- copy weighting knobs ----
+RECENCY_HALF_LIFE_DAYS = 180   # a copy's recency weight halves every ~6 months
+UNPROVEN_PRIOR = 0.30          # performance score for copies with no metrics yet
+AGED_DAYS = 365               # older than this → flagged so the skill modernizes it
+WILSON_Z = 1.0                # confidence bound tightness
+
+
+def _wilson(k, n, z=WILSON_Z):
+    """Lower confidence bound of a rate k/n — rewards high per-send rate, penalizes
+    small samples and high-volume-but-low-rate copies. Returns 0..1."""
+    if not n:
+        return None
+    phat = k / n
+    denom = 1 + z * z / n
+    center = phat + z * z / (2 * n)
+    margin = z * math.sqrt((phat * (1 - phat) + z * z / (4 * n)) / n)
+    return max(0.0, (center - margin) / denom)
+
+
+def weight_copies(rows):
+    """Composite copy weight = relevance × performance(per-send, sample-adjusted) ×
+    recency(time decay). Ranks by rate-over-volume, discounts old copies."""
+    now = datetime.now(timezone.utc)
+    for r in rows:
+        sent = r.get("sent") or 0
+        booked = r.get("booked") or 0
+        # positives may not be selected; fall back to positive_rate*sent if present
+        pos = r.get("positives")
+        if pos is None and r.get("positive_rate") is not None and sent:
+            pos = round(r["positive_rate"] * sent)
+        # performance: 0.7 booking-rate + 0.3 positive-rate, each Wilson-bounded per send
+        if sent:
+            wb = _wilson(booked, sent) or 0.0
+            wp = _wilson(pos or 0, sent) or 0.0
+            perf = 0.7 * wb + 0.3 * wp
+        else:
+            perf = UNPROVEN_PRIOR
+        # recency decay from created_at
+        created = r.get("created_at")
+        recency = 1.0
+        aged = False
+        if created:
+            if isinstance(created, str):
+                try:
+                    created = datetime.fromisoformat(created.replace("Z", "+00:00"))
+                except ValueError:
+                    created = None
+            if created:
+                if created.tzinfo is None:
+                    created = created.replace(tzinfo=timezone.utc)
+                age_days = max(0.0, (now - created).total_seconds() / 86400)
+                recency = 0.5 ** (age_days / RECENCY_HALF_LIFE_DAYS)
+                aged = age_days > AGED_DAYS
+        rel = r.get("score") or 0.0
+        r["performance"] = round(perf, 4)
+        r["recency"] = round(recency, 4)
+        r["aged"] = aged
+        r["weight"] = round(rel * perf * recency, 5)
+    rows.sort(key=lambda r: r.get("weight", 0), reverse=True)
+    return rows
 
 # type -> (table, vector_col, select_cols, optional niche filter col)
 SPECS = {
@@ -39,7 +102,7 @@ SPECS = {
     ),
     "copies": (
         "copies", "full_copy_embedding",
-        "id, client_slug, status, lever, t1, t2", "niche",
+        "id, client_slug, status, lever, t1, t2, created_at", "niche",
     ),
     "components": (
         "copy_components", "embedding",
@@ -106,22 +169,25 @@ def run(stype, query, niche, status, limit, route=False):
             colnames = [d[0] for d in cur.description]
             rows = [dict(zip(colnames, r)) for r in cur.fetchall()]
 
-        # for copies, attach the real positive_rate from the performance view
+        for r in rows:
+            if "score" in r and r["score"] is not None:
+                r["score"] = round(float(r["score"]), 4)
+
+        # for copies: attach real per-send stats, then rank by the composite weight
+        # (relevance × per-send performance × recency) instead of raw similarity.
         if stype == "copies" and rows:
             ids = [r["id"] for r in rows]
             with conn.cursor() as cur:
                 cur.execute(
-                    "select copy_id, positive_rate, sent, booked from copy_performance where copy_id = any(%s)",
+                    "select copy_id, positive_rate, positives, sent, booked from copy_performance where copy_id = any(%s)",
                     (ids,),
                 )
-                perf = {r[0]: {"positive_rate": float(r[1]) if r[1] is not None else None,
-                               "sent": r[2], "booked": r[3]} for r in cur.fetchall()}
+                perf = {row[0]: {"positive_rate": float(row[1]) if row[1] is not None else None,
+                                 "positives": row[2], "sent": row[3], "booked": row[4]}
+                        for row in cur.fetchall()}
             for r in rows:
                 r.update(perf.get(r["id"], {}))
-
-        for r in rows:
-            if "score" in r and r["score"] is not None:
-                r["score"] = round(float(r["score"]), 4)
+            rows = weight_copies(rows)
         print(json.dumps(
             {"type": stype, "query": query, "routed": [{"niche": n, "score": s} for n, s in routed],
              "results": rows},

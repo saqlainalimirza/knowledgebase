@@ -21,7 +21,7 @@ Always call the live base URL above; every path below is relative to it
 | **Pains / objections / dreams** | `POST /api/search` `{type:"pains", route:true, query}` | similarity; prefer `confidence:"confirmed"` | the wound to open with, objections to disarm |
 | **Buyer lingo** | `POST /api/search` `{type:"pains", query:"<topic>"}` then keep `kind=="lingo"` | similarity | their exact words → sound native |
 | **Proof** | `POST /api/search` `{type:"case_studies", query}` | **tier S→A→B** | the result line + unique mechanism |
-| **Proven winners** | `POST /api/search` `{type:"copies", status:"winner", query}` | **positive_rate** (real) | what already converted — mimic the lever/structure |
+| **Proven winners** | `POST /api/search` `{type:"copies", query}` | **composite `weight`** (see below) | what already converted — mimic the lever/structure |
 | **Winning hooks/CTAs** | `POST /api/search` `{type:"components", query}` | verdict=winner | swipeable openers, CTAs |
 | **Dominant niche pains** | `POST /api/clusters` `{niche}` | **client_count** (how many clients hit it) | the pain to lead with for a *new* client in the niche |
 | **Niche brain + lingo** | `GET /api/clients/{slug}` → `niche.commonalities_summary`, `niche.shared_lingo` | pooled | fast orientation |
@@ -44,7 +44,7 @@ You can fire these in parallel; they're independent reads.
 1. **Orient**: `GET /api/clients/{slug}` and `/stats` → niche, offer, persona, channel (sms/email), what's live.
 2. **Pains** (lead angle): `POST /api/search {type:"pains", route:true, query:"<the angle, e.g. rising CAC on Meta>", limit:<preset>}`. Keep `confidence:"confirmed"` first.
 3. **Proof**: `POST /api/search {type:"case_studies", query:"<result you want to claim>", limit}` → take the highest `tier`. Use its `after_state` + `unique_mechanism`.
-4. **Winners**: `POST /api/search {type:"copies", status:"winner", query:"<angle>", limit}` → study the top `positive_rate` ones; reuse the lever/pattern, don't copy verbatim.
+4. **Winners**: `POST /api/search {type:"copies", query:"<angle>", limit}` → results are ranked by the composite **`weight`** (per-send rate × recency × relevance). Study the top-`weight` ones; reuse the lever/pattern, don't copy verbatim; if `aged`, modernize it.
 5. **Hooks/CTAs**: `POST /api/search {type:"components", query:"opener|cta", limit}`.
 6. **(new client / niche-level)**: `POST /api/clusters {niche}` → lead with the highest `client_count` pain; pull `shared_lingo` from the niche brain.
 7. **Write** the copy using: confirmed pain → disarm objection → proof line (mechanism) → soft CTA, in the buyer's lingo, within SMS length.
@@ -55,7 +55,14 @@ You can fire these in parallel; they're independent reads.
 
 - **confirmed > needs_more** (pain confidence) — confirmed is verified, needs_more is a transcript guess.
 - **tier S > A > B** (case studies) — only S/A/B make it into outreach; skip C/D.
-- **positive_rate** (copies) — the ONLY real winner signal; weight by it, not by `status` alone.
+- **copies: rank by `weight`, never by raw meeting count.** Copy search returns a composite
+  `weight = relevance × performance × recency`:
+  - **performance = per-send rate, sample-adjusted** (Wilson lower bound of booked/sent and
+    positives/sent). A copy with 10 meetings on 5,000 sends (0.2%) is WORSE than 5 on 200
+    (2.5%). Judge by rate over volume, not totals.
+  - **recency** decays old copies (~6-month half-life). An `aged: true` copy can still be
+    great — **reuse its lever/structure but modernize the phrasing/offer**, don't paste it.
+  - Copies with no metrics yet get a neutral prior, so proven winners outrank unproven drafts.
 - **client_count** (pain clusters) — a pain hit by many clients is a safer lead than a one-off.
 - **score** on every search row = cosine similarity (0–1); >0.75 is strong, <0.6 is weak.
 
