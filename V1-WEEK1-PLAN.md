@@ -37,15 +37,15 @@ By Friday, all true if:
 
 ## 2. Guiding principles (the "why" behind the design)
 
-- **Inference-first, not hand-tagging.** The AI infers niche / job title / etc. from raw
-  text **at ingest** — no human tagging, no giant canonical taxonomy to maintain. We just
-  **store the inferred result once** (as text + embedding) so we don't re-infer on every
-  read. (Details §4.)
-- **Embeddings for fuzzy, small buckets for exact.** Approximate grouping/routing ("pains
-  like X", "titles like CMO", route to niche) = embeddings, no tables needed. Only the few
-  dimensions that must be **counted exactly** (job function, seniority, employee-range) get
-  a tiny controlled bucket — because reproducible analytics need a stable key, not a fresh
-  LLM guess each query.
+- **AI proposes, human can override (hybrid).** At ingest the AI infers niche / sub-niche /
+  job title from raw text and **maps it to a small canonical list using embeddings** — no
+  hand-tagging by default. But a human can **confirm, override, or add** any tag from the
+  dashboard, and unknown niches are **flagged for review, not silently guessed**. Every tag
+  records who set it (`ai` vs `human`); human wins.
+- **Embeddings match, a stable key groups.** Pure embedding grouping drifts and isn't
+  reproducible. So embeddings do the *matching* (snap inferred text to the nearest
+  canonical niche), but we **group/count by the canonical id** — reliable analytics, no
+  drift. Same idea for the small buckets (job function, seniority, employee-range).
 - **Structural joins are already exact IDs.** client ↔ campaign ↔ deal ↔ copy ↔ variant ↔
   title all exist as IDs in the Airtable **Deals table** — zero inference; we sync them
   (later — see next point).
@@ -67,16 +67,26 @@ knowledge row carries the **inferred value + its embedding** inline, plus the **
 bucket** fields. Structural links are FK IDs synced from Airtable.
 
 ```sql
--- small controlled buckets (AI-assigned at ingest; the ONLY exact-groupable dims)
+-- small CANONICAL niche list (~15-30 rows, seeded from Airtable verticals, human-confirmed).
+-- AI maps inferred niche text -> nearest row by embedding; humans can edit/add. Group by id.
+create table niches (
+  id bigserial primary key, name text not null, parent_id bigint references niches(id),
+  slug text unique, embedding vector(1536), created_by text default 'seed'
+);
+
+-- small controlled buckets (AI-assigned at ingest; the ONLY other exact-groupable dims)
 -- kept as text-with-check, not big tables:
 --   job_function : 'marketing'|'sales'|'exec'|'ops'|'finance'|'founder'|'other'
 --   seniority    : 'c_level'|'vp'|'director'|'manager'|'founder'|'owner'|'ic'|'other'
 --   employee_range: text band from the campaign segment, e.g. '3-200'
+-- Each tagged row carries: niche_id (canonical, for grouping), niche_raw (AI's inferred
+-- text), niche_embedding (fuzzy fallback), and niche_source ('ai'|'human').
 
 create table clients (
   id bigserial primary key, slug text unique not null, name text not null,
   airtable_client_id text, offer text,
-  niche text, sub_niche text, niche_embedding vector(1536),   -- inferred, fuzzy-groupable
+  niche_id bigint references niches(id), sub_niche_id bigint references niches(id),
+  niche_raw text, niche_embedding vector(1536), niche_source text default 'ai',  -- ai|human
   status text, retainer numeric, account_manager text,
   created_at timestamptz default now(), updated_at timestamptz default now()
 );
@@ -173,27 +183,30 @@ month") run on the buckets + Airtable-synced IDs. No canonical-table maintenance
 
 ---
 
-## 4. Tagging = AI inference at ingest (no hand work, no big taxonomy)
+## 4. Tagging = AI proposes + embedding maps + human can override (hybrid)
 
-The whole "tagging" step is: **the LLM infers, we store once.**
+The tagging flow, per row, at ingest:
 
-1. **At ingest**, the extraction LLM already reads the transcript/form — in the same pass
-   it returns `niche`, `sub_niche`, `raw_title`, and the **buckets** (`job_function`,
-   `seniority`). No separate tagging job, no human.
-2. **Store the inferred text + an embedding** on the row. Fuzzy grouping/routing later is
-   pure embedding math — no canonical niche/title tables to keep in sync.
-3. **Buckets are a tiny fixed vocab** (function/seniority/size) the LLM maps into, so the
-   handful of exact reports (deals by role, variant win-rate by seniority) are countable
-   and reproducible. The LLM assigns them; we don't hand-tag.
-4. **Where the value already exists, don't infer — sync.** The Airtable Deals table gives
-   real `Title (from Contacts)`, `Copy Variant`, company, stage — we take those as-is.
-5. **Employee-range** comes free from the campaign segment band (`3-200E` → `3-200`); no
-   inference needed.
+1. **AI infers** the niche / sub-niche / job title from the text (same pass as pain
+   extraction — no separate job, no hand-tagging by default).
+2. **Embedding maps it to the canonical list.** The inferred niche text is embedded and
+   snapped to the **nearest `niches` row** (cosine). Above threshold → assign that
+   `niche_id`. Below threshold → don't guess: mark `needs_review` so a human confirms or
+   adds a new canonical niche. We store `niche_id` (exact, for grouping) + `niche_raw`
+   (what the AI said) + `niche_embedding` (fuzzy fallback) + `niche_source` = `ai`.
+3. **Humans can override any tag** from the dashboard — confirm, re-map, or add a new
+   canonical niche. A human edit sets `niche_source` = `human`, and **human always wins**
+   over the AI value. New niches humans add become canonical for everyone after.
+4. **Buckets** (job_function / seniority / employee_range) work the same: AI assigns from
+   the fixed vocab; human can override. These are the exact-countable dims.
+5. **Where the value already exists, sync — don't infer.** Airtable Deals gives real
+   `Title (from Contacts)`, `Copy Variant`, company, stage. `employee_range` comes free
+   from the campaign band (`3-200E` → `3-200`).
 
-> This is the answer to "why do any hard work": we don't. AI infers, we persist the
-> result so it's *consistent and countable*. The only thing we'd lose by inferring on
-> every read is reproducible analytics (same question → same number) — which is exactly
-> what a reporting/attribution product cannot lose.
+> Why this shape: **embeddings do the matching, the canonical id does the grouping, and a
+> human can always correct it.** Pure inference-on-read would be non-reproducible; pure
+> hand-taxonomy would be the hard work you rejected. This is the middle: AI does the work,
+> the key stays stable, humans stay in control.
 
 ---
 
