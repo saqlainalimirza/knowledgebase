@@ -102,7 +102,10 @@ def weight_copies(rows):
             wp = _wilson(pos or 0, sent) or 0.0
             perf = 0.7 * wb + 0.3 * wp
         else:
-            perf = UNPROVEN_PRIOR
+            # no metrics yet: fall back to the human/label verdict so a known
+            # loser never ties a known winner
+            perf = {"winner": UNPROVEN_PRIOR, "loser": UNPROVEN_PRIOR * 0.4}.get(
+                r.get("status"), UNPROVEN_PRIOR * 0.8)
         # recency decay from created_at
         created = r.get("created_at")
         recency = 1.0
