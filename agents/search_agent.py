@@ -167,7 +167,7 @@ def route_niches(cur, qvec, top=2, min_score=0.55):
     return [r for r in rows if r[1] >= min_score] or rows  # keep best even if below cutoff
 
 
-def run(stype, query, niche, status, limit, route=False):
+def run(stype, query, niche, status, limit, route=False, niche_id=None, sub_niche_id=None):
     if stype not in SPECS:
         raise SystemExit(f"unknown type '{stype}'. one of {sorted(SPECS)}")
     table, vec, cols, niche_col = SPECS[stype]
@@ -177,6 +177,15 @@ def run(stype, query, niche, status, limit, route=False):
     conn0 = None
     where = [f"{vec} is not null"]
     params = []
+
+    # exact canonical filters (id-based, no fuzziness) — tables that carry the columns
+    HAS_NICHE_ID = {"master_sheet_pains", "case_studies"}
+    if niche_id and table in HAS_NICHE_ID:
+        where.append("niche_id = %s")
+        params.append(niche_id)
+    if sub_niche_id and table in HAS_NICHE_ID:
+        where.append("sub_niche_id = %s")
+        params.append(sub_niche_id)
 
     # Stage 1: niche routing (only when no explicit niche was given)
     if route and not niche and niche_col:
@@ -250,5 +259,8 @@ if __name__ == "__main__":
     ap.add_argument("--status", default=None, help="copies only: winner/loser/...")
     ap.add_argument("--limit", type=int, default=10)
     ap.add_argument("--route", action="store_true", help="route to the best niche(s) first, then search within")
+    ap.add_argument("--niche-id", type=int, default=None, help="exact canonical niche filter")
+    ap.add_argument("--sub-niche-id", type=int, default=None, help="exact canonical sub-niche filter")
     args = ap.parse_args()
-    run(args.type, args.query, args.niche, args.status, args.limit, args.route)
+    run(args.type, args.query, args.niche, args.status, args.limit, args.route,
+        args.niche_id, args.sub_niche_id)
