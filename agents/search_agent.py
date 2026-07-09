@@ -146,7 +146,8 @@ SPECS = {
     ),
     "copies": (
         "copies", "full_copy_embedding",
-        "id, client_slug, status, lever, t1, t2, created_at", "niche",
+        "id, client_slug, status, lever, pattern, sophistication, t1, t2, "
+        "unique_mechanism, pattern_interrupt, cta, why_it_worked, why_it_failed, created_at", "niche",
     ),
     "components": (
         "copy_components", "embedding",

@@ -44,7 +44,9 @@ You can fire these in parallel; they're independent reads.
 1. **Orient**: `GET /api/clients/{slug}` and `/stats` → niche, offer, persona, channel (sms/email), what's live.
 2. **Pains** (lead angle): `POST /api/search {type:"pains", route:true, query:"<the angle, e.g. rising CAC on Meta>", limit:<preset>}`. Keep `confidence:"confirmed"` first.
 3. **Proof**: `POST /api/search {type:"case_studies", query:"<result you want to claim>", limit}` → take the highest `tier`. Use its `after_state` + `unique_mechanism`.
-4. **Winners**: `POST /api/search {type:"copies", query:"<angle>", limit}` → results are ranked by the composite **`weight`** (per-send rate × recency × relevance). Study the top-`weight` ones; reuse the lever/pattern, don't copy verbatim; if `aged`, modernize it.
+4. **Winners AND losers**: `POST /api/search {type:"copies", query:"<angle>", limit}` → ranked by composite **`weight`** (per-send rate × recency × relevance; losers sink). Each result carries the full anatomy: `lever`, `pattern`, `sophistication`, `unique_mechanism`, `pattern_interrupt`, `cta`, and — most important — **`why_it_worked`** / **`why_it_failed`**. Read these, don't just skim t1/t2:
+   - From winners: copy the *lever + structure + why it worked*, not the words. If `aged`, modernize.
+   - From losers (`status:"loser"`): treat `why_it_failed` as an **anti-pattern checklist** — before finalizing your draft, verify it doesn't repeat any failure reason you pulled (e.g. "big case-study brag with no relevance hook dies in sophisticated markets").
 5. **Hooks/CTAs**: `POST /api/search {type:"components", query:"opener|cta", limit}`.
 6. **(new client / niche-level)**: `POST /api/clusters {niche}` → lead with the highest `client_count` pain; pull `shared_lingo` from the niche brain.
 7. **Write** the copy using: confirmed pain → disarm objection → proof line (mechanism) → soft CTA, in the buyer's lingo, within SMS length.
