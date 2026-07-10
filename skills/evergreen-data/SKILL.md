@@ -14,6 +14,41 @@ Independent calls can be fired in parallel. Machine-readable spec: `GET /api/ope
 
 ---
 
+# Client directory (slug + Airtable record id)
+
+`slug` is the key for API calls; the Airtable `rec...` id is the same client in the
+Airtable base (used by campaign-sync and Airtable lookups).
+
+**Active clients (loaded in the system):**
+| Client | slug | Airtable rec id | Niche |
+|---|---|---|---|
+| Big Leap | `big_leap` | `recEBLuz8F9yx0ab8` | DTC ecom |
+| Chamber Media | `chamber_media` | `recL0ZcxKPJidtffg` | DTC ecom |
+| Digital Resource | `digital_resource` | `rec6Oa7G63G2i65jZ` | dental / local |
+| Go Fish Digital | `go_fish` | `recs9ySihyEMnh9I5` | DTC ecom |
+| Growth Lab | `growth_lab` | `recd8uFihKQ4h44Kr` | Law firms |
+| Kynship | `kynship` | `recncshNnMmK4OTei` | DTC ecom |
+| Leadgenix | `leadgenix` | `recQdK3OzylmDH2mT` | Local businesses |
+| Redo | `redo` | `rec6AI1zzahdLCTvH` | DTC ecom |
+| Scaletopia | `scaletopia` | `recXQrfQPnKdNGQUh` | Marketing agencies |
+| SeedX | `seedx` | `recvDnh3RA4CWnTjR` | B2B SaaS |
+| Wise Digital Partners | `wise_digital` | `recQQkheKwE77cFn8` | professional services |
+
+**Active in Airtable but NOT loaded in the system yet** (no knowledge data; onboard first):
+| Client | Airtable rec id |
+|---|---|
+| Acceler8 | `recr1b0pyHIEUicu8` |
+| Strike Tax Advisory | `rec5ngV4nRxVgFZBA` |
+| Taktical Digital | `recsg4HGVxYwag1ff` |
+
+**Past clients (in the system for their winning/losing copies only; no Airtable id):**
+`dma`, `exchange_media`, `firecracker`, `pirawna`, `stratedia`, `target_market`,
+`tiger_tracks`, `velox` — their copies still surface in copy search as evidence.
+
+The live list is always `GET /api/clients`; prefer it over this table if they disagree.
+
+---
+
 # FULL API REFERENCE (every endpoint, every field)
 
 ## 1. `GET /api/clients` — list all clients
