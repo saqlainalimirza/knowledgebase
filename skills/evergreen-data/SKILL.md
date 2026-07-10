@@ -1,64 +1,171 @@
 ---
 name: evergreen-data
-description: "Data supply for copywriting: pull real pains, buyer lingo, tiered proof, winning/losing copy, and niche intelligence from Scaletopia's Evergreen API. This skill does NOT write copy and does not impose a copywriting method. Your own playbook decides how to write; this skill tells you how to fetch the evidence and how to read its quality signals, and how to save a finished copy back. Triggers on 'get data for', 'brief me on {client}', 'what works for {niche}', 'pull pains/proof/winners', or any copy task that needs Evergreen evidence."
+description: "Data supply for copywriting and research: pull real pains, buyer lingo, tiered proof, winning/losing copy, niche intelligence, live campaign stats, and the knowledge graph from Scaletopia's Evergreen API. This skill does NOT write copy and does not impose a copywriting method. Your own playbook decides how to write; this skill documents every endpoint in full detail so you can fetch evidence from anywhere in the system, read its quality signals, and save finished copy back. Triggers on 'get data for', 'brief me on {client}', 'what works for {niche}', 'pull pains/proof/winners', or any task needing Evergreen data."
 ---
 
 # Evergreen Data Supply
 
-Your copywriting method comes from YOUR playbook. This skill only covers three things:
-1. how to **fetch** evidence from the Evergreen API,
-2. how to **read the quality signals** on what comes back,
-3. how to **save** a finished copy into the system.
+Your copywriting method comes from YOUR playbook. This skill covers: how to **fetch**
+from every endpoint, how to **read the quality signals**, and how to **save** results back.
 
 **Base URL (live):** `https://knowledgebase-production-f52e.up.railway.app`
-Machine-readable contract: `GET /api/openapi`. All bodies JSON. Fire independent calls in parallel.
+All paths below are relative to it. All bodies are JSON (`Content-Type: application/json`).
+Independent calls can be fired in parallel. Machine-readable spec: `GET /api/openapi`.
 
-## The data angles (each is one endpoint call)
+---
 
-| Angle | Call | Returns |
-|---|---|---|
-| Client overview | `GET /api/clients/{slug}` | offer, niche, pains, case studies, calls, niche brain summary + shared lingo |
-| Live performance | `GET /api/clients/{slug}/stats` | real Airtable numbers: sent, replies, meetings, per campaign |
-| Pains / lingo / dreams / objections | `POST /api/search {type:"pains", route:true, query, limit}` | buyer quotes with `kind`, `confidence`, `persona` |
-| Proof | `POST /api/search {type:"case_studies", query, limit}` | before/after, `tier`, `unique_mechanism` |
-| Past copies (winners + losers) | `POST /api/search {type:"copies", query, limit}` | full anatomy: `t1/t2`, `lever`, `pattern`, `sophistication`, `unique_mechanism`, `pattern_interrupt`, `cta`, `why_it_worked`, `why_it_failed`, `weight`, `aged` |
-| Copy parts | `POST /api/search {type:"components", query, limit}` | individual hooks/CTAs/mechanism lines with verdicts |
-| Niche-wide dominant pains | `POST /api/clusters {niche}` | pain groups with `client_count` (how many clients share it) |
-| Canonical niche list | `GET /api/niches` | niche/sub-niche ids for exact filtering (`nicheId`, `subNicheId` in search) |
+# FULL API REFERENCE (every endpoint, every field)
 
-Scoping: `route:true` auto-matches the query to the best niche. Or pin exactly with
-`niche` (text) or `nicheId`/`subNicheId` (canonical ids). Cross-client pooling happens
-automatically inside a niche.
+## 1. `GET /api/clients` — list all clients
+No params. Returns an array; counts are strings.
+```json
+[{ "slug":"kynship", "client":"Kynship", "niche":"DTC ecom", "sub_niche":null,
+   "offer":"...", "airtable_client_id":"rec...", "status":"active",
+   "calls":"21", "pains":"473", "case_studies":"11", "campaigns":"19" }]
+```
+Use to discover slugs. `slug` is the key for every other client endpoint.
 
-## Amount dial
+## 2. `GET /api/clients/{slug}` — full client detail (the orientation call)
+Returns one object with 6 sections:
+- `client`: `{slug, client, niche, sub_niche, offer, airtable_client_id, status}`
+- `pains` (up to 500): `[{id, kind, persona, item_text, confidence, source}]`
+  - `kind`: pain | lingo | dream | belief | objection. `confidence`: confirmed | needs_more.
+  - `source`: provenance, e.g. `"call kynship_call8"` (which transcript it was mined from).
+- `painKinds`: `[{kind, n}]` counts per kind.
+- `caseStudies`: `[{id, subject_brand, tier, after_state, unique_mechanism, timeframe, source_ref}]`
+- `calls`: `[{id, title, source, source_call_id, call_date, chunks}]` (`chunks` = number of searchable pieces)
+- `campaigns` (up to 200): `[{id, name, channel, angle, segment, niche, notes}]`
+  - `id` here is the DB campaign id used by `/api/copy/link` and `save-copy.campaignId`.
+- `niche`: the niche brain — `{commonalities_summary, top_pains, shared_lingo, dream_outcomes, winning_levers, refreshed_at}` (JSON arrays; null if not built).
 
-`limit` controls volume. Everything is ranked, so small limits return the best few, not
-random ones. Suggested: light = 2–3 per angle, standard = 5–6, deep = 8–10 plus `/api/clusters`.
+## 3. `GET /api/clients/{slug}/stats` — LIVE performance from Airtable
+No params. Two sections:
+- `stats`:
+  - `retainer` (number), `accountManager`, `status`, `onboardingDate`, `domain`
+  - `activeCampaigns`: `{sms, email}` — currently running counts
+  - `leadsRemaining`: `{sms, email}`
+  - `periods`: keys `"This Week"`, `"This Month"`, `"All Time"`, each:
+    `{ sent:{sms,email,total}, positives:{sms,email,total}, booked:{sms,email,total}, conversion:"25%" }`
+  - `kpi`: `{weeklyBooked, monthlyBooked, weeklyPositives}` — the targets
+- `campaigns` (live from Airtable, sorted by completed): `[{id (Airtable rec id), name, type ("SMS"|"EmailBison"), status ("ACTIVE"|"PAUSED"|"COMPLETED"|"CANCELLED"|...), totalLeads, completed, completion (0-100), emailsSent, emailReplies, leadsRemaining}]`
+Use for: channel choice, what's live right now, real reply/booking volume.
 
-## Quality signals (how to read what comes back)
+## 4. `GET /api/clients/{slug}/copies` — a client's copies + linkable campaigns
+- `copies`: `[{id, status, lever, t1, t2, char_t1, char_t2, campaign_id, campaign_name, positive_rate, sent, booked}]` (metrics null until synced)
+- `campaigns`: `[{id, name, channel}]` — DB ids for linking.
 
-- `confidence` on pains: `confirmed` is verified; `needs_more` is an AI guess from a transcript.
-- `tier` on case studies: S strongest → D weakest.
-- `weight` on copies: composite of relevance × performance × recency. Performance is
-  results **per send**, sample-adjusted (10 meetings on 5,000 sends scores below 5 on 200).
-  Known losers sink. Ranked for you; higher = more trustworthy.
-- `aged: true` on a copy: old. Its lesson may hold; its phrasing/offer may not.
-- `why_it_worked` / `why_it_failed` on copies: the stored analysis of each winner/loser.
-  This is the richest field in the system; read it, don't just skim t1/t2.
-- `client_count` on clusters: pains raised by multiple clients are validated, not one-off.
-- `score` everywhere: cosine similarity 0–1 (>0.75 strong, <0.6 weak).
+## 5. `POST /api/search` — semantic search over any knowledge type (the workhorse)
+Body:
+```json
+{ "type": "pains" | "calls" | "case_studies" | "copies" | "components",
+  "query": "plain-english meaning to match",
+  "limit": 10,
+  "route": true,
+  "niche": "DTC ecom",
+  "nicheId": 1, "subNicheId": 3,
+  "status": "winner" }
+```
+- `type` + `query` required. `limit` = the amount dial (everything is ranked, so small limits return the best few).
+- `route:true` = auto-match the query to the best niche first (recommended when no niche given).
+- `niche` = pin by niche text (skips routing). `nicheId`/`subNicheId` = EXACT canonical ids from `/api/niches` (work on pains + case_studies).
+- `status` = copies only (winner | loser | draft | neutral).
+
+Response: `{ "type", "query", "routed": [{"niche","score"}], "results": [...] }`
+(`routed` shows which niche(s) the query was scoped to when `route:true`.)
+
+**Result fields per type:**
+- `pains`: `id, client_slug, kind, persona, item_text, confidence, created_at, score, recency, weight` — sorted by `weight = score × confidence × recency`.
+- `calls`: `id, client_slug, chunk_text, score` — raw conversation excerpts; best for exact buyer phrasing and context around a topic.
+- `case_studies`: `id, client_slug, subject_brand, tier, after_state, unique_mechanism, created_at, score, recency, weight` — sorted by `weight = score × tier × recency`.
+- `copies`: `id, client_slug, status, lever, pattern, sophistication, t1, t2, unique_mechanism, pattern_interrupt, cta, why_it_worked, why_it_failed, created_at, score` plus (when metrics exist) `positive_rate, positives, sent, booked` plus computed `performance, recency, aged, weight` — sorted by `weight`. **`why_it_worked` / `why_it_failed` are the richest fields in the system; always read them.**
+- `components`: `id, component_type (disarmer|identity|case_line|unique_mechanism|relevance|cta), item_text, verdict (winner|loser|neutral), persona, lever, score` — swipeable individual parts.
+
+## 6. `POST /api/clusters` — dominant pains across a whole niche (or one client)
+Body: `{ "niche": "DTC ecom" }` OR `{ "client": "kynship" }`, optional `"threshold": 0.82` (cosine cutoff for grouping).
+Response:
+```json
+{ "scope", "threshold", "total_pains", "clusters_total", "multi_member_clusters",
+  "singletons", "shown",
+  "clusters": [{ "representative": "the pain text", "size": 56, "client_count": 2,
+                 "clients": ["chamber_media","kynship"], "kinds": ["pain","objection"],
+                 "members": [{"id","text","kind","client","confidence"}] }] }
+```
+Sorted by `size`. `client_count > 1` = validated across clients (safest lead angle for a new client in the niche).
+
+## 7. `GET /api/niches` — the canonical niche tree
+No params. `[{ "id":1, "name":"DTC ecom", "subs":[{"id":3,"name":"Supplements"}, ...] }]`
+Use the ids as `nicheId`/`subNicheId` in search for exact (non-fuzzy) scoping.
+
+## 8. `GET /api/graph` — the whole knowledge graph
+No params. `{ "nodes": [{id, type, label, value?, parent?, niche?, meta?}], "edges": [{source, target, kind}], "summary": {clients, niches, sharedNiches} }`
+Node types: niche, kb (niche brain), kbpain, kblingo, client, hub, painkind, pain, angle, campaign, case, copy, call.
+Edge kinds: `in-niche`, `has`, `mined-from` (pain → its source call), `for-campaign` (copy → campaign), `co-client` (clients sharing a niche), `related <sim>` (niche ↔ niche by embedding).
+Use for: tracing provenance and seeing how everything connects. Heavy; prefer targeted endpoints for data pulls.
+
+## 9. `GET /api/openapi` — machine-readable OpenAPI 3.1 spec of the API.
+
+---
+
+# WRITE / ACTION ENDPOINTS
+
+## 10. `POST /api/agents/save-copy` — save a finished copy
+```json
+{ "client_slug": "kynship",
+  "t1": "first message", "t2": "follow-up",
+  "lever": "Unique", "persona": "VP Marketing", "niche": "DTC ecom",
+  "status": "draft",
+  "campaignId": 41,
+  "components": [
+    {"component_type":"disarmer","item_text":"..."} ] }
+```
+- Required: `client_slug` + at least one of `t1`/`t2`.
+- `status`: draft | winner | loser | neutral — save as `draft`.
+- `campaignId`: optional, links at save time (DB id from #2/#4).
+- `components[].component_type`: disarmer | identity | case_line | unique_mechanism | relevance | cta.
+Returns `{ok, output}` (output includes the new copy id). Char counts + embeddings computed server-side.
+
+## 11. `POST /api/copy/link` — link/unlink a copy to a campaign
+`{ "copyId": 12, "campaignId": 41 }` (or `"campaignId": null` to unlink). Returns `{ok}`.
+The copy inherits the campaign's niche/persona where empty.
+
+## 12. `PATCH /api/clients/{slug}/niche` — human override of a client's niche
+`{ "nicheId": 1, "subNicheId": 3 }` (ids from `/api/niches`; subNicheId optional).
+Sets `niche_source='human'` (human always wins over AI tagging) and inherits to the client's pains + case studies. Returns `{ok, niche, source}`.
+
+## 13–17. Ingestion agents (feed new data in; each returns `{ok, output}`; may take ~1 min)
+- `POST /api/agents/onboarding` — `{client, slug, form (the pasted onboarding text), airtableId?, niche?, subNiche?}` → creates the client + extracts pains. **Run this first for a new client.**
+- `POST /api/agents/transcript` — `{client, sourceCallId (unique id, e.g. "kynship_call22"), text (the transcript), title?, provider?, mine?: true}` → saves + chunks the call, mines pains. Re-running the same `sourceCallId` is skipped (no duplicates).
+- `POST /api/agents/case-study` — `{client, text (pasted case studies), sourceLabel? (stable dedup prefix, e.g. "Kynship Master Sheet · Tab 4")}` → splits, tiers S–D, saves.
+- `POST /api/agents/campaign-sync` — `{client, airtableId?, dryRun?: true}` → pulls the client's campaigns from Airtable into the DB.
+- `POST /api/agents/niche-synth` — `{niche}` → rebuilds the niche brain (summary, top pains, lingo, levers) from all clients in that niche.
+
+---
+
+# Quality signals (how to read what comes back)
+
+- `confidence` (pains): `confirmed` verified > `needs_more` AI guess.
+- `tier` (case studies): S strongest → D weakest; prefer S/A/B.
+- `weight` (pains/case_studies/copies): the composite rank; higher = more trustworthy. For
+  copies: relevance × performance × recency, where performance is results **per send**,
+  sample-adjusted (10 meetings on 5,000 sends scores below 5 on 200); known losers sink.
+- `aged: true` (copies): old; the lesson may hold, the phrasing/offer may not.
+- `why_it_worked` / `why_it_failed` (copies): stored analysis of each winner/loser. Losers
+  work as anti-pattern checks.
+- `client_count` (clusters): >1 = pain validated across multiple clients.
+- `score`: cosine similarity 0–1 (>0.75 strong, <0.6 weak).
+- `source` (pains) / `mined-from` edges (graph): provenance back to the exact call.
 
 What you do with these signals is your playbook's business.
 
-## Saving a finished copy back
+# Practical patterns
 
-- Save: `POST /api/agents/save-copy {client_slug, t1, t2, lever?, persona?, status:"draft", components?, campaignId?}`.
-  Char counts + embeddings are computed server-side. Save as `draft`; winner/loser status
-  comes from real metrics later, not from the writer.
-- Link to a campaign (then or later): `POST /api/copy/link {copyId, campaignId}`.
-  Campaign ids come from `GET /api/clients/{slug}/copies`.
+- **Brief on a client**: #2 + #3 in parallel → then targeted #5 searches per angle.
+- **New client in a known niche**: #6 clusters (lead with `client_count > 1`) + #7 for exact ids + the niche brain from #2.
+- **Evidence for one angle**: #5 with `route:true`, `limit` 3–6 per type; go deeper only if thin.
+- **After writing**: #10 save as draft → #11 link to campaign (campaign ids from #4).
 
-## Data integrity rules
+# Data integrity rules
 
 - Never invent metrics, results, or proof; only cite what the API returned.
-- Don't hand-write to the DB; only the endpoints above.
+- Only write through the endpoints above; never assume DB access.
+- Save copy as `draft`; winner/loser comes from real metrics later, not from the writer.
