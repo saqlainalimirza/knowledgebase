@@ -22,6 +22,7 @@ export async function GET() {
     // niche-knowledge once per niche
     const kbRows = await q<any>(`select niche, top_pains, shared_lingo from niche_knowledge`);
     const kbByNiche = new Map(kbRows.map((r) => [r.niche, r]));
+    const offersByService: Record<string, string[]> = {};
 
     for (const c of clients) {
       const niche = c.niche || "unassigned";
@@ -112,6 +113,21 @@ export async function GET() {
         }
       }
 
+      // ---- offers (service categories we pitch; cross-connect clients by service) ----
+      const offers = await q<any>(
+        `select id, offer_text, service, pattern from offers where client_slug=$1 order by id`, [c.slug]);
+      if (offers.length) {
+        const offHub = `hub:${c.slug}:offers`;
+        add({ id: offHub, type: "hub", label: "Offers", value: offers.length, parent: cId, niche });
+        link(cId, offHub, "has");
+        offers.forEach((o) => {
+          const id = `off:${c.slug}:${o.id}`;
+          add({ id, type: "offer", label: `[${o.service || "?"}] ${o.offer_text}`, parent: offHub, niche, meta: { service: o.service, pattern: o.pattern } });
+          link(offHub, id, "offer");
+          (offersByService[o.service || "other"] ||= []).push(id);
+        });
+      }
+
       // ---- case studies ----
       const cases = await q<any>(
         `select id, subject_brand, tier from case_studies where owner_client_slug=$1 order by tier`, [c.slug]);
@@ -141,6 +157,16 @@ export async function GET() {
         });
       }
 
+    }
+
+    // offer <-> offer cross-links: same service across DIFFERENT clients
+    for (const [service, ids] of Object.entries(offersByService)) {
+      if (service === "other") continue;
+      for (let i = 0; i < ids.length; i++)
+        for (let j = i + 1; j < ids.length; j++) {
+          const ca = ids[i].split(":")[1], cb = ids[j].split(":")[1];
+          if (ca !== cb) link(ids[i], ids[j], `same-offer ${service}`);
+        }
     }
 
     // direct client <-> client cross-links when they share a niche (visible line)

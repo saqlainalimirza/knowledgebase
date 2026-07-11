@@ -20,6 +20,7 @@ REGISTRY = [
     ("copies",             "unique_mechanism_embedding", "unique_mechanism"),
     ("copy_components",    "embedding",                  "item_text"),
     ("niche_knowledge",    "summary_embedding",          "commonalities_summary"),
+    ("offers",             "embedding",                  "concat_ws(' ', offer_text, mechanism)"),
 ]
 
 BATCH = 64

@@ -123,7 +123,7 @@ export async function GET() {
           type: "object",
           required: ["type", "query"],
           properties: {
-            type: { type: "string", enum: ["pains", "calls", "case_studies", "copies", "components"], description: "which angle to search" },
+            type: { type: "string", enum: ["pains", "calls", "case_studies", "copies", "components", "offers"], description: "which angle to search; offers carry a service category (seo/local_seo/paid_ads/...) that cross-connects clients selling the same thing" },
             query: { type: "string", description: "natural-language query; embedded for semantic match" },
             niche: { type: "string", description: "scope to an exact niche (skips routing)" },
             status: { type: "string", description: "copies only: winner | loser | neutral | draft" },

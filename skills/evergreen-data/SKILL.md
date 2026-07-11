@@ -110,7 +110,7 @@ booked meetings.
 ## 5. `POST /api/search` — semantic search over any knowledge type (the workhorse)
 Body:
 ```json
-{ "type": "pains" | "calls" | "case_studies" | "copies" | "components",
+{ "type": "pains" | "calls" | "case_studies" | "copies" | "components" | "offers",
   "query": "plain-english meaning to match",
   "limit": 10,
   "route": true,
@@ -132,6 +132,15 @@ Response: `{ "type", "query", "routed": [{"niche","score"}], "results": [...] }`
 - `case_studies`: `id, client_slug, subject_brand, tier, after_state, unique_mechanism, created_at, score, recency, weight` — sorted by `weight = score × tier × recency`.
 - `copies`: `id, client_slug, status, lever, pattern, sophistication, t1, t2, unique_mechanism, pattern_interrupt, cta, why_it_worked, why_it_failed, created_at, score` plus (when metrics exist) `positive_rate, positives, sent, booked` plus computed `performance, recency, aged, weight` — sorted by `weight`. **`why_it_worked` / `why_it_failed` are the richest fields in the system; always read them.**
 - `components`: `id, component_type (disarmer|identity|case_line|unique_mechanism|relevance|cta), item_text, verdict (winner|loser|neutral), persona, lever, score` — swipeable individual parts.
+- `offers`: `id, client_slug, offer_text, service, pattern, mechanism, proof_hint, score` —
+  what each client pitches. **`service`** is the cross-client key (seo | local_seo |
+  paid_ads | creative | tiktok_shop | amazon | pr | email_sms_marketing | web_design |
+  cro | returns_software | other): when an offer works for one client, search offers by
+  the same `service` to find every other client selling the same thing (e.g. a local-SEO
+  win for Leadgenix transfers to Digital Resource). `pattern` = the pitch structure
+  (free_audit | performance_guarantee | done_for_you | free_pilot | case_study_teardown |
+  unique_mechanism_pitch | partnership | risk_reversal). `proof_hint` names the case
+  study that backs the offer — cross-reference it with a `case_studies` search.
 
 ## 6. `POST /api/clusters` — dominant pains across a whole niche (or one client)
 Body: `{ "niche": "DTC ecom" }` OR `{ "client": "kynship" }`, optional `"threshold": 0.82` (cosine cutoff for grouping).

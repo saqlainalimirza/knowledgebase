@@ -20,6 +20,7 @@ const STYLE: Record<string, { r: number; fill: string; ring: string; text: numbe
   angle:    { r: 13, fill: "#134e4a", ring: "#2dd4bf", text: 10 },
   campaign: { r: 7,  fill: "#27374d", ring: "#2dd4bf", text: 9 },
   case:     { r: 10, fill: "#3f2d12", ring: "#fbbf24", text: 10 },
+  offer:    { r: 10, fill: "#14532d", ring: "#4ade80", text: 10 },
   copy:     { r: 9,  fill: "#312e81", ring: "#818cf8", text: 10 },
   call:     { r: 7,  fill: "#1e293b", ring: "#64748b", text: 9 },
   kbpain:   { r: 7,  fill: "#3b0764", ring: "#c084fc", text: 9 },
@@ -168,17 +169,18 @@ function InteractiveGraph({ nodes, edges, defaultExpand, caption, onOpenClient }
             {visEdges.map((e, i) => {
               const a = pos[e.source], b = pos[e.target]; if (!a || !b) return null;
               const related = e.kind.startsWith("related");
+              const sameOffer = e.kind.startsWith("same-offer");
               const cross = e.kind === "for-campaign";
               const mined = e.kind === "mined-from";
               const coClient = e.kind === "co-client";
               const lit = hover ? (e.source === hover || e.target === hover) : false;
               const dim = hover && !lit;
-              const color = lit ? "#fbbf24" : coClient ? "#34d399" : related ? "#5b8cff" : cross ? "#818cf8" : mined ? "#fb923c" : "#22304d";
+              const color = lit ? "#fbbf24" : sameOffer ? "#4ade80" : coClient ? "#34d399" : related ? "#5b8cff" : cross ? "#818cf8" : mined ? "#fb923c" : "#22304d";
               return (
                 <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={color}
-                  strokeWidth={lit ? 2.5 : coClient ? 2.5 : related ? 2 : mined ? 1.4 : 1}
-                  strokeDasharray={!lit && (related || cross || mined || coClient) ? "6 4" : undefined}
-                  opacity={dim ? 0.06 : mined ? 0.7 : coClient ? 0.85 : 1} />
+                  strokeWidth={lit ? 2.5 : coClient ? 2.5 : sameOffer ? 1.8 : related ? 2 : mined ? 1.4 : 1}
+                  strokeDasharray={!lit && (related || cross || mined || coClient || sameOffer) ? "6 4" : undefined}
+                  opacity={dim ? 0.06 : mined ? 0.7 : sameOffer ? 0.75 : coClient ? 0.85 : 1} />
               );
             })}
             {visible.map((n) => {

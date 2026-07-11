@@ -153,6 +153,10 @@ SPECS = {
         "copy_components", "embedding",
         "id, component_type, item_text, verdict, persona, lever", "niche",
     ),
+    "offers": (
+        "offers", "embedding",
+        "id, client_slug, offer_text, service, pattern, mechanism, proof_hint", None,
+    ),
 }
 
 
