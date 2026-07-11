@@ -40,6 +40,22 @@ export async function GET() {
           responses: { "200": { description: "stats + campaigns" } },
         },
       },
+      "/api/clients/{slug}/deals": {
+        get: {
+          operationId: "getClientDeals",
+          summary:
+            "Live deals from Airtable with full attribution: outcome (stage, reply category, lost reason, closed amount), copy_variant, campaign (name + db_campaign_id), who converted (job_title, company, contact), and the conversation thread. Includes by_stage/by_variant/by_channel/by_reply_category aggregates. Optional filters: stage, variant, channel, category, limit.",
+          parameters: [
+            { name: "slug", in: "path", required: true, schema: { type: "string" } },
+            { name: "stage", in: "query", schema: { type: "string" } },
+            { name: "variant", in: "query", schema: { type: "string" } },
+            { name: "channel", in: "query", schema: { type: "string", enum: ["sms", "email"] } },
+            { name: "category", in: "query", schema: { type: "string" } },
+            { name: "limit", in: "query", schema: { type: "integer", default: 500 } },
+          ],
+          responses: { "200": { description: "deals + aggregates" } },
+        },
+      },
       "/api/clients/{slug}/copies": {
         get: {
           operationId: "listCopies",

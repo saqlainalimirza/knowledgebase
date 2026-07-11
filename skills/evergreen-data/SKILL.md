@@ -89,6 +89,24 @@ Use for: channel choice, what's live right now, real reply/booking volume.
 - `copies`: `[{id, status, lever, t1, t2, char_t1, char_t2, campaign_id, campaign_name, positive_rate, sent, booked}]` (metrics null until synced)
 - `campaigns`: `[{id, name, channel}]` — DB ids for linking.
 
+## 4b. `GET /api/clients/{slug}/deals` — LIVE deals with full attribution (from Airtable)
+Every deal for the client with **every field**, connected to its campaign. Fetch once,
+filter however you want. Optional pre-filters: `?stage=Won` `?variant=A`
+`?channel=sms|email` `?category=Not Interested` `?limit=500`.
+
+Response: `{ client, count, by_stage, by_variant, by_channel, by_reply_category, deals: [...] }`
+(the `by_*` objects are ready-made counts so you can orient without recomputing).
+
+Each deal:
+- **outcome**: `stage` (Positive Reply | Meeting Booked | Show | No Show | Won | Lost | Disqualified | "Maybe" | ...), `positive_reply_category` (Power Request | Not Interested | Objection Handling | ...), `lost_reason`, `closed_amount`, `meeting_booked_at`, `meeting_url`
+- **attribution**: `channel` (sms|email), **`copy_variant`** (A/B/C — which copy variant drove this deal), `campaign_name`, `campaign_airtable_ids`, **`db_campaign_id`** (matched to our campaigns table; use with `/api/copy/link` data)
+- **who converted**: `contact`, **`job_title`**, `company`, `website`, `email`, `linkedin`, `phone`, `location`, `timezone`
+- **the story**: `conversation` (the actual reply thread), `recordings`, `notes`, `next_step_no`, `not_closed_reason`, `overall_feedback`
+
+Use for: which variant/campaign actually converts, what job titles reply, why people say
+no (`positive_reply_category` + `lost_reason`), and reading the real conversations behind
+booked meetings.
+
 ## 5. `POST /api/search` — semantic search over any knowledge type (the workhorse)
 Body:
 ```json
