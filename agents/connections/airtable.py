@@ -35,7 +35,7 @@ def get_record(table, record_id):
     return r.json().get("fields", {})
 
 
-def list_records(table, *, formula=None, max_records=None):
+def list_records(table, *, formula=None, max_records=None, fields=None):
     """List records, optionally filtered by a filterByFormula. Returns list of {id, fields}."""
     url = f"{_API}/{_base_id()}/{table}"
     params = {}
@@ -43,6 +43,8 @@ def list_records(table, *, formula=None, max_records=None):
         params["filterByFormula"] = formula
     if max_records:
         params["maxRecords"] = max_records
+    if fields:
+        params["fields[]"] = fields
     out = []
     while True:
         r = requests.get(url, headers=_headers(), params=params, timeout=30)

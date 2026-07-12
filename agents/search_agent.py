@@ -123,10 +123,12 @@ def weight_copies(rows):
                 recency = 0.5 ** (age_days / RECENCY_HALF_LIFE_DAYS)
                 aged = age_days > AGED_DAYS
         rel = r.get("score") or 0.0
+        # past clients: older playbook era — their copies are reference, not gospel
+        past = 0.6 if r.get("client_status") == "past" else 1.0
         r["performance"] = round(perf, 4)
         r["recency"] = round(recency, 4)
         r["aged"] = aged
-        r["weight"] = round(rel * perf * recency, 5)
+        r["weight"] = round(rel * perf * recency * past, 5)
     rows.sort(key=lambda r: r.get("weight", 0), reverse=True)
     return rows
 
@@ -245,6 +247,14 @@ def run(stype, query, niche, status, limit, route=False, niche_id=None, sub_nich
                         for row in cur.fetchall()}
             for r in rows:
                 r.update(perf.get(r["id"], {}))
+            # attach client status so past clients' copies rank as reference, not gospel
+            slugs = list({r["client_slug"] for r in rows if r.get("client_slug")})
+            if slugs:
+                with conn.cursor() as cur:
+                    cur.execute("select slug, status from client_roster where slug = any(%s)", (slugs,))
+                    st = dict(cur.fetchall())
+                for r in rows:
+                    r["client_status"] = st.get(r.get("client_slug"))
             rows = weight_copies(rows)
         elif stype == "pains" and rows:
             rows = weight_pains(rows)

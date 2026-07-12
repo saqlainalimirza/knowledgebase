@@ -28,6 +28,35 @@ CLUSTER_THRESHOLD = 0.82
 # ---------- gather ----------
 
 def gather(cur, niche):
+    """Gather by CANONICAL niche id (not text) so spelling variants pool together.
+    Falls back to text match if the niche isn't in the canonical table."""
+    cur.execute("select id from niches where lower(name)=lower(%s) and parent_id is null", (niche,))
+    row = cur.fetchone()
+    if row:
+        niche_id = row[0]
+        cur.execute("select slug from client_roster where niche_id=%s", (niche_id,))
+        slugs = [r[0] for r in cur.fetchall()] or ["__none__"]
+        cur.execute(
+            """select client_slug, kind, persona, item_text, confidence, embedding
+               from master_sheet_pains
+               where (niche_id = %s or client_slug = any(%s)) and embedding is not null""",
+            (niche_id, slugs),
+        )
+        pains = cur.fetchall()
+        cur.execute(
+            """select client_slug, chunk_text, embedding from call_chunks
+               where client_slug = any(%s) and embedding is not null""",
+            (slugs,),
+        )
+        calls = cur.fetchall()
+        cur.execute(
+            """select client_slug, lever, pattern, t1, t2, full_copy_embedding from copies
+               where client_slug = any(%s) and status = 'winner' and full_copy_embedding is not null""",
+            (slugs,),
+        )
+        winners = cur.fetchall()
+        return pains, calls, winners
+    # fallback: legacy text match
     cur.execute(
         """select client_slug, kind, persona, item_text, confidence, embedding
            from master_sheet_pains where niche = %s and embedding is not null""",

@@ -40,8 +40,11 @@ export async function GET(
         [slug]
       ),
       q(
-        `select id, name, channel, angle, segment, niche, notes
-         from campaigns where client_slug=$1 order by name limit 200`,
+        `select id, name, channel, angle, segment, niche, notes,
+                sent, positive_replies, power_requests, booked,
+                case when coalesce(sent,0) > 0 and power_requests is not null
+                     then round(power_requests::numeric / sent, 5) end as power_rate
+         from campaigns where client_slug=$1 order by power_requests desc nulls last, name limit 200`,
         [slug]
       ),
       one(
