@@ -8,9 +8,9 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
   try {
     const [copies, campaigns] = await Promise.all([
       q(
-        `select c.id, c.status, c.lever, c.t1, c.t2, c.char_t1, c.char_t2, c.campaign_id,
+        `select c.id, c.status, c.variant, c.lever, c.t1, c.t2, c.char_t1, c.char_t2, c.campaign_id,
                 ca.name as campaign_name,
-                cp.positive_rate, cp.sent, cp.booked
+                cp.positive_rate, cp.sent, cp.booked, cp.power_requests, cp.power_rate
          from copies c
          left join campaigns ca on ca.id = c.campaign_id
          left join copy_performance cp on cp.copy_id = c.id

@@ -96,11 +96,14 @@ def weight_copies(rows):
         pos = r.get("positives")
         if pos is None and r.get("positive_rate") is not None and sent:
             pos = round(r["positive_rate"] * sent)
-        # performance: 0.7 booking-rate + 0.3 positive-rate, each Wilson-bounded per send
+        # performance per send, Wilson-bounded: bookings > POWER requests (reply quality,
+        # Khizar's metric) > raw positives
+        power = r.get("power_requests")
         if sent:
             wb = _wilson(booked, sent) or 0.0
+            wq = _wilson(power or 0, sent) or 0.0
             wp = _wilson(pos or 0, sent) or 0.0
-            perf = 0.7 * wb + 0.3 * wp
+            perf = (0.5 * wb + 0.3 * wq + 0.2 * wp) if power is not None else (0.7 * wb + 0.3 * wp)
         else:
             # no metrics yet: fall back to the human/label verdict so a known
             # loser never ties a known winner
@@ -148,7 +151,7 @@ SPECS = {
     ),
     "copies": (
         "copies", "full_copy_embedding",
-        "id, client_slug, status, lever, pattern, sophistication, t1, t2, "
+        "id, client_slug, status, variant, lever, pattern, sophistication, t1, t2, "
         "unique_mechanism, pattern_interrupt, cta, why_it_worked, why_it_failed, created_at", "niche",
     ),
     "components": (
@@ -239,11 +242,14 @@ def run(stype, query, niche, status, limit, route=False, niche_id=None, sub_nich
             ids = [r["id"] for r in rows]
             with conn.cursor() as cur:
                 cur.execute(
-                    "select copy_id, positive_rate, positives, sent, booked from copy_performance where copy_id = any(%s)",
+                    "select copy_id, positive_rate, positives, sent, booked, power_requests, power_rate "
+                    "from copy_performance where copy_id = any(%s)",
                     (ids,),
                 )
                 perf = {row[0]: {"positive_rate": float(row[1]) if row[1] is not None else None,
-                                 "positives": row[2], "sent": row[3], "booked": row[4]}
+                                 "positives": row[2], "sent": row[3], "booked": row[4],
+                                 "power_requests": row[5],
+                                 "power_rate": float(row[6]) if row[6] is not None else None}
                         for row in cur.fetchall()}
             for r in rows:
                 r.update(perf.get(r["id"], {}))

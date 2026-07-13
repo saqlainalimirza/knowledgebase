@@ -5,9 +5,10 @@ import { Console, idle, RunState } from "./Console";
 
 type Campaign = { id: number; name: string; channel: string | null };
 type Copy = {
-  id: number; status: string; lever: string | null; t1: string | null; t2: string | null;
+  id: number; status: string; variant: string | null; lever: string | null; t1: string | null; t2: string | null;
   char_t1: number | null; char_t2: number | null; campaign_id: number | null;
   campaign_name: string | null; positive_rate: number | null; sent: number | null; booked: number | null;
+  power_requests: number | null; power_rate: number | null;
 };
 
 const COMPONENTS = ["disarmer", "identity", "case_line", "unique_mechanism", "relevance", "cta"] as const;
@@ -39,6 +40,7 @@ function NewCopy({ slug, campaigns, onSaved }: { slug: string; campaigns: Campai
   const [lever, setLever] = useState("");
   const [persona, setPersona] = useState("");
   const [status, setStatus] = useState("draft");
+  const [variant, setVariant] = useState("A");
   const [campaignId, setCampaignId] = useState<string>("");
   const [comps, setComps] = useState<Record<string, string>>({});
   const [state, setState] = useState<RunState>(idle);
@@ -52,7 +54,7 @@ function NewCopy({ slug, campaigns, onSaved }: { slug: string; campaigns: Campai
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        client_slug: slug, t1, t2, lever, persona, status, components,
+        client_slug: slug, t1, t2, lever, persona, status, variant, components,
         campaignId: campaignId ? Number(campaignId) : undefined,
       }),
     });
@@ -86,7 +88,7 @@ function NewCopy({ slug, campaigns, onSaved }: { slug: string; campaigns: Campai
         ))}
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-3">
+      <div className="mt-3 grid grid-cols-3 gap-3">
         <div>
           <label className="label">Status</label>
           <select className="input" value={status} onChange={(e) => setStatus(e.target.value)}>
@@ -94,6 +96,12 @@ function NewCopy({ slug, campaigns, onSaved }: { slug: string; campaigns: Campai
             <option value="winner">winner</option>
             <option value="loser">loser</option>
             <option value="neutral">neutral</option>
+          </select>
+        </div>
+        <div>
+          <label className="label">Variant</label>
+          <select className="input" value={variant} onChange={(e) => setVariant(e.target.value)}>
+            {["A", "B", "C", "D"].map((v) => <option key={v} value={v}>{v}</option>)}
           </select>
         </div>
         <div>
@@ -138,8 +146,10 @@ function ExistingCopies({
             <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted">
               <span className="chip">#{c.id}</span>
               <span className="chip">{c.status}</span>
+              {c.variant && <span className="chip">var {c.variant}</span>}
               {c.lever && <span className="chip">{c.lever}</span>}
               {c.positive_rate != null && <span className="chip">PR {(c.positive_rate * 100).toFixed(1)}%</span>}
+              {c.power_rate != null && <span className="chip">⚡ {(c.power_rate * 100).toFixed(2)}%</span>}
               {c.sent != null && <span>{c.sent} sent</span>}
             </div>
             <p className="text-sm text-slate-200">{c.t1}</p>

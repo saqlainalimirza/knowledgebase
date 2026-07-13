@@ -156,7 +156,7 @@ COPY_FIELDS = [
     "niche", "sub_niche", "persona", "sophistication", "channel", "t1", "t2",
     "lever", "pattern", "what_carries", "proof_framing", "unique_mechanism",
     "pattern_interrupt", "cta", "relevance_type", "status", "model_score",
-    "why_it_worked", "why_it_failed",
+    "why_it_worked", "why_it_failed", "variant",
 ]
 COMPONENT_TYPES = {"disarmer", "identity", "case_line", "unique_mechanism", "relevance", "cta"}
 
@@ -177,6 +177,7 @@ def save_copy(cur, c):
     vals[COPY_FIELDS.index("origin")] = c.get("origin") or "scaletopia_send"
     vals[COPY_FIELDS.index("channel")] = c.get("channel") or "sms"
     vals[COPY_FIELDS.index("status")] = status
+    vals[COPY_FIELDS.index("variant")] = c.get("variant") or "A"
 
     placeholders = ",".join(["%s"] * len(cols))
     cur.execute(

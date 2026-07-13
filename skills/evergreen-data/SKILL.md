@@ -69,8 +69,10 @@ Returns one object with 6 sections:
 - `painKinds`: `[{kind, n}]` counts per kind.
 - `caseStudies`: `[{id, subject_brand, tier, after_state, unique_mechanism, timeframe, source_ref}]`
 - `calls`: `[{id, title, source, source_call_id, call_date, chunks}]` (`chunks` = number of searchable pieces)
-- `campaigns` (up to 200): `[{id, name, channel, angle, segment, niche, notes}]`
+- `campaigns` (up to 200, sorted by power requests): `[{id, name, channel, angle, segment, niche, notes, sent, positive_replies, power_requests, booked, power_rate}]`
   - `id` here is the DB campaign id used by `/api/copy/link` and `save-copy.campaignId`.
+  - `power_rate` = power requests ÷ sent — reply quality per send; the best single signal
+    for which campaign/angle is actually working.
 - `niche`: the niche brain — `{commonalities_summary, top_pains, shared_lingo, dream_outcomes, winning_levers, refreshed_at}` (JSON arrays; null if not built).
 
 ## 3. `GET /api/clients/{slug}/stats` — LIVE performance from Airtable
@@ -130,7 +132,7 @@ Response: `{ "type", "query", "routed": [{"niche","score"}], "results": [...] }`
 - `pains`: `id, client_slug, kind, persona, item_text, confidence, created_at, score, recency, weight` — sorted by `weight = score × confidence × recency`.
 - `calls`: `id, client_slug, chunk_text, score` — raw conversation excerpts; best for exact buyer phrasing and context around a topic.
 - `case_studies`: `id, client_slug, subject_brand, tier, after_state, unique_mechanism, created_at, score, recency, weight` — sorted by `weight = score × tier × recency`.
-- `copies`: `id, client_slug, status, lever, pattern, sophistication, t1, t2, unique_mechanism, pattern_interrupt, cta, why_it_worked, why_it_failed, created_at, score` plus (when metrics exist) `positive_rate, positives, sent, booked` plus computed `performance, recency, aged, weight` — sorted by `weight`. **`why_it_worked` / `why_it_failed` are the richest fields in the system; always read them.**
+- `copies`: `id, client_slug, status, variant, lever, pattern, sophistication, t1, t2, unique_mechanism, pattern_interrupt, cta, why_it_worked, why_it_failed, created_at, score` plus (when the copy is linked to a campaign) `positive_rate, positives, sent, booked, power_requests, power_rate` plus computed `performance, recency, aged, weight` — sorted by `weight`. **`why_it_worked` / `why_it_failed` are the richest fields; always read them.** `power_rate` = power requests ÷ sent (reply QUALITY, the metric that matters more than raw positives). Copies from past clients are automatically downweighted.
 - `components`: `id, component_type (disarmer|identity|case_line|unique_mechanism|relevance|cta), item_text, verdict (winner|loser|neutral), persona, lever, score` — swipeable individual parts.
 - `offers`: `id, client_slug, offer_text, service, pattern, mechanism, proof_hint, score` —
   what each client pitches. **`service`** is the cross-client key (seo | local_seo |

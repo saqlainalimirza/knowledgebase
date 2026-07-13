@@ -153,6 +153,7 @@ export async function GET() {
             client_slug: { type: "string" }, t1: { type: "string" }, t2: { type: "string" },
             lever: { type: "string" }, persona: { type: "string" }, niche: { type: "string" },
             status: { type: "string", enum: ["draft", "winner", "loser", "neutral"], default: "draft" },
+            variant: { type: "string", default: "A", description: "A/B/C variant within the campaign" },
             campaignId: { type: "integer", description: "link to this campaign at save time" },
             components: {
               type: "array",
