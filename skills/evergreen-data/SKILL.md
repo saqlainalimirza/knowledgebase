@@ -14,6 +14,35 @@ Independent calls can be fired in parallel. Machine-readable spec: `GET /api/ope
 
 ---
 
+# WHAT'S NEW (July 13 update — adapt your playbook to these)
+
+1. **Deals are in the system now** (3,296 deals, all clients). Two new tools:
+   - `GET /api/clients/{slug}/deals` — every deal with stage, **copy variant**, job title,
+     company, campaign, conversation. Pre-filter with `?stage= ?variant= ?channel=`.
+   - `POST /api/search {type:"deals"}` — **semantic search over 2,393 real reply
+     conversations**. Query things like "price objection handled then meeting booked" and
+     read the actual threads. Use these to study HOW winning conversations go, not just
+     which copy won.
+2. **Reply-reason analytics**: `GET /api/clients/{slug}/replies` — why people reply / say
+   no (categories, lost reasons, weekly trend, recent "no" threads). Check this before
+   writing for a client: the objections in there are what your copy must pre-empt.
+3. **Campaign performance is queryable**: client detail (`GET /api/clients/{slug}`)
+   campaigns now carry `sent, positive_replies, power_requests, booked, power_rate`
+   (power requests ÷ sent — reply QUALITY). Sorted by power. Lead with what's winning.
+4. **Variants**: copies carry `variant` (A/B/C). Pass `variant` when saving copy. Copy
+   metrics are variant-accurate where deals carry the variant.
+5. **Ranking changes**: copy `weight` performance now scores bookings (0.5) > power
+   requests (0.3) > raw positives (0.2), per send, sample-adjusted. Copies from PAST
+   clients (Tiger Tracks, Velox, etc.) are auto-downweighted ×0.6 — treat them as
+   reference, not gospel.
+6. **Offers**: `POST /api/search {type:"offers"}` — each client's offers with a `service`
+   category (seo, local_seo, paid_ads, tiktok_shop, ...) that cross-connects clients
+   selling the same thing, plus the case study that proves each offer (`proof_hint`).
+7. **Exact niche filters**: pass `nicheId`/`subNicheId` (ids from `GET /api/niches`) in
+   search for canonical scoping instead of fuzzy text.
+
+---
+
 # Client directory (slug + Airtable record id)
 
 `slug` is the key for API calls; the Airtable `rec...` id is the same client in the
@@ -193,6 +222,7 @@ Use for: tracing provenance and seeing how everything connects. Heavy; prefer ta
   "t1": "first message", "t2": "follow-up",
   "lever": "Unique", "persona": "VP Marketing", "niche": "DTC ecom",
   "status": "draft",
+  "variant": "B",
   "campaignId": 41,
   "components": [
     {"component_type":"disarmer","item_text":"..."} ] }
@@ -226,7 +256,9 @@ Sets `niche_source='human'` (human always wins over AI tagging) and inherits to 
 - `tier` (case studies): S strongest → D weakest; prefer S/A/B.
 - `weight` (pains/case_studies/copies): the composite rank; higher = more trustworthy. For
   copies: relevance × performance × recency, where performance is results **per send**,
-  sample-adjusted (10 meetings on 5,000 sends scores below 5 on 200); known losers sink.
+  sample-adjusted, scored bookings (0.5) > power requests (0.3) > raw positives (0.2) —
+  10 meetings on 5,000 sends scores below 5 on 200. Known losers sink; **past clients'
+  copies are downweighted ×0.6** (reference, not gospel).
 - `aged: true` (copies): old; the lesson may hold, the phrasing/offer may not.
 - `why_it_worked` / `why_it_failed` (copies): stored analysis of each winner/loser. Losers
   work as anti-pattern checks.
@@ -238,10 +270,16 @@ What you do with these signals is your playbook's business.
 
 # Practical patterns
 
-- **Brief on a client**: #2 + #3 in parallel → then targeted #5 searches per angle.
+- **Brief on a client**: #2 + #3 + #4c (replies) in parallel → then targeted #5 searches per angle.
 - **New client in a known niche**: #6 clusters (lead with `client_count > 1`) + #7 for exact ids + the niche brain from #2.
 - **Evidence for one angle**: #5 with `route:true`, `limit` 3–6 per type; go deeper only if thin.
-- **After writing**: #10 save as draft → #11 link to campaign (campaign ids from #4).
+- **Pre-empt objections**: #4c replies (`no_examples` + `lost_reasons`) → your copy should
+  answer this week's actual "no"s before they're raised.
+- **Study what converts WHO**: #4b deals filtered by stage/variant → which variant books
+  which job titles; then #5 `{type:"deals"}` to read the winning threads themselves.
+- **Pick the campaign to write for**: client detail campaigns sorted by `power_rate` —
+  write for what's already resonating, or fix what isn't.
+- **After writing**: #10 save as draft **with `variant`** → #11 link to campaign (ids from #4).
 
 # Data integrity rules
 
