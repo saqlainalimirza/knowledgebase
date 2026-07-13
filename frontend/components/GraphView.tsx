@@ -9,24 +9,25 @@ type Graph = { nodes: Node[]; edges: Edge[]; summary: any };
 
 const W = 1200, H = 760;
 
+// Light-theme palette (scaletopia brand): saturated cores, soft rings, dark labels.
 const STYLE: Record<string, { r: number; fill: string; ring: string; text: number }> = {
-  niche:    { r: 30, fill: "#5b8cff", ring: "#9db8ff", text: 13 },
-  kb:       { r: 22, fill: "#a855f7", ring: "#d8b4fe", text: 12 },
+  niche:    { r: 30, fill: "#2563eb", ring: "#93c5fd", text: 13 },
+  kb:       { r: 22, fill: "#8b5cf6", ring: "#c4b5fd", text: 12 },
   client:   { r: 26, fill: "#10b981", ring: "#6ee7b7", text: 13 },
-  hub:      { r: 17, fill: "#1f3a5f", ring: "#3b82f6", text: 11 },
-  painkind: { r: 13, fill: "#7c2d12", ring: "#fb923c", text: 10 },
-  cluster:  { r: 16, fill: "#7c2d12", ring: "#fb923c", text: 11 },
-  pain:     { r: 7,  fill: "#27374d", ring: "#fb923c", text: 9 },
-  angle:    { r: 13, fill: "#134e4a", ring: "#2dd4bf", text: 10 },
-  campaign: { r: 7,  fill: "#27374d", ring: "#2dd4bf", text: 9 },
-  case:     { r: 10, fill: "#3f2d12", ring: "#fbbf24", text: 10 },
-  offer:    { r: 10, fill: "#14532d", ring: "#4ade80", text: 10 },
-  deal:     { r: 9,  fill: "#450a0a", ring: "#f87171", text: 10 },
-  copy:     { r: 9,  fill: "#312e81", ring: "#818cf8", text: 10 },
-  call:     { r: 7,  fill: "#1e293b", ring: "#64748b", text: 9 },
-  kbpain:   { r: 7,  fill: "#3b0764", ring: "#c084fc", text: 9 },
-  kblingo:  { r: 6,  fill: "#3b0764", ring: "#e9d5ff", text: 9 },
-  unique:   { r: 12, fill: "#1e293b", ring: "#64748b", text: 10 },
+  hub:      { r: 17, fill: "#1d4ed8", ring: "#93c5fd", text: 11 },
+  painkind: { r: 13, fill: "#f97316", ring: "#fdba74", text: 10 },
+  cluster:  { r: 16, fill: "#f97316", ring: "#fdba74", text: 11 },
+  pain:     { r: 7,  fill: "#fdba74", ring: "#f97316", text: 9 },
+  angle:    { r: 13, fill: "#14b8a6", ring: "#99f6e4", text: 10 },
+  campaign: { r: 7,  fill: "#99f6e4", ring: "#0d9488", text: 9 },
+  case:     { r: 10, fill: "#f59e0b", ring: "#fde68a", text: 10 },
+  offer:    { r: 10, fill: "#22c55e", ring: "#bbf7d0", text: 10 },
+  deal:     { r: 9,  fill: "#ef4444", ring: "#fecaca", text: 10 },
+  copy:     { r: 9,  fill: "#6366f1", ring: "#c7d2fe", text: 10 },
+  call:     { r: 7,  fill: "#cbd5e1", ring: "#64748b", text: 9 },
+  kbpain:   { r: 7,  fill: "#a855f7", ring: "#e9d5ff", text: 9 },
+  kblingo:  { r: 6,  fill: "#d8b4fe", ring: "#a855f7", text: 9 },
+  unique:   { r: 12, fill: "#cbd5e1", ring: "#64748b", text: 10 },
 };
 
 export default function GraphView() {
@@ -41,7 +42,7 @@ export default function GraphView() {
       .catch((e) => setError(e.message));
   }, []);
 
-  if (error) return <div className="card border-rose-500/40 text-sm text-rose-300">Graph error: {error}</div>;
+  if (error) return <div className="card border-rose-200 text-sm text-rose-600">Graph error: {error}</div>;
   if (!g) return <div className="card text-sm text-muted">Building graph…</div>;
 
   const niches = g.nodes.filter((n) => n.type === "niche").map((n) => n.label);
@@ -176,7 +177,7 @@ function InteractiveGraph({ nodes, edges, defaultExpand, caption, onOpenClient }
               const coClient = e.kind === "co-client";
               const lit = hover ? (e.source === hover || e.target === hover) : false;
               const dim = hover && !lit;
-              const color = lit ? "#fbbf24" : sameOffer ? "#4ade80" : coClient ? "#34d399" : related ? "#5b8cff" : cross ? "#818cf8" : mined ? "#fb923c" : "#22304d";
+              const color = lit ? "#f59e0b" : sameOffer ? "#16a34a" : coClient ? "#059669" : related ? "#2563eb" : cross ? "#6366f1" : mined ? "#fb923c" : "#cbd5e1";
               return (
                 <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={color}
                   strokeWidth={lit ? 2.5 : coClient ? 2.5 : sameOffer ? 1.8 : related ? 2 : mined ? 1.4 : 1}
@@ -197,11 +198,11 @@ function InteractiveGraph({ nodes, edges, defaultExpand, caption, onOpenClient }
                 <g key={n.id} opacity={dim ? 0.18 : 1} style={{ cursor: "grab" }}
                   onMouseDown={(ev) => { ev.stopPropagation(); nodeDrag.current = { id: n.id, moved: false }; }}
                   onMouseEnter={() => setHover(n.id)} onMouseLeave={() => setHover(null)}>
-                  <circle cx={p.x} cy={p.y} r={s.r} fill={s.fill} stroke={hover === n.id ? "#fbbf24" : s.ring} strokeWidth={hover === n.id ? 3 : 1.5} />
-                  {kids > 0 && <text x={p.x} y={p.y + 3.5} textAnchor="middle" fontSize={s.r > 14 ? 12 : 9} fill="#cdd9ef" fontWeight={700}>{expanded.has(n.id) ? "−" : "+"}</text>}
+                  <circle cx={p.x} cy={p.y} r={s.r} fill={s.fill} stroke={hover === n.id ? "#f59e0b" : s.ring} strokeWidth={hover === n.id ? 3 : 1.5} />
+                  {kids > 0 && <text x={p.x} y={p.y + 3.5} textAnchor="middle" fontSize={s.r > 14 ? 12 : 9} fill="#ffffff" fontWeight={700}>{expanded.has(n.id) ? "−" : "+"}</text>}
                   {showLabel && (
                     <text x={p.x} y={p.y + s.r + 11} textAnchor="middle" fontSize={s.text}
-                      fill={small ? "#7e93b8" : "#e2e8f0"} fontWeight={["client", "niche", "hub", "cluster"].includes(n.type) ? 600 : 400}>{clip}</text>
+                      fill={small ? "#64748b" : "#334155"} fontWeight={["client", "niche", "hub", "cluster"].includes(n.type) ? 600 : 400}>{clip}</text>
                   )}
                 </g>
               );
@@ -256,14 +257,14 @@ function ClusterView({ niches }: { niches: string[] }) {
         </select>
         {data && (
           <span className="text-sm text-muted">
-            <b className="text-slate-200">{data.total_pains}</b> pains →{" "}
-            <b className="text-slate-200">{data.clusters_total}</b> clusters{" "}
-            (<b className="text-amber-300">{data.multi_member_clusters}</b> grouped, {data.singletons} unique) · threshold {data.threshold}
+            <b className="text-slate-800">{data.total_pains}</b> pains →{" "}
+            <b className="text-slate-800">{data.clusters_total}</b> clusters{" "}
+            (<b className="text-amber-600">{data.multi_member_clusters}</b> grouped, {data.singletons} unique) · threshold {data.threshold}
           </span>
         )}
       </div>
       {loading && <div className="card text-sm text-muted">Clustering pain embeddings…</div>}
-      {error && <div className="card border-rose-500/40 text-sm text-rose-300">{error}</div>}
+      {error && <div className="card border-rose-200 text-sm text-rose-600">{error}</div>}
       {graph && <InteractiveGraph nodes={graph.nodes} edges={graph.edges} defaultExpand={["niche"]}
         caption="Each orange node = a group of near-duplicate pains. Click to see the members." />}
     </div>

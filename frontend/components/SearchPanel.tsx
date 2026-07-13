@@ -65,7 +65,7 @@ export default function SearchPanel() {
         <label className="mt-3 flex items-center gap-2 text-xs text-muted">
           <input type="checkbox" checked={smart} disabled={!!niche} onChange={(e) => setSmart(e.target.checked)} />
           Smart routing — first match the query to the most relevant niche, then search inside it
-          {niche && <span className="text-amber-300">(off: a niche is set manually)</span>}
+          {niche && <span className="text-amber-600">(off: a niche is set manually)</span>}
         </label>
       </div>
 
@@ -78,7 +78,7 @@ export default function SearchPanel() {
         </div>
       )}
 
-      {error && <div className="card mt-4 border-red-500/40 text-sm text-red-300">{error}</div>}
+      {error && <div className="card mt-4 border-rose-200 text-sm text-rose-600">{error}</div>}
 
       {results && (
         <div className="mt-4 space-y-2">
@@ -93,7 +93,7 @@ export default function SearchPanel() {
                 {r.client_slug && <span>{r.client_slug}</span>}
                 {r.positive_rate != null && <span className="chip">PR {(r.positive_rate * 100).toFixed(1)}%</span>}
               </div>
-              <p className="text-sm text-slate-200">{snippet(r)}</p>
+              <p className="text-sm text-slate-800">{snippet(r)}</p>
             </div>
           ))}
           {results.length === 0 && <div className="card text-sm text-muted">No matches.</div>}

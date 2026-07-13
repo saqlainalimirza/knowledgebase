@@ -152,8 +152,8 @@ function ExistingCopies({
               {c.power_rate != null && <span className="chip">⚡ {(c.power_rate * 100).toFixed(2)}%</span>}
               {c.sent != null && <span>{c.sent} sent</span>}
             </div>
-            <p className="text-sm text-slate-200">{c.t1}</p>
-            {c.t2 && <p className="mt-1 text-sm text-slate-400">{c.t2}</p>}
+            <p className="text-sm text-slate-800">{c.t1}</p>
+            {c.t2 && <p className="mt-1 text-sm text-slate-500">{c.t2}</p>}
             <div className="mt-2 flex items-center gap-2">
               <span className="text-xs text-muted">campaign:</span>
               <select

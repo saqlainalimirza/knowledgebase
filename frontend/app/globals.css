@@ -2,49 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Scaletopia theme: light, confident, blue. */
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  @apply bg-ink text-slate-100;
-  background-image: radial-gradient(900px 500px at 100% -10%, rgba(91, 140, 255, 0.10), transparent 60%);
+  @apply bg-ink text-slate-700 antialiased;
+  font-feature-settings: "ss01", "cv02";
+  background-image:
+    radial-gradient(900px 420px at 90% -10%, rgba(37, 99, 235, 0.06), transparent 60%),
+    radial-gradient(700px 380px at -10% 0%, rgba(37, 99, 235, 0.04), transparent 55%);
 }
+
+h1, h2, h3 { @apply text-deep tracking-tight; }
 
 @layer components {
   .card {
-    @apply rounded-xl border border-edge bg-panel p-5;
+    @apply rounded-xl2 border border-edge bg-panel p-5 shadow-card;
   }
   .btn {
-    @apply rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition hover:brightness-110 disabled:opacity-40;
+    @apply rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition
+           hover:bg-accent2 hover:shadow-lift disabled:opacity-40 disabled:shadow-none;
   }
   .btn-ghost {
-    @apply rounded-lg border border-edge bg-panel/60 px-3 py-2 text-sm text-slate-200 transition hover:border-accent;
+    @apply rounded-lg border border-edge bg-panel px-3 py-2 text-sm font-medium text-slate-600
+           transition hover:border-accent hover:text-accent;
   }
   .input,
   .textarea,
   select.input {
-    @apply w-full rounded-lg border border-edge bg-ink px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-muted focus:border-accent;
+    @apply w-full rounded-lg border border-edge bg-white px-3 py-2 text-sm text-deep outline-none
+           placeholder:text-slate-400 focus:border-accent focus:ring-2 focus:ring-accent/15;
   }
   .textarea {
-    @apply min-h-[140px] font-mono;
+    @apply min-h-[140px] font-mono text-[13px];
   }
   .chip {
-    @apply inline-flex items-center rounded-full border border-edge px-2.5 py-0.5 text-xs text-muted;
+    @apply inline-flex items-center rounded-full border border-edge bg-ink px-2.5 py-0.5 text-xs font-medium text-slate-600;
   }
   .label {
-    @apply mb-1 block text-xs font-medium uppercase tracking-wide text-muted;
+    @apply mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted;
   }
 
   /* Big stat tile */
   .tile {
-    @apply rounded-xl border border-edge bg-gradient-to-b from-panel to-panel/40 p-4;
+    @apply rounded-xl2 border border-edge bg-panel p-4 shadow-card;
   }
   .tile-value {
-    @apply text-2xl font-semibold tabular-nums tracking-tight;
+    @apply text-2xl font-bold tabular-nums tracking-tight text-deep;
   }
   .tile-label {
-    @apply mt-0.5 text-[11px] uppercase tracking-wide text-muted;
+    @apply mt-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted;
   }
   .tile-sub {
     @apply mt-2 text-[11px] text-muted;
@@ -52,31 +61,36 @@ body {
 
   /* Status badges */
   .badge {
-    @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium;
+    @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold;
   }
-  .badge-green { @apply bg-emerald-500/15 text-emerald-300; }
-  .badge-blue { @apply bg-sky-500/15 text-sky-300; }
-  .badge-amber { @apply bg-amber-500/15 text-amber-300; }
-  .badge-red { @apply bg-rose-500/15 text-rose-300; }
-  .badge-gray { @apply bg-slate-500/15 text-slate-300; }
+  .badge-green { @apply bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200; }
+  .badge-blue  { @apply bg-blue-50 text-blue-700 ring-1 ring-blue-200; }
+  .badge-amber { @apply bg-amber-50 text-amber-700 ring-1 ring-amber-200; }
+  .badge-red   { @apply bg-rose-50 text-rose-700 ring-1 ring-rose-200; }
+  .badge-gray  { @apply bg-slate-100 text-slate-600 ring-1 ring-slate-200; }
 
   /* Tables */
   .tbl {
     @apply w-full border-collapse text-sm;
   }
   .tbl th {
-    @apply border-b border-edge px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wide text-muted;
+    @apply border-b border-edge px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted;
   }
   .tbl td {
-    @apply border-b border-edge/60 px-3 py-2 align-middle;
+    @apply border-b border-edge/70 px-3 py-2 align-middle text-slate-700;
   }
   .tbl tr:hover td {
-    @apply bg-white/[0.02];
+    @apply bg-accent/[0.03];
   }
   .bar {
     @apply h-1.5 overflow-hidden rounded-full bg-edge;
   }
   .bar > span {
     @apply block h-full rounded-full bg-accent;
+  }
+
+  /* Agent output console: intentionally stays dark (code-block contrast) */
+  .console {
+    @apply rounded-lg border border-slate-800 bg-slate-950 p-3 text-xs text-slate-200;
   }
 }

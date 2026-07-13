@@ -30,11 +30,11 @@ export default async function Home() {
   return (
     <main className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Evergreen</h1>
-        <p className="text-sm text-muted">First-party memory across every client. Click a client for live campaign stats.</p>
+        <h1 className="text-3xl font-bold">Your agency's memory.</h1>
+        <p className="mt-1 text-sm text-muted">Every client, every call, every win — searchable and connected. Open a client for live performance.</p>
       </div>
 
-      {error && <div className="card border-rose-500/40 text-sm text-rose-300">DB error: {error}</div>}
+      {error && <div className="card border-rose-200 text-sm text-rose-600">DB error: {error}</div>}
 
       {!error && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">

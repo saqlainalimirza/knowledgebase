@@ -12,11 +12,11 @@ export function Console({ state }: { state: RunState }) {
   if (!state.loading && state.output === null) return null;
   return (
     <pre
-      className={`mt-3 max-h-72 overflow-auto whitespace-pre-wrap rounded-lg border p-3 text-xs ${
-        state.ok === false ? "border-red-500/40 text-red-300" : "border-edge text-slate-300"
+      className={`console mt-3 max-h-72 overflow-auto whitespace-pre-wrap ${
+        state.ok === false ? "border-rose-400 text-rose-300" : ""
       }`}
     >
-      {state.loading ? "running agent…" : state.output}
+      {state.loading ? "Working on it — the AI is reading, extracting and saving…" : state.output}
     </pre>
   );
 }

@@ -54,7 +54,7 @@ export default async function ClientPage({ params }: { params: { slug: string } 
             <Link href="/search" className="btn-ghost">🔎 Search</Link>
           </div>
         </div>
-        {client.offer && <p className="mt-2 max-w-3xl text-sm text-slate-300">{client.offer}</p>}
+        {client.offer && <p className="mt-2 max-w-3xl text-sm text-slate-700">{client.offer}</p>}
       </div>
 
       {/* live Airtable performance band */}

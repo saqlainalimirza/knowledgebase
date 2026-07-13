@@ -82,7 +82,7 @@ function PainsTab({ pains }: { pains: Pain[] }) {
           <li key={p.id} className="text-sm">
             <span className="chip mr-2">{p.kind}</span>
             {p.job_function && <span className="chip mr-2">{p.job_function}</span>}
-            <span className={p.confidence === "confirmed" ? "text-slate-100" : "text-slate-400"}>{p.item_text}</span>
+            <span className={p.confidence === "confirmed" ? "text-deep" : "text-slate-500"}>{p.item_text}</span>
             {p.persona && <span className="text-xs text-muted"> — {p.persona}</span>}
           </li>
         ))}
@@ -137,8 +137,8 @@ function CopiesTab({ copies, slug }: { copies: Copy[]; slug: string }) {
               {c.positive_rate != null && <span className="chip">PR {(c.positive_rate * 100).toFixed(1)}%</span>}
               {c.campaign_name && <span className="truncate">→ {c.campaign_name}</span>}
             </div>
-            <p className="text-sm text-slate-200">{c.t1}</p>
-            {c.t2 && <p className="mt-1 text-sm text-slate-400">{c.t2}</p>}
+            <p className="text-sm text-slate-800">{c.t1}</p>
+            {c.t2 && <p className="mt-1 text-sm text-slate-500">{c.t2}</p>}
           </div>
         ))}
         {copies.length === 0 && <p className="text-sm text-muted">No copies yet.</p>}
@@ -158,7 +158,7 @@ function OffersTab({ offers }: { offers: Offer[] }) {
           <div className="mb-2"><span className="badge badge-green">{svc}</span></div>
           {list.map((o) => (
             <div key={o.id} className="mb-2 text-sm">
-              <p className="text-slate-200">{o.offer_text}</p>
+              <p className="text-slate-800">{o.offer_text}</p>
               <p className="text-xs text-muted">
                 {o.pattern && <>pattern: {o.pattern} · </>}
                 {o.mechanism && <>mechanism: {o.mechanism} · </>}
@@ -181,7 +181,7 @@ function RepliesTab({ slug }: { slug: string }) {
     fetch(`/api/clients/${slug}/replies?weeks=8`).then((r) => r.json())
       .then((d) => (d.error ? setErr(d.error) : setData(d))).catch((e) => setErr(e.message));
   }, [slug]);
-  if (err) return <p className="text-sm text-rose-300">{err}</p>;
+  if (err) return <p className="text-sm text-rose-600">{err}</p>;
   if (!data) return <p className="text-sm text-muted">Loading reply analytics…</p>;
   const max = Math.max(1, ...data.by_category_all_time.map((c: any) => c.n));
   return (
@@ -208,11 +208,11 @@ function RepliesTab({ slug }: { slug: string }) {
           {data.no_examples.map((x: any, i: number) => (
             <div key={i} className="rounded-lg border border-edge p-2 text-xs">
               <div className="mb-1 text-muted">
-                <b className="text-slate-300">{x.company || "?"}</b> · {x.job_title || "?"} ·{" "}
+                <b className="text-slate-700">{x.company || "?"}</b> · {x.job_title || "?"} ·{" "}
                 <span className="badge badge-amber">{x.positive_reply_category || x.lost_reason}</span>
                 {x.variant && <> · var {x.variant}</>} · {x.created}
               </div>
-              <p className="whitespace-pre-wrap text-slate-300">{x.conversation_snippet || "(no thread)"}</p>
+              <p className="whitespace-pre-wrap text-slate-700">{x.conversation_snippet || "(no thread)"}</p>
             </div>
           ))}
           {data.no_examples.length === 0 && <p className="text-muted">None recorded.</p>}
@@ -254,7 +254,7 @@ function NicheTab({ n }: { n: Niche }) {
   const lingo: string[] = Array.isArray(n.shared_lingo) ? n.shared_lingo : (() => { try { return JSON.parse(n.shared_lingo); } catch { return []; } })();
   return (
     <div className="space-y-3 text-sm">
-      <p className="text-slate-200">{n.commonalities_summary}</p>
+      <p className="text-slate-800">{n.commonalities_summary}</p>
       <div className="flex flex-wrap gap-2">{lingo.slice(0, 16).map((x, i) => <span key={i} className="chip">{x}</span>)}</div>
       <p className="text-xs text-muted">refreshed {new Date(n.refreshed_at).toLocaleDateString()}</p>
     </div>

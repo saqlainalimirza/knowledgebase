@@ -41,7 +41,7 @@ export default function ClientStats({ slug }: { slug: string }) {
   }, [slug]);
 
   if (loading) return <div className="card text-sm text-muted">Loading live stats from Airtable…</div>;
-  if (error) return <div className="card border-amber-500/40 text-sm text-amber-300">Stats unavailable: {error}</div>;
+  if (error) return <div className="card border-amber-200 text-sm text-amber-600">Stats unavailable: {error}</div>;
   if (!stats) return null;
 
   const p = stats.periods[period];
@@ -58,7 +58,7 @@ export default function ClientStats({ slug }: { slug: string }) {
         <span className="ml-auto inline-flex overflow-hidden rounded-lg border border-edge">
           {Object.keys(stats.periods).map((k) => (
             <button key={k} onClick={() => setPeriod(k)}
-              className={`px-3 py-1 text-xs ${period === k ? "bg-accent text-white" : "text-muted hover:text-slate-200"}`}>
+              className={`px-3 py-1 text-xs ${period === k ? "bg-accent text-white" : "text-muted hover:text-slate-800"}`}>
               {k}
             </button>
           ))}
@@ -123,9 +123,9 @@ function pct(c: Campaign) {
 
 function Tile({ value, label, sub, accent }: { value: string; label: string; sub?: string; accent?: string }) {
   const color =
-    accent === "green" ? "text-emerald-300" :
-    accent === "blue" ? "text-sky-300" :
-    accent === "amber" ? "text-amber-300" : "text-slate-100";
+    accent === "green" ? "text-emerald-600" :
+    accent === "blue" ? "text-sky-600" :
+    accent === "amber" ? "text-amber-600" : "text-deep";
   return (
     <div className="tile">
       <div className={`tile-value ${color}`}>{value}</div>
