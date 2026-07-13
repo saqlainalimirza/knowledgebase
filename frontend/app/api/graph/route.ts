@@ -157,6 +157,26 @@ export async function GET() {
         });
       }
 
+      // ---- deals (attribution: only booked+ shown as nodes to keep the graph readable) ----
+      const dealAgg = await q<any>(
+        `select count(*)::int as total from deals where client_slug=$1`, [c.slug]);
+      if (dealAgg[0]?.total > 0) {
+        const bookedDeals = await q<any>(
+          `select id, company, job_title, variant, stage, campaign_id from deals
+           where client_slug=$1 and lower(coalesce(stage,'')) in
+             ('meeting booked','show','won','next stage','proposal sent','verbal agreement')
+           order by id limit 60`, [c.slug]);
+        const dealHub = `hub:${c.slug}:deals`;
+        add({ id: dealHub, type: "hub", label: "Deals", value: dealAgg[0].total, parent: cId, niche });
+        link(cId, dealHub, "has");
+        bookedDeals.forEach((d) => {
+          const id = `deal:${c.slug}:${d.id}`;
+          add({ id, type: "deal", label: `${d.company || d.job_title || "deal"} (${d.stage}${d.variant ? " · var " + d.variant : ""})`, parent: dealHub, niche, meta: { job_title: d.job_title } });
+          link(dealHub, id, "deal");
+          if (d.campaign_id) link(id, `camp:${c.slug}:${d.campaign_id}`, "from-campaign");
+        });
+      }
+
     }
 
     // offer <-> offer cross-links: same service across DIFFERENT clients

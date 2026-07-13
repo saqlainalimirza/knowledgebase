@@ -162,6 +162,12 @@ SPECS = {
         "offers", "embedding",
         "id, client_slug, offer_text, service, pattern, mechanism, proof_hint", None,
     ),
+    "deals": (
+        "deals", "conversation_embedding",
+        "id, client_slug, company, contact, job_title, job_function, seniority, stage, "
+        "positive_reply_category, lost_reason, variant, channel, campaign_name, "
+        "left(conversation, 2000) as conversation", None,
+    ),
 }
 
 

@@ -56,6 +56,17 @@ export async function GET() {
           responses: { "200": { description: "deals + aggregates" } },
         },
       },
+      "/api/clients/{slug}/replies": {
+        get: {
+          operationId: "getReplyAnalytics",
+          summary: "Reply-reason analytics: counts by positive_reply_category (all-time + recent window), lost reasons, weekly series (replies/power/not_interested/booked), and recent 'no' conversation snippets. Answers 'why are people saying no this week'.",
+          parameters: [
+            { name: "slug", in: "path", required: true, schema: { type: "string" } },
+            { name: "weeks", in: "query", schema: { type: "integer", default: 4 } },
+          ],
+          responses: { "200": { description: "reply analytics" } },
+        },
+      },
       "/api/clients/{slug}/copies": {
         get: {
           operationId: "listCopies",
@@ -123,7 +134,7 @@ export async function GET() {
           type: "object",
           required: ["type", "query"],
           properties: {
-            type: { type: "string", enum: ["pains", "calls", "case_studies", "copies", "components", "offers"], description: "which angle to search; offers carry a service category (seo/local_seo/paid_ads/...) that cross-connects clients selling the same thing" },
+            type: { type: "string", enum: ["pains", "calls", "case_studies", "copies", "components", "offers", "deals"], description: "which angle to search; offers carry a service category that cross-connects clients; deals = semantic search over real reply conversations (with stage, variant, job_title, reply category)" },
             query: { type: "string", description: "natural-language query; embedded for semantic match" },
             niche: { type: "string", description: "scope to an exact niche (skips routing)" },
             status: { type: "string", description: "copies only: winner | loser | neutral | draft" },

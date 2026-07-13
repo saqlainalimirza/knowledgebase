@@ -109,10 +109,20 @@ Use for: which variant/campaign actually converts, what job titles reply, why pe
 no (`positive_reply_category` + `lost_reason`), and reading the real conversations behind
 booked meetings.
 
+## 4c. `GET /api/clients/{slug}/replies` — reply-reason analytics ("why are people saying no")
+Optional `?weeks=4` window. Returns:
+- `by_category_all_time` + `by_category_recent`: counts per `positive_reply_category`
+  (Power Request, Not Interested, Objection Handling, More Info Request, ...)
+- `lost_reasons`: counts per lost reason (Couldn't afford, Not interested, ...)
+- `weekly`: per-week series `{week_start, replies, power, not_interested, booked}`
+- `no_examples`: the 15 most recent "no" threads with company, job_title, variant,
+  campaign and a 500-char conversation snippet — read these to understand objections.
+Use for: "why are people saying no this week", objection trends, reply-quality tracking.
+
 ## 5. `POST /api/search` — semantic search over any knowledge type (the workhorse)
 Body:
 ```json
-{ "type": "pains" | "calls" | "case_studies" | "copies" | "components" | "offers",
+{ "type": "pains" | "calls" | "case_studies" | "copies" | "components" | "offers" | "deals",
   "query": "plain-english meaning to match",
   "limit": 10,
   "route": true,
@@ -134,6 +144,11 @@ Response: `{ "type", "query", "routed": [{"niche","score"}], "results": [...] }`
 - `case_studies`: `id, client_slug, subject_brand, tier, after_state, unique_mechanism, created_at, score, recency, weight` — sorted by `weight = score × tier × recency`.
 - `copies`: `id, client_slug, status, variant, lever, pattern, sophistication, t1, t2, unique_mechanism, pattern_interrupt, cta, why_it_worked, why_it_failed, created_at, score` plus (when the copy is linked to a campaign) `positive_rate, positives, sent, booked, power_requests, power_rate` plus computed `performance, recency, aged, weight` — sorted by `weight`. **`why_it_worked` / `why_it_failed` are the richest fields; always read them.** `power_rate` = power requests ÷ sent (reply QUALITY, the metric that matters more than raw positives). Copies from past clients are automatically downweighted.
 - `components`: `id, component_type (disarmer|identity|case_line|unique_mechanism|relevance|cta), item_text, verdict (winner|loser|neutral), persona, lever, score` — swipeable individual parts.
+- `deals`: `id, client_slug, company, contact, job_title, job_function, seniority, stage, positive_reply_category, lost_reason, variant, channel, campaign_name, conversation (first 2000 chars), score` —
+  **semantic search over the actual reply conversations.** Ask things like "price objection
+  handled successfully" or "asked to email instead" and get the real threads. Combine with
+  filters client-side: e.g. keep `stage in (Meeting Booked, Won)` to study what conversations
+  that BOOK look like, or `positive_reply_category = Not Interested` to study why people say no.
 - `offers`: `id, client_slug, offer_text, service, pattern, mechanism, proof_hint, score` —
   what each client pitches. **`service`** is the cross-client key (seo | local_seo |
   paid_ads | creative | tiktok_shop | amazon | pr | email_sms_marketing | web_design |

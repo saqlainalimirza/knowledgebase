@@ -21,6 +21,7 @@ REGISTRY = [
     ("copy_components",    "embedding",                  "item_text"),
     ("niche_knowledge",    "summary_embedding",          "commonalities_summary"),
     ("offers",             "embedding",                  "concat_ws(' ', offer_text, mechanism)"),
+    ("deals",              "conversation_embedding",     "left(conversation, 8000)"),
 ]
 
 BATCH = 64

@@ -21,6 +21,7 @@ const STYLE: Record<string, { r: number; fill: string; ring: string; text: numbe
   campaign: { r: 7,  fill: "#27374d", ring: "#2dd4bf", text: 9 },
   case:     { r: 10, fill: "#3f2d12", ring: "#fbbf24", text: 10 },
   offer:    { r: 10, fill: "#14532d", ring: "#4ade80", text: 10 },
+  deal:     { r: 9,  fill: "#450a0a", ring: "#f87171", text: 10 },
   copy:     { r: 9,  fill: "#312e81", ring: "#818cf8", text: 10 },
   call:     { r: 7,  fill: "#1e293b", ring: "#64748b", text: 9 },
   kbpain:   { r: 7,  fill: "#3b0764", ring: "#c084fc", text: 9 },
@@ -170,7 +171,7 @@ function InteractiveGraph({ nodes, edges, defaultExpand, caption, onOpenClient }
               const a = pos[e.source], b = pos[e.target]; if (!a || !b) return null;
               const related = e.kind.startsWith("related");
               const sameOffer = e.kind.startsWith("same-offer");
-              const cross = e.kind === "for-campaign";
+              const cross = e.kind === "for-campaign" || e.kind === "from-campaign";
               const mined = e.kind === "mined-from";
               const coClient = e.kind === "co-client";
               const lit = hover ? (e.source === hover || e.target === hover) : false;
