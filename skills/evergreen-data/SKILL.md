@@ -12,6 +12,9 @@ from every endpoint, how to **read the quality signals**, and how to **save** re
 All paths below are relative to it. All bodies are JSON (`Content-Type: application/json`).
 Independent calls can be fired in parallel. Machine-readable spec: `GET /api/openapi`.
 
+**Auth:** if the API returns 401, send the header `x-api-key: <key>` on every request
+(get the key from Hilal — it is NOT in this file). Browsers use the /login page instead.
+
 ---
 
 # WHAT'S NEW (July 13 update — adapt your playbook to these)

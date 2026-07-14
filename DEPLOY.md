@@ -17,6 +17,8 @@ These are NOT in the repo (they're gitignored). Add them in Railway:
 | `AIRTABLE_API_KEY` | your Airtable PAT (`pat...`) |
 | `AIRTABLE_BASE_ID` | `appP3VJXaEqNopR1l` |
 | `GEMINI_LLM_MODEL` | `gemini-2.5-flash` (optional) |
+| `APP_PASSWORD` | **turns on auth** — team password for the login page (until set, the app is open) |
+| `API_KEY` | key for machine callers (`x-api-key` header); defaults to APP_PASSWORD |
 | `GEMINI_EMBED_MODEL` | `gemini-embedding-001` (optional) |
 
 The container already sets `AGENTS_DIR=/app/agents` and `PYTHON_BIN=/app/agents/.venv/bin/python`.
