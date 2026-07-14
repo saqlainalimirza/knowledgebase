@@ -6,22 +6,52 @@ export const dynamic = "force-dynamic";
 type Node = { id: string; type: string; label: string; value?: number; parent?: string; niche?: string; meta?: any };
 type Edge = { source: string; target: string; kind: string };
 
-const PAIN_CAP = 10;   // per kind
-const CAMP_CAP = 200;  // total campaigns
-const KB_CAP = 8;      // top pains / lingo from the niche brain
+const PAIN_CAP = 10;    // per kind per client
+const DEAL_CAP = 60;    // booked-deal nodes per client
+const KB_CAP = 8;       // top pains / lingo from the niche brain
 
+const BOOKED = ["meeting booked", "show", "won", "next stage", "proposal sent", "verbal agreement"];
+
+// Bulk-loaded graph: ~10 whole-table queries in parallel (was ~7 × N clients).
 export async function GET() {
   try {
-    const clients = await q<any>(`select slug, client, niche from client_roster order by client`);
+    const [clients, kbRows, calls, pains, campaigns, cases, copies, offers, dealTotals, bookedDeals] =
+      await Promise.all([
+        q<any>(`select cr.slug, cr.client, coalesce(n.name, cr.niche) as niche
+                from client_roster cr left join niches n on n.id = cr.niche_id
+                order by cr.client`),
+        q<any>(`select niche, top_pains, shared_lingo from niche_knowledge`),
+        q<any>(`select id, client_slug, title, source_call_id from client_calls order by id`),
+        q<any>(`select id, client_slug, kind, item_text, confidence, source
+                from master_sheet_pains order by client_slug, kind, confidence desc`),
+        q<any>(`select id, client_slug, name, angle, channel from campaigns order by id`),
+        q<any>(`select id, owner_client_slug as client_slug, subject_brand, tier from case_studies order by tier`),
+        q<any>(`select id, client_slug, status, campaign_id from copies order by id desc`),
+        q<any>(`select id, client_slug, offer_text, service, pattern from offers order by id`),
+        q<any>(`select client_slug, count(*)::int as total from deals group by client_slug`),
+        q<any>(`select id, client_slug, company, job_title, variant, stage, campaign_id from deals
+                where lower(coalesce(stage,'')) = any($1) order by id`, [BOOKED]),
+      ]);
+
+    const by = <T extends { client_slug?: string }>(rows: T[]) => {
+      const m = new Map<string, T[]>();
+      for (const r of rows) {
+        const k = (r as any).client_slug;
+        if (!m.has(k)) m.set(k, []);
+        m.get(k)!.push(r);
+      }
+      return m;
+    };
+    const callsBy = by(calls), painsBy = by(pains), campsBy = by(campaigns),
+      casesBy = by(cases), copiesBy = by(copies), offersBy = by(offers), bookedBy = by(bookedDeals);
+    const dealTotalBy = new Map(dealTotals.map((d: any) => [d.client_slug, d.total]));
+    const kbByNiche = new Map(kbRows.map((r: any) => [r.niche, r]));
+
     const nodes: Node[] = [];
     const edges: Edge[] = [];
     const seen = new Set<string>();
     const add = (n: Node) => { if (!seen.has(n.id)) { seen.add(n.id); nodes.push(n); } };
     const link = (s: string, t: string, kind: string) => edges.push({ source: s, target: t, kind });
-
-    // niche-knowledge once per niche
-    const kbRows = await q<any>(`select niche, top_pains, shared_lingo from niche_knowledge`);
-    const kbByNiche = new Map(kbRows.map((r) => [r.niche, r]));
     const offersByService: Record<string, string[]> = {};
 
     for (const c of clients) {
@@ -29,7 +59,6 @@ export async function GET() {
       const nicheId = `niche:${niche}`;
       add({ id: nicheId, type: "niche", label: niche, niche });
 
-      // niche brain + its top pains / lingo
       const kb = kbByNiche.get(c.niche);
       if (kb) {
         const kbId = `kb:${niche}`;
@@ -51,56 +80,51 @@ export async function GET() {
       add({ id: cId, type: "client", label: c.client, parent: nicheId, niche });
       link(cId, nicheId, "in-niche");
 
-      // ---- calls / docs (built first so pains can link to their source call) ----
-      const calls = await q<any>(
-        `select id, title, source_call_id, source from client_calls where client_slug=$1 order by id`, [c.slug]);
+      // calls (first, so pains can link to their source call)
+      const cCalls = callsBy.get(c.slug) || [];
       const callNodeBySrc: Record<string, string> = {};
-      if (calls.length) {
+      if (cCalls.length) {
         const callHub = `hub:${c.slug}:calls`;
-        add({ id: callHub, type: "hub", label: "Calls / docs", value: calls.length, parent: cId, niche });
+        add({ id: callHub, type: "hub", label: "Calls / docs", value: cCalls.length, parent: cId, niche });
         link(cId, callHub, "has");
-        calls.forEach((cl) => {
+        cCalls.forEach((cl: any) => {
           const id = `call:${c.slug}:${cl.id}`;
           callNodeBySrc[cl.source_call_id] = id;
-          add({ id, type: "call", label: cl.title || cl.source_call_id, parent: callHub, niche, meta: { source: cl.source } });
+          add({ id, type: "call", label: cl.title || cl.source_call_id, parent: callHub, niche });
           link(callHub, id, "call");
         });
       }
 
-      // ---- pains by kind (each linked back to the call/doc it was mined from) ----
-      const pains = await q<any>(
-        `select id, kind, item_text, confidence, source from master_sheet_pains
-         where client_slug=$1 order by kind, confidence desc`, [c.slug]);
-      if (pains.length) {
+      // pains grouped by kind (cap per kind)
+      const cPains = painsBy.get(c.slug) || [];
+      if (cPains.length) {
         const painsHub = `hub:${c.slug}:pains`;
-        add({ id: painsHub, type: "hub", label: `Pains & voice`, value: pains.length, parent: cId, niche });
+        add({ id: painsHub, type: "hub", label: "Pains & voice", value: cPains.length, parent: cId, niche });
         link(cId, painsHub, "has");
         const byKind: Record<string, any[]> = {};
-        for (const p of pains) (byKind[p.kind] ||= []).push(p);
+        for (const p of cPains) (byKind[p.kind] ||= []).push(p);
         for (const [kind, items] of Object.entries(byKind)) {
           const kindId = `pk:${c.slug}:${kind}`;
           add({ id: kindId, type: "painkind", label: kind, value: items.length, parent: painsHub, niche });
           link(painsHub, kindId, "kind");
           items.slice(0, PAIN_CAP).forEach((p) => {
             const id = `pi:${c.slug}:${p.id}`;
-            add({ id, type: "pain", label: p.item_text, parent: kindId, niche, meta: { confidence: p.confidence, source: p.source } });
+            add({ id, type: "pain", label: p.item_text, parent: kindId, niche, meta: { confidence: p.confidence } });
             link(kindId, id, "item");
-            // provenance: link the pain back to the call/doc it was mined from
             const m = /^call (.+)$/.exec(p.source || "");
             if (m && callNodeBySrc[m[1]]) link(id, callNodeBySrc[m[1]], "mined-from");
           });
         }
       }
 
-      // ---- campaigns grouped by angle/vertical ----
-      const camps = await q<any>(
-        `select id, name, angle, channel from campaigns where client_slug=$1 limit ${CAMP_CAP}`, [c.slug]);
-      if (camps.length) {
+      // campaigns grouped by angle
+      const cCamps = campsBy.get(c.slug) || [];
+      if (cCamps.length) {
         const campHub = `hub:${c.slug}:campaigns`;
-        add({ id: campHub, type: "hub", label: "Campaigns", value: camps.length, parent: cId, niche });
+        add({ id: campHub, type: "hub", label: "Campaigns", value: cCamps.length, parent: cId, niche });
         link(cId, campHub, "has");
         const byAngle: Record<string, any[]> = {};
-        for (const cp of camps) (byAngle[cp.angle || "other"] ||= []).push(cp);
+        for (const cp of cCamps) (byAngle[cp.angle || "other"] ||= []).push(cp);
         for (const [angle, items] of Object.entries(byAngle)) {
           const angId = `ang:${c.slug}:${angle}`;
           add({ id: angId, type: "angle", label: angle, value: items.length, parent: campHub, niche });
@@ -113,14 +137,13 @@ export async function GET() {
         }
       }
 
-      // ---- offers (service categories we pitch; cross-connect clients by service) ----
-      const offers = await q<any>(
-        `select id, offer_text, service, pattern from offers where client_slug=$1 order by id`, [c.slug]);
-      if (offers.length) {
+      // offers (cross-connect by service)
+      const cOffers = offersBy.get(c.slug) || [];
+      if (cOffers.length) {
         const offHub = `hub:${c.slug}:offers`;
-        add({ id: offHub, type: "hub", label: "Offers", value: offers.length, parent: cId, niche });
+        add({ id: offHub, type: "hub", label: "Offers", value: cOffers.length, parent: cId, niche });
         link(cId, offHub, "has");
-        offers.forEach((o) => {
+        cOffers.forEach((o: any) => {
           const id = `off:${c.slug}:${o.id}`;
           add({ id, type: "offer", label: `[${o.service || "?"}] ${o.offer_text}`, parent: offHub, niche, meta: { service: o.service, pattern: o.pattern } });
           link(offHub, id, "offer");
@@ -128,28 +151,26 @@ export async function GET() {
         });
       }
 
-      // ---- case studies ----
-      const cases = await q<any>(
-        `select id, subject_brand, tier from case_studies where owner_client_slug=$1 order by tier`, [c.slug]);
-      if (cases.length) {
+      // case studies
+      const cCases = casesBy.get(c.slug) || [];
+      if (cCases.length) {
         const csHub = `hub:${c.slug}:cases`;
-        add({ id: csHub, type: "hub", label: "Case studies", value: cases.length, parent: cId, niche });
+        add({ id: csHub, type: "hub", label: "Case studies", value: cCases.length, parent: cId, niche });
         link(cId, csHub, "has");
-        cases.forEach((cs) => {
+        cCases.forEach((cs: any) => {
           const id = `cs:${c.slug}:${cs.id}`;
           add({ id, type: "case", label: `${cs.subject_brand} (${cs.tier})`, parent: csHub, niche });
           link(csHub, id, "case");
         });
       }
 
-      // ---- copies (linked to their campaign) ----
-      const copies = await q<any>(
-        `select id, status, lever, campaign_id from copies where client_slug=$1 order by id desc`, [c.slug]);
-      if (copies.length) {
+      // copies
+      const cCopies = copiesBy.get(c.slug) || [];
+      if (cCopies.length) {
         const cpHub = `hub:${c.slug}:copies`;
-        add({ id: cpHub, type: "hub", label: "Copies", value: copies.length, parent: cId, niche });
+        add({ id: cpHub, type: "hub", label: "Copies", value: cCopies.length, parent: cId, niche });
         link(cId, cpHub, "has");
-        copies.forEach((cp) => {
+        cCopies.forEach((cp: any) => {
           const id = `cp:${c.slug}:${cp.id}`;
           add({ id, type: "copy", label: `copy #${cp.id} (${cp.status})`, parent: cpHub, niche });
           link(cpHub, id, "copy");
@@ -157,29 +178,22 @@ export async function GET() {
         });
       }
 
-      // ---- deals (attribution: only booked+ shown as nodes to keep the graph readable) ----
-      const dealAgg = await q<any>(
-        `select count(*)::int as total from deals where client_slug=$1`, [c.slug]);
-      if (dealAgg[0]?.total > 0) {
-        const bookedDeals = await q<any>(
-          `select id, company, job_title, variant, stage, campaign_id from deals
-           where client_slug=$1 and lower(coalesce(stage,'')) in
-             ('meeting booked','show','won','next stage','proposal sent','verbal agreement')
-           order by id limit 60`, [c.slug]);
+      // deals (booked+ as nodes; total on the hub)
+      const total = dealTotalBy.get(c.slug) || 0;
+      if (total > 0) {
         const dealHub = `hub:${c.slug}:deals`;
-        add({ id: dealHub, type: "hub", label: "Deals", value: dealAgg[0].total, parent: cId, niche });
+        add({ id: dealHub, type: "hub", label: "Deals", value: total, parent: cId, niche });
         link(cId, dealHub, "has");
-        bookedDeals.forEach((d) => {
+        (bookedBy.get(c.slug) || []).slice(0, DEAL_CAP).forEach((d: any) => {
           const id = `deal:${c.slug}:${d.id}`;
           add({ id, type: "deal", label: `${d.company || d.job_title || "deal"} (${d.stage}${d.variant ? " · var " + d.variant : ""})`, parent: dealHub, niche, meta: { job_title: d.job_title } });
           link(dealHub, id, "deal");
           if (d.campaign_id) link(id, `camp:${c.slug}:${d.campaign_id}`, "from-campaign");
         });
       }
-
     }
 
-    // offer <-> offer cross-links: same service across DIFFERENT clients
+    // offer <-> offer: same service across different clients
     for (const [service, ids] of Object.entries(offersByService)) {
       if (service === "other") continue;
       for (let i = 0; i < ids.length; i++)
@@ -189,7 +203,7 @@ export async function GET() {
         }
     }
 
-    // direct client <-> client cross-links when they share a niche (visible line)
+    // client <-> client sharing a niche
     const byNiche: Record<string, string[]> = {};
     for (const c of clients) (byNiche[c.niche || "unassigned"] ||= []).push(c.slug);
     for (const slugs of Object.values(byNiche)) {
@@ -214,7 +228,7 @@ export async function GET() {
 
     const sharedNiches = nodes.filter((n) => n.type === "niche").map((n) => ({
       niche: n.label,
-      clients: clients.filter((c) => (c.niche || "unassigned") === n.label).map((c) => c.client),
+      clients: clients.filter((c: any) => (c.niche || "unassigned") === n.label).map((c: any) => c.client),
     })).filter((x) => x.clients.length > 1);
 
     return NextResponse.json({

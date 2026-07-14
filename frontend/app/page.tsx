@@ -19,7 +19,7 @@ export default async function Home() {
         (select count(*) from case_studies cs where cs.owner_client_slug = cr.slug) as case_studies,
         (select count(*) from campaigns ca where ca.client_slug = cr.slug)          as campaigns,
         (select count(*) from copies cp where cp.client_slug = cr.slug)             as copies
-      from client_roster cr order by cr.client`);
+      from client_roster cr order by (cr.status = 'active') desc, cr.client`);
   } catch (e: any) { error = e.message; }
 
   const totals = rows.reduce((a, r) => ({
@@ -54,7 +54,8 @@ export default async function Home() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {rows.map((r) => (
-          <Link key={r.slug} href={`/clients/${r.slug}`} className="card group transition hover:border-accent">
+          <Link key={r.slug} href={`/clients/${r.slug}`}
+            className={`card group transition hover:border-accent ${r.status === "past" ? "opacity-55 saturate-50 hover:opacity-90" : ""}`}>
             <div className="mb-1 flex items-center justify-between">
               <h2 className="text-lg font-medium group-hover:text-accent">{r.client}</h2>
               {r.status && <span className="chip">{r.status}</span>}

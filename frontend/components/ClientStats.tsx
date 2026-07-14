@@ -116,9 +116,10 @@ export default function ClientStats({ slug }: { slug: string }) {
 }
 
 function pct(c: Campaign) {
+  // trust the real numbers first; Airtable's Completion Rate field is often stale/100%
+  if (c.totalLeads > 0) return Math.min(100, Math.round((c.completed / c.totalLeads) * 100));
   if (c.completion != null) return Math.min(100, Math.max(0, c.completion));
-  if (!c.totalLeads) return 0;
-  return Math.min(100, Math.round((c.completed / c.totalLeads) * 100));
+  return 0;
 }
 
 function Tile({ value, label, sub, accent }: { value: string; label: string; sub?: string; accent?: string }) {

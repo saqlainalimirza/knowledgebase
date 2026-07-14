@@ -352,7 +352,7 @@ function layoutPositions(
 
   // pin niche nodes into a left spine only if they don't already have a position
   const niches = N.filter((n) => byId.get(n.id)?.type === "niche");
-  niches.forEach((n, i) => { if (!prev[n.id]) { n.x = W * 0.22; n.y = (H / (niches.length + 1)) * (i + 1); } });
+  niches.forEach((n, i) => { if (!prev[n.id]) { n.x = W * 0.45; n.y = (H / (niches.length + 1)) * (i + 1); } });
 
   const anyNew = N.some((n) => n.isNew);
   const iters = anyNew ? Math.min(300, 120 + nodes.length) : 0; // don't reshuffle a settled graph

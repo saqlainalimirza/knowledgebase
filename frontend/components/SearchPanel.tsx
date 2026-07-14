@@ -9,6 +9,8 @@ const TYPES = [
   { id: "case_studies", label: "Case studies" },
   { id: "copies", label: "Copies" },
   { id: "components", label: "Copy components" },
+  { id: "offers", label: "Offers" },
+  { id: "deals", label: "Deal conversations" },
 ];
 
 export default function SearchPanel() {
@@ -90,6 +92,10 @@ export default function SearchPanel() {
                 {r.kind && <span className="chip">{r.kind}</span>}
                 {r.tier && <span className="chip">tier {r.tier}</span>}
                 {r.status && <span className="chip">{r.status}</span>}
+                {r.service && <span className="chip">{r.service}</span>}
+                {r.stage && <span className="chip">{r.stage}</span>}
+                {r.variant && <span className="chip">var {r.variant}</span>}
+                {r.positive_reply_category && <span className="chip">{r.positive_reply_category}</span>}
                 {r.client_slug && <span>{r.client_slug}</span>}
                 {r.positive_rate != null && <span className="chip">PR {(r.positive_rate * 100).toFixed(1)}%</span>}
               </div>
@@ -108,6 +114,8 @@ function snippet(r: Result): string {
     r.item_text ||
     r.chunk_text ||
     r.after_state ||
+    r.offer_text ||
+    (r.conversation ? `${r.company || "?"} · ${r.job_title || "?"} — ${String(r.conversation).slice(0, 300)}` : "") ||
     [r.t1, r.t2].filter(Boolean).join("  /  ") ||
     JSON.stringify(r)
   );
