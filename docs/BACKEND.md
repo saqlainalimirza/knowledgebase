@@ -97,3 +97,18 @@ It spawns the Python agent (`spawn(pythonBin, [script, ...args])`), captures its
 
 ## Deploy
 One Docker image runs Node + Python together (the web server spawns the agents). See `DEPLOY.md`. Live at the Railway URL.
+
+---
+
+## Scheduled syncs (added July 14)
+
+The container keeps its own data fresh — no external cron needed:
+- **`agents/daily_sync.py`** — one orchestrator: campaign sync → campaign stats → deals
+  sync → niche brains → embedding sweep, for every active client. Each step is isolated
+  (one failure doesn't stop the rest). Every run writes a row to the **`sync_log`** table.
+- **In-process scheduler** — `frontend/instrumentation.ts` + `lib/cron.ts` fire the
+  orchestrator daily at `SYNC_UTC_HOUR` (default 05:00 UTC). Set `DISABLE_CRON=1` to turn
+  it off (e.g. local dev against prod DB).
+- **Manual trigger**: `POST /api/cron/run` (optional `?only=stats,deals` subset; if
+  `CRON_SECRET` env is set, `?key=` is required). Fire-and-forget — returns immediately.
+- **Visibility**: `GET /api/cron/status` — last 10 runs with duration + per-step summary.
