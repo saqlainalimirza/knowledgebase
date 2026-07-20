@@ -17,7 +17,9 @@ _API = "https://slack.com/api"
 
 
 def _token():
-    t = os.environ.get("SLACK_BOT_TOKEN")
+    t = (os.environ.get("SLACK_BOT_TOKEN") or "").strip()
+    if t.lower().startswith("bearer "):  # tolerate a pasted "Bearer xoxb-..." value
+        t = t[7:].strip()
     if not t:
         raise RuntimeError("SLACK_BOT_TOKEN is not set. See connections/slack.py header for setup.")
     return t
@@ -66,3 +68,25 @@ def channel_history(channel_id, oldest=None, limit=200):
 
 def post_message(channel_id, text):
     return _call("chat.postMessage", channel=channel_id, text=text)
+
+
+def list_channels():
+    """All channels the bot can see (public + private it's in). [{id, name, is_member}]"""
+    chans, cursor = [], None
+    for types in ("public_channel", "private_channel"):
+        cursor = None
+        while True:
+            params = {"types": types, "limit": 999, "exclude_archived": "true"}
+            if cursor:
+                params["cursor"] = cursor
+            try:
+                data = _call("conversations.list", **params)
+            except RuntimeError as e:
+                if "missing_scope" in str(e):  # e.g. no groups:read yet
+                    break
+                raise
+            chans.extend(data.get("channels", []))
+            cursor = (data.get("response_metadata") or {}).get("next_cursor")
+            if not cursor:
+                break
+    return [{"id": c["id"], "name": c["name"], "is_member": bool(c.get("is_member"))} for c in chans]

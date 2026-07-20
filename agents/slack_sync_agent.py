@@ -1,7 +1,9 @@
 """slack_sync_agent.py - ingest each client's Slack channel into the memory.
 
-Every client has a Slack channel (its id lives on the Airtable 📂 Clients record,
-field "Slack Channel ID"). This agent pulls new messages since the last sync,
+Finds each client's channel automatically: any channel the bot is a member of
+whose name contains the client slug or client name (e.g. #kynship, #client-kynship,
+#scaletopia-kynship). An Airtable field "Slack Channel ID" on the 📂 Clients record
+overrides discovery if present. Pulls new messages since the last sync,
 stores them (dedup on channel+ts), and embeds them — so client feedback, campaign
 discussions, and updates from Slack become semantically searchable like everything
 else. Incremental: each run only fetches messages newer than the last stored ts.
@@ -37,21 +39,56 @@ def _clean(text):
     return text.strip()
 
 
-def sync(slug):
+def _norm(s):
+    return re.sub(r"[^a-z0-9]+", "", (s or "").lower())
+
+
+def find_channel(slug, client_name=None, channels=None):
+    """Best member-channel whose name contains the slug or client name."""
+    channels = channels if channels is not None else slack.list_channels()
+    nslug, nname = _norm(slug), _norm(client_name)
+    best = None
+    for c in channels:
+        if not c["is_member"]:
+            continue
+        cn = _norm(c["name"])
+        # "scaletopia" prefixes every agency channel — that client needs an exact name
+        if nslug == "scaletopia":
+            if cn == nslug:
+                return c
+            continue
+        if (nslug and nslug in cn) or (nname and len(nname) > 3 and nname in cn):
+            # prefer the shortest matching name (most specific: #kynship over #kynship-archive-2024)
+            if best is None or len(c["name"]) < len(best["name"]):
+                best = c
+    return best
+
+
+def sync(slug, channels=None):
     if not slack.enabled():
         print(f"{slug}: SLACK_BOT_TOKEN not set — skipped (see connections/slack.py)")
         return
     conn = get_conn()
     try:
         with conn.cursor() as cur:
-            cur.execute("select airtable_client_id from client_roster where slug=%s", (slug,))
+            cur.execute("select client, airtable_client_id from client_roster where slug=%s", (slug,))
             row = cur.fetchone()
-            if not row or not row[0]:
-                print(f"{slug}: no airtable id — skipped"); return
-            fields = get_record("📂 Clients", row[0])
-            channel = fields.get("Slack Channel ID")
+            if not row:
+                print(f"{slug}: not in roster — skipped"); return
+            client_name, at_id = row
+            channel = None
+            if at_id:  # optional Airtable override
+                try:
+                    channel = get_record("📂 Clients", at_id).get("Slack Channel ID")
+                except Exception:
+                    pass
             if not channel:
-                print(f"{slug}: no Slack Channel ID on the Airtable client — skipped"); return
+                hit = find_channel(slug, client_name, channels)
+                if hit:
+                    channel = hit["id"]
+                    print(f"{slug}: matched channel #{hit['name']} ({channel})")
+            if not channel:
+                print(f"{slug}: no Slack channel found (invite the bot to the client's channel) — skipped"); return
 
             cur.execute("select max(ts) from slack_messages where channel_id=%s", (channel,))
             last_ts = (cur.fetchone() or [None])[0]
@@ -87,9 +124,10 @@ if __name__ == "__main__":
         conn = get_conn(); cur = conn.cursor()
         cur.execute("select slug from client_roster where status='active' order by slug")
         slugs = [r[0] for r in cur.fetchall()]; conn.close()
+        chans = slack.list_channels() if slack.enabled() else None
         for s in slugs:
             try:
-                sync(s)
+                sync(s, channels=chans)
             except Exception as e:
                 print(f"{s}: ERR {e}")
     elif args.client:

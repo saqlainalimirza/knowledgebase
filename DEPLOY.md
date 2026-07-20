@@ -18,7 +18,7 @@ These are NOT in the repo (they're gitignored). Add them in Railway:
 | `AIRTABLE_BASE_ID` | `appP3VJXaEqNopR1l` |
 | `GEMINI_LLM_MODEL` | `gemini-2.5-flash` (optional) |
 | `GEMINI_EMBED_MODEL` | `gemini-embedding-001` (optional) |
-| `SLACK_BOT_TOKEN` | optional — enables Slack channel ingestion + notifications (setup: agents/connections/slack.py header) |
+| `SLACK_BOT_TOKEN` | optional — enables Slack ingestion + notifications. Bot scopes needed: channels:history, channels:read, groups:history, groups:read, chat:write. Paste the raw xoxb-... token (a leading 'Bearer ' is tolerated). Channels are auto-discovered: invite the bot to each client channel whose name contains the client slug |
 | `SLACK_SYNC_CHANNEL` | optional — channel id where the daily sync posts its summary |
 
 The container already sets `AGENTS_DIR=/app/agents` and `PYTHON_BIN=/app/agents/.venv/bin/python`.
