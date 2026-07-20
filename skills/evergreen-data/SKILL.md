@@ -151,7 +151,7 @@ Use for: "why are people saying no this week", objection trends, reply-quality t
 ## 5. `POST /api/search` — semantic search over any knowledge type (the workhorse)
 Body:
 ```json
-{ "type": "pains" | "calls" | "case_studies" | "copies" | "components" | "offers" | "deals",
+{ "type": "pains" | "calls" | "case_studies" | "copies" | "components" | "offers" | "deals" | "slack",
   "query": "plain-english meaning to match",
   "limit": 10,
   "route": true,
@@ -178,6 +178,9 @@ Response: `{ "type", "query", "routed": [{"niche","score"}], "results": [...] }`
   handled successfully" or "asked to email instead" and get the real threads. Combine with
   filters client-side: e.g. keep `stage in (Meeting Booked, Won)` to study what conversations
   that BOOK look like, or `positive_reply_category = Not Interested` to study why people say no.
+- `slack`: `id, client_slug, user_name, text, created_at, score` — semantic search over each
+  client's Slack channel (feedback, campaign discussions, updates the team posted). Empty
+  until the Slack sync is enabled.
 - `offers`: `id, client_slug, offer_text, service, pattern, mechanism, proof_hint, score` —
   what each client pitches. **`service`** is the cross-client key (seo | local_seo |
   paid_ads | creative | tiktok_shop | amazon | pr | email_sms_marketing | web_design |

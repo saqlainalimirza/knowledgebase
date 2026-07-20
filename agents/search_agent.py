@@ -168,6 +168,10 @@ SPECS = {
         "positive_reply_category, lost_reason, variant, channel, campaign_name, "
         "left(conversation, 2000) as conversation", None,
     ),
+    "slack": (
+        "slack_messages", "embedding",
+        "id, client_slug, user_name, text, posted_at as created_at", None,
+    ),
 }
 
 

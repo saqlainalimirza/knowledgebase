@@ -62,7 +62,7 @@ def _canonical_niches():
 
 def run(only=None):
     _ensure_log_table()
-    steps = only or ["campaigns", "stats", "deals", "brains", "embeds"]
+    steps = only or ["campaigns", "stats", "deals", "slack", "brains", "embeds"]
     t0 = time.time()
     lines, ok = [], True
 
@@ -115,6 +115,20 @@ def run(only=None):
         except Exception as e:
             ok = False; lines.append(f"brains: FAILED {e}")
 
+    if "slack" in steps:
+        try:
+            from connections import slack as slack_conn
+            if slack_conn.enabled():
+                from slack_sync_agent import sync as slack_sync
+                for s in slugs:
+                    try: slack_sync(s)
+                    except Exception as e: lines.append(f"slack {s}: ERR {e}")
+                lines.append(f"slack: refreshed for {len(slugs)} clients")
+            else:
+                lines.append("slack: skipped (no SLACK_BOT_TOKEN)")
+        except Exception as e:
+            ok = False; lines.append(f"slack: FAILED {e}")
+
     if "embeds" in steps:
         try:
             conn = get_conn()
@@ -132,6 +146,17 @@ def run(only=None):
                     (ok, summary[:4000], log_id))
     conn.commit(); conn.close()
     print(summary)
+
+    # optional: post the run summary to a Slack channel (ops visibility)
+    notify_channel = os.environ.get("SLACK_SYNC_CHANNEL")
+    if notify_channel:
+        try:
+            from connections import slack as slack_conn
+            if slack_conn.enabled():
+                icon = "✅" if ok else "⚠️"
+                slack_conn.post_message(notify_channel, f"{icon} Evergreen daily sync {summary[:2500]}")
+        except Exception as e:
+            print(f"slack notify failed: {e}")
     return ok
 
 
