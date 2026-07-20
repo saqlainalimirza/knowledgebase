@@ -18,7 +18,7 @@ export default function ClientTabs(props: {
   const tabs = [
     ["pains", `Pains (${pains.length})`], ["campaigns", `Campaigns (${campaigns.length})`],
     ["copies", `Copies (${copies.length})`], ["offers", `Offers (${offers.length})`],
-    ["replies", "Replies"], ["cases", `Cases (${cases.length})`],
+    ["deals", "Deals"], ["replies", "Replies"], ["cases", `Cases (${cases.length})`],
     ["calls", `Calls (${calls.length})`], ["niche", "Niche brain"],
   ] as const;
   const [tab, setTab] = useState<string>("pains");
@@ -36,6 +36,7 @@ export default function ClientTabs(props: {
       {tab === "campaigns" && <CampaignsTab campaigns={campaigns} />}
       {tab === "copies" && <CopiesTab copies={copies} slug={slug} />}
       {tab === "offers" && <OffersTab offers={offers} />}
+      {tab === "deals" && <DealsTab slug={slug} />}
       {tab === "replies" && <RepliesTab slug={slug} />}
       {tab === "cases" && <CasesTab cases={cases} />}
       {tab === "calls" && <CallsTab calls={calls} />}
@@ -174,6 +175,109 @@ function OffersTab({ offers }: { offers: Offer[] }) {
 }
 
 /* ---------- Replies (inbox-lite) ---------- */
+/* ---------- Deals: exactly what the AI receives from /deals, browsable ---------- */
+function DealsTab({ slug }: { slug: string }) {
+  const [data, setData] = useState<any>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [stage, setStage] = useState("all");
+  const [variant, setVariant] = useState("all");
+  const [channel, setChannel] = useState("all");
+  const [qtext, setQ] = useState("");
+  useEffect(() => {
+    fetch(`/api/clients/${slug}/deals?limit=500`).then((r) => r.json())
+      .then((d) => (d.error ? setErr(d.error) : setData(d))).catch((e) => setErr(e.message));
+  }, [slug]);
+  if (err) return <p className="text-sm text-rose-600">{err}</p>;
+  if (!data) return <p className="text-sm text-muted">Loading deals from Airtable… (this is the same call the AI makes)</p>;
+
+  const stages = Object.keys(data.by_stage || {}).sort();
+  const variants = Object.keys(data.by_variant || {}).sort();
+  const channels = Object.keys(data.by_channel || {}).sort();
+  const shown = (data.deals || []).filter((d: any) =>
+    (stage === "all" || (d.stage || "(none)") === stage) &&
+    (variant === "all" || (d.copy_variant || "(none)") === variant) &&
+    (channel === "all" || (d.channel || "(none)") === channel) &&
+    (!qtext || JSON.stringify(d).toLowerCase().includes(qtext.toLowerCase()))
+  );
+
+  const stageBadge = (s: string | null) => {
+    const t = String(s || "").toLowerCase();
+    if (/won|closed|meeting|booked/.test(t)) return "badge badge-green";
+    if (/lost|dead|no show/.test(t)) return "badge badge-red";
+    return "badge badge-amber";
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-muted">
+        Live from Airtable via <code>/api/clients/{slug}/deals</code> — this is exactly the data the AI sees
+        when writing copy: {data.count} deals with stage, variant, campaign, contact, and the full conversation.
+      </p>
+      <div className="flex flex-wrap gap-2 text-xs">
+        {Object.entries(data.by_stage || {}).map(([k, n]: any) => (
+          <span key={k} className={stageBadge(k)}>{k} · {n}</span>
+        ))}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <select className="input w-auto text-xs" value={stage} onChange={(e) => setStage(e.target.value)}>
+          <option value="all">All stages</option>{stages.map((s) => <option key={s}>{s}</option>)}
+        </select>
+        <select className="input w-auto text-xs" value={variant} onChange={(e) => setVariant(e.target.value)}>
+          <option value="all">All variants</option>{variants.map((v) => <option key={v}>{v}</option>)}
+        </select>
+        <select className="input w-auto text-xs" value={channel} onChange={(e) => setChannel(e.target.value)}>
+          <option value="all">All channels</option>{channels.map((c) => <option key={c}>{c}</option>)}
+        </select>
+        <input className="input flex-1 text-xs" placeholder="Search company, title, campaign, conversation…"
+          value={qtext} onChange={(e) => setQ(e.target.value)} />
+        <span className="text-xs text-muted">{shown.length} shown</span>
+      </div>
+      <div className="max-h-[520px] space-y-2 overflow-auto pr-1">
+        {shown.map((d: any) => (
+          <details key={d.airtable_deal_id} className="rounded-lg border border-edge p-2 text-xs">
+            <summary className="cursor-pointer select-none">
+              <b className="text-slate-700">{d.company || d.opportunity || "?"}</b>
+              {d.job_title && <span className="text-muted"> · {d.job_title}</span>}
+              {" "}<span className={stageBadge(d.stage)}>{d.stage || "no stage"}</span>
+              {d.copy_variant && <span className="badge ml-1">var {d.copy_variant}</span>}
+              {d.channel && <span className="badge ml-1">{d.channel}</span>}
+              {d.campaign_name && <span className="text-muted"> · {String(d.campaign_name).slice(0, 60)}</span>}
+            </summary>
+            <div className="mt-2 space-y-1.5 border-t border-edge pt-2">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 md:grid-cols-3">
+                {[
+                  ["Contact", d.contact], ["Email", d.email], ["Phone", d.phone],
+                  ["Location", d.location], ["Timezone", d.timezone], ["Website", d.website],
+                  ["LinkedIn", d.linkedin], ["Created", d.created_at],
+                  ["Reply category", d.positive_reply_category], ["Lost reason", d.lost_reason],
+                  ["Meeting booked", d.meeting_booked_at], ["Closed amount", d.closed_amount],
+                  ["DB campaign id", d.db_campaign_id], ["Next step (no)", d.next_step_no],
+                ].filter(([, v]) => v != null && v !== "").map(([k, v]) => (
+                  <div key={k as string}><span className="text-muted">{k}:</span> <span className="text-slate-700">{String(v)}</span></div>
+                ))}
+              </div>
+              {d.conversation && (
+                <div>
+                  <div className="mb-1 font-medium text-slate-700">Conversation (what the AI reads)</div>
+                  <p className="max-h-60 overflow-auto whitespace-pre-wrap rounded bg-slate-50 p-2 text-slate-700">{d.conversation}</p>
+                </div>
+              )}
+              {(d.notes || d.overall_feedback || d.not_closed_reason) && (
+                <div className="space-y-1">
+                  {d.notes && <p><span className="text-muted">Notes:</span> {String(d.notes)}</p>}
+                  {d.overall_feedback && <p><span className="text-muted">Feedback:</span> {String(d.overall_feedback)}</p>}
+                  {d.not_closed_reason && <p><span className="text-muted">Not closed reason:</span> {String(d.not_closed_reason)}</p>}
+                </div>
+              )}
+            </div>
+          </details>
+        ))}
+        {shown.length === 0 && <p className="text-sm text-muted">No deals match.</p>}
+      </div>
+    </div>
+  );
+}
+
 function RepliesTab({ slug }: { slug: string }) {
   const [data, setData] = useState<any>(null);
   const [err, setErr] = useState<string | null>(null);
