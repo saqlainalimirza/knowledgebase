@@ -49,8 +49,6 @@ def find_channel(slug, client_name=None, channels=None):
     nslug, nname = _norm(slug), _norm(client_name)
     best = None
     for c in channels:
-        if not c["is_member"]:
-            continue
         cn = _norm(c["name"])
         # "scaletopia" prefixes every agency channel — that client needs an exact name
         if nslug == "scaletopia":
@@ -85,6 +83,11 @@ def sync(slug, channels=None):
             if not channel:
                 hit = find_channel(slug, client_name, channels)
                 if hit:
+                    if not hit["is_member"]:  # public channel: join ourselves (private needs /invite)
+                        try:
+                            slack.join_channel(hit["id"])
+                        except Exception as e:
+                            print(f"{slug}: found #{hit['name']} but can't join ({e}) — skipped"); return
                     channel = hit["id"]
                     print(f"{slug}: matched channel #{hit['name']} ({channel})")
             if not channel:

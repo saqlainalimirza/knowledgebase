@@ -70,6 +70,11 @@ def post_message(channel_id, text):
     return _call("chat.postMessage", channel=channel_id, text=text)
 
 
+def join_channel(channel_id):
+    """Join a public channel (needs channels:join). Private channels need /invite."""
+    return _call("conversations.join", channel=channel_id)
+
+
 def list_channels():
     """All channels the bot can see (public + private it's in). [{id, name, is_member}]"""
     chans, cursor = [], None
