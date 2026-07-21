@@ -12,7 +12,7 @@ chunk's search text so retrieval knows what it is reading.
 Input file is JSON, one object or a list:
   { "client_slug": "scaletopia",        # required
     "title": "Outbound audit deck",     # required, unique per client (re-upload replaces)
-    "material_type": "audit",           # proposal|audit|web_scrape|brochure|pricing|other
+    "material_type": "audit",           # proposal|positioning|voice|audit|web_scrape|brochure|pricing|other
     "context": "sent to every prospect after the discovery call",
     "content": "...full text...",       # required
     "source_ref": "gdrive link etc" }

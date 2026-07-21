@@ -43,9 +43,14 @@ Independent calls can be fired in parallel. Machine-readable spec: `GET /api/ope
    - Semantic search: `POST /api/search {"type":"materials","query":"..."}` — returns
      chunks with `client_slug, title, material_type, context, chunk_text, score`.
      Use this to understand how a client positions themselves, their offer wording,
-     pricing, and proof — before writing as-them.
+     pricing, and proof — before writing as-them. This is the client's IDENTITY layer
+     (their proposals, positioning, pricing, voice). Client detail
+     (`GET /api/clients/{slug}`) now lists a client's materials (title, type, context,
+     preview) so you see at orientation what identity docs exist; pull full content with
+     `?id=` or the materials search. When writing AS a client, read their positioning/voice
+     materials first — this is what separates their real voice from generic copy.
    - Ingest: `POST /api/materials {"client_slug","title","material_type":
-     "proposal|audit|web_scrape|brochure|pricing|other","context","content"}`.
+     "proposal|positioning|voice|audit|web_scrape|brochure|pricing|other","context","content"}`.
      Same title re-uploads replace the old version.
 4. Client Slack channels sync daily; deals/campaign stats sync daily as before.
 5. **Winners/losers live HERE, not in local CSVs.** Copy search returns them with

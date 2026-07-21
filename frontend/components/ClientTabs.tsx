@@ -293,7 +293,7 @@ function MaterialsTab({ slug }: { slug: string }) {
           <input className="input flex-1 text-sm" placeholder="Title (e.g. Outbound audit deck)"
             value={title} onChange={(e) => setTitle(e.target.value)} />
           <select className="input w-auto text-xs" value={mtype} onChange={(e) => setMtype(e.target.value)}>
-            {["proposal", "audit", "web_scrape", "brochure", "pricing", "other"].map((k) => <option key={k}>{k}</option>)}
+            {["proposal", "positioning", "voice", "audit", "web_scrape", "brochure", "pricing", "other"].map((k) => <option key={k}>{k}</option>)}
           </select>
         </div>
         <input className="input w-full text-sm" placeholder="Context: what is this and how is it used?"
