@@ -65,7 +65,13 @@ def sync(slug):
                         return cid
                 return None
 
-            recs = list_records(TABLE, formula=f"FIND('{name}', ARRAYJOIN({{Client}}))", fields=FIELDS)
+            # case-insensitive match: Airtable FIND is case-sensitive and some client
+            # names differ in case between roster and Contacts (e.g. SeedX vs Seedx).
+            recs = list_records(
+                TABLE,
+                formula=f"FIND(LOWER('{name}'), LOWER(ARRAYJOIN({{Client}})))",
+                fields=FIELDS,
+            )
 
         # commit in batches so no single long transaction hits Supabase's statement
         # timeout, and a mid-run failure keeps the rows already written.
