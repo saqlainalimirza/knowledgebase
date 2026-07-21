@@ -14,6 +14,29 @@ Independent calls can be fired in parallel. Machine-readable spec: `GET /api/ope
 
 ---
 
+# WHAT'S NEW (July 20 update)
+
+1. **GUIDELINES — your persistent memory across sessions.** You now have a place to
+   remember how each client's copy should be built. THE WORKFLOW:
+   - **Before writing copy for a client, ALWAYS fetch their guidelines first**:
+     `GET /api/guidelines?client={slug}` (returns that client's + global ones, newest
+     first). Client detail (`GET /api/clients/{slug}`) also includes them as `guidelines`.
+     Treat them as standing instructions from the strategist. Newer entries win when
+     they conflict with older ones.
+   - **When the strategist says "save this into Evergreen" (or you learn what they like),
+     save it**: `POST /api/guidelines` with
+     `{"client_slug":"kynship"|null, "kind":"preference|process|rule|learning",
+       "guideline_text":"...", "context":"where this came from", "source":"aaman"}`
+     (`client_slug: null` = global, applies to every client; body can also be a list).
+     Save each distinct instruction as its OWN item, in your words, specific enough to
+     act on next session. Anything can be a guideline: word choices, structure rules,
+     process steps ("always check replies before drafting"), things that failed.
+   - Semantic search over them: `POST /api/search {"type":"guidelines", ...}`.
+2. **Slack is in the memory**: `POST /api/search {"type":"slack"}` searches 2,500+
+   messages from every client's Slack channel (client feedback, campaign updates,
+   "don't book these people" style instructions). Check it when briefing on a client.
+3. Client Slack channels sync daily; deals/campaign stats sync daily as before.
+
 # WHAT'S NEW (July 13 update — adapt your playbook to these)
 
 1. **Deals are in the system now** (3,296 deals, all clients). Two new tools:
@@ -151,7 +174,7 @@ Use for: "why are people saying no this week", objection trends, reply-quality t
 ## 5. `POST /api/search` — semantic search over any knowledge type (the workhorse)
 Body:
 ```json
-{ "type": "pains" | "calls" | "case_studies" | "copies" | "components" | "offers" | "deals" | "slack",
+{ "type": "pains" | "calls" | "case_studies" | "copies" | "components" | "offers" | "deals" | "slack" | "guidelines",
   "query": "plain-english meaning to match",
   "limit": 10,
   "route": true,
@@ -235,6 +258,16 @@ Use for: tracing provenance and seeing how everything connects. Heavy; prefer ta
 - `campaignId`: optional, links at save time (DB id from #2/#4).
 - `components[].component_type`: disarmer | identity | case_line | unique_mechanism | relevance | cta.
 Returns `{ok, output}` (output includes the new copy id). Char counts + embeddings computed server-side.
+
+## 10b. Guidelines — persistent strategist memory
+- `GET /api/guidelines?client={slug}` -> `{count, guidelines:[{id, client_slug, kind,
+  guideline_text, context, source, created_at}]}` — the client's + global, newest first.
+  **Fetch this before every copy task.**
+- `POST /api/guidelines` — save one `{client_slug?, kind?, guideline_text, context?, source?}`
+  or `{items:[...]}`. `client_slug` null/absent = global. Duplicates auto-skipped.
+- `PATCH /api/guidelines` `{id, active:false}` — retire an outdated guideline.
+- `POST /api/search {"type":"guidelines","query":"..."}` — semantic search
+  (returns `id, client_slug, kind, guideline_text, context, source, created_at, score`).
 
 ## 11. `POST /api/copy/link` — link/unlink a copy to a campaign
 `{ "copyId": 12, "campaignId": 41 }` (or `"campaignId": null` to unlink). Returns `{ok}`.

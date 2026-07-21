@@ -18,7 +18,7 @@ export default function ClientTabs(props: {
   const tabs = [
     ["pains", `Pains (${pains.length})`], ["campaigns", `Campaigns (${campaigns.length})`],
     ["copies", `Copies (${copies.length})`], ["offers", `Offers (${offers.length})`],
-    ["deals", "Deals"], ["replies", "Replies"], ["cases", `Cases (${cases.length})`],
+    ["guidelines", "Guidelines"], ["deals", "Deals"], ["replies", "Replies"], ["cases", `Cases (${cases.length})`],
     ["calls", `Calls (${calls.length})`], ["niche", "Niche brain"],
   ] as const;
   const [tab, setTab] = useState<string>("pains");
@@ -36,6 +36,7 @@ export default function ClientTabs(props: {
       {tab === "campaigns" && <CampaignsTab campaigns={campaigns} />}
       {tab === "copies" && <CopiesTab copies={copies} slug={slug} />}
       {tab === "offers" && <OffersTab offers={offers} />}
+      {tab === "guidelines" && <GuidelinesTab slug={slug} />}
       {tab === "deals" && <DealsTab slug={slug} />}
       {tab === "replies" && <RepliesTab slug={slug} />}
       {tab === "cases" && <CasesTab cases={cases} />}
@@ -175,6 +176,79 @@ function OffersTab({ offers }: { offers: Offer[] }) {
 }
 
 /* ---------- Replies (inbox-lite) ---------- */
+/* ---------- Guidelines: persistent copy/process memory the AI learns from ---------- */
+function GuidelinesTab({ slug }: { slug: string }) {
+  const [rows, setRows] = useState<any[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [text, setText] = useState("");
+  const [kind, setKind] = useState("preference");
+  const [global, setGlobal] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const load = () =>
+    fetch(`/api/guidelines?client=${slug}`).then((r) => r.json())
+      .then((d) => (d.error ? setErr(d.error) : setRows(d.guidelines))).catch((e) => setErr(e.message));
+  useEffect(() => { load(); }, [slug]);
+  const save = async () => {
+    if (!text.trim()) return;
+    setBusy(true);
+    await fetch("/api/guidelines", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ client_slug: global ? null : slug, kind, guideline_text: text.trim(), source: "frontend" }),
+    });
+    setText(""); setBusy(false); load();
+  };
+  const remove = async (id: number) => {
+    await fetch("/api/guidelines", {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, active: false }),
+    });
+    load();
+  };
+  if (err) return <p className="text-sm text-rose-600">{err}</p>;
+  if (!rows) return <p className="text-sm text-muted">Loading guidelines…</p>;
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-muted">
+        Persistent memory for how copy should be built — the AI saves what the strategist liked
+        each session ("save this into Evergreen") and reads it back before writing. Anything goes:
+        word preferences, process steps, rules, learnings. Global ones apply to every client.
+      </p>
+      <div className="space-y-2 rounded-lg border border-edge p-3">
+        <textarea className="input h-20 w-full text-sm" placeholder="e.g. For this client, keep T1 under 140 chars and never open with a question…"
+          value={text} onChange={(e) => setText(e.target.value)} />
+        <div className="flex flex-wrap items-center gap-3">
+          <select className="input w-auto text-xs" value={kind} onChange={(e) => setKind(e.target.value)}>
+            {["preference", "process", "rule", "learning"].map((k) => <option key={k}>{k}</option>)}
+          </select>
+          <label className="flex items-center gap-1.5 text-xs text-muted">
+            <input type="checkbox" checked={global} onChange={(e) => setGlobal(e.target.checked)} />
+            global (all clients)
+          </label>
+          <button className="btn px-3 py-1.5 text-xs" onClick={save} disabled={busy || !text.trim()}>
+            {busy ? "Saving…" : "Save guideline"}
+          </button>
+        </div>
+      </div>
+      <div className="max-h-[480px] space-y-2 overflow-auto pr-1">
+        {rows.map((g) => (
+          <div key={g.id} className="rounded-lg border border-edge p-2 text-xs">
+            <div className="mb-1 flex items-center gap-2 text-muted">
+              <span className={g.client_slug ? "badge" : "badge badge-amber"}>{g.client_slug || "global"}</span>
+              <span className="badge">{g.kind}</span>
+              <span>{String(g.created_at).slice(0, 10)}</span>
+              {g.source && <span>· {g.source}</span>}
+              <button className="ml-auto text-rose-500 hover:underline" onClick={() => remove(g.id)}>remove</button>
+            </div>
+            <p className="whitespace-pre-wrap text-slate-700">{g.guideline_text}</p>
+            {g.context && <p className="mt-1 text-muted">context: {g.context}</p>}
+          </div>
+        ))}
+        {rows.length === 0 && <p className="text-sm text-muted">No guidelines yet. The first one gets saved from a Claude session or right here.</p>}
+      </div>
+    </div>
+  );
+}
+
 /* ---------- Deals: exactly what the AI receives from /deals, browsable ---------- */
 function DealsTab({ slug }: { slug: string }) {
   const [data, setData] = useState<any>(null);

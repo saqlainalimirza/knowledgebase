@@ -23,6 +23,7 @@ REGISTRY = [
     ("offers",             "embedding",                  "concat_ws(' ', offer_text, mechanism)"),
     ("deals",              "conversation_embedding",     "left(conversation, 8000)"),
     ("slack_messages",     "embedding",                  "text"),
+    ("guidelines",         "embedding",                  "guideline_text"),
 ]
 
 BATCH = 64

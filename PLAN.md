@@ -13,14 +13,13 @@ back-and-forth, opens a new session, and all of that taste and instruction is go
 Every copy session feels different, output is unpredictable.
 
 **Build:**
-- [ ] New table `copy_guidelines`: client_slug (nullable = global), guideline_text,
+- [x] New table `guidelines` (generalized: any kind of guidance, global or per-client): client_slug (nullable = global), guideline_text,
       context (what copy/session it came from), created_at, source (who saved it), embedding.
-- [ ] API: `POST /api/guidelines` (save) and include guidelines in `GET /api/clients/{slug}`
-      + a `guidelines` search type.
-- [ ] Skill update: one-line prompt flow. Aaman says "save what I liked into Evergreen"
+- [x] API: `POST/GET/PATCH /api/guidelines`, included in `GET /api/clients/{slug}`, `guidelines` search type, frontend tab.
+- [x] Skill update: one-line prompt flow. Aaman says "save what I liked into Evergreen"
       and Claude writes the guidelines through the endpoint. When writing copy, Claude
       pulls the client's guidelines first.
-- [ ] Date-aware: keep all versions, newest first, so taste evolution per client is visible
+- [x] Date-aware: keep all versions, newest first, so taste evolution per client is visible
       ("one month ago Aaman liked X for Chamber, now he likes Y").
 
 This closes the loop: data rules exist, copy rules per client now persist too.

@@ -172,6 +172,10 @@ SPECS = {
         "slack_messages", "embedding",
         "id, client_slug, user_name, text, posted_at as created_at", None,
     ),
+    "guidelines": (
+        "guidelines", "embedding",
+        "id, client_slug, kind, guideline_text, context, source, created_at", None,
+    ),
 }
 
 
@@ -200,6 +204,8 @@ def run(stype, query, niche, status, limit, route=False, niche_id=None, sub_nich
     conn0 = None
     where = [f"{vec} is not null"]
     params = []
+    if stype == "guidelines":
+        where.append("active = true")
 
     # exact canonical filters (id-based, no fuzziness) — tables that carry the columns
     HAS_NICHE_ID = {"master_sheet_pains", "case_studies"}
