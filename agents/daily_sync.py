@@ -62,7 +62,7 @@ def _canonical_niches():
 
 def run(only=None):
     _ensure_log_table()
-    steps = only or ["campaigns", "stats", "deals", "slack", "brains", "embeds"]
+    steps = only or ["campaigns", "stats", "deals", "contacts", "slack", "brains", "embeds"]
     t0 = time.time()
     lines, ok = [], True
 
@@ -114,6 +114,16 @@ def run(only=None):
             lines.append("brains: re-synthesized")
         except Exception as e:
             ok = False; lines.append(f"brains: FAILED {e}")
+
+    if "contacts" in steps:
+        try:
+            from contacts_sync_agent import sync as contacts_sync
+            for s in slugs:
+                try: contacts_sync(s)
+                except Exception as e: lines.append(f"contacts {s}: ERR {e}")
+            lines.append(f"contacts: refreshed for {len(slugs)} clients")
+        except Exception as e:
+            ok = False; lines.append(f"contacts: FAILED {e}")
 
     if "slack" in steps:
         try:

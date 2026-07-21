@@ -180,6 +180,11 @@ SPECS = {
         "material_chunks", "embedding",
         "id, material_id, client_slug, title, material_type, context, chunk_text", None,
     ),
+    "contacts": (
+        "contacts", "conversation_embedding",
+        "id, client_slug, name, title, job_function, company, lead_category, channel, "
+        "campaign_name, copy_variant, left(conversation, 2000) as conversation, created_at", None,
+    ),
 }
 
 

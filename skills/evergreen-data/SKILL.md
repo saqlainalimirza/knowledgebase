@@ -14,6 +14,29 @@ Independent calls can be fired in parallel. Machine-readable spec: `GET /api/ope
 
 ---
 
+# DATA HIERARCHY — read this before fetching anything (avoids MCP over-pulling)
+
+Evergreen already mirrors the CRM data. **Get reply/deal/stat data from Evergreen, NOT
+from GoHighLevel / Smartlead / Airtable MCP.** Those MCPs are live production systems our
+automations depend on; bulk-pulling from them (e.g. "get last week's messages" fanning out
+to 12,000 records) burns API credits and can take Airtable/GHL down. Route by question:
+
+| You want… | Use | Endpoint |
+|---|---|---|
+| Winning replies / booked meetings / deal outcomes, with variant + full thread | **deals** | `GET /api/clients/{slug}/deals`, `POST /api/search {"type":"deals"}` |
+| ALL replies by category (Not Interested, Objection Handling, Positive, Maybe, Power Request…), negative-reply threads, "why aren't people responding" | **contacts** | `GET /api/clients/{slug}/contacts`, `POST /api/search {"type":"contacts"}` |
+| Overall performance (sent, positives, booked, conversion, KPIs) | **stats** | `GET /api/clients/{slug}/stats`, campaigns in `GET /api/clients/{slug}` |
+| Reply-reason analytics for a client (categories, lost reasons, trend) | **replies** | `GET /api/clients/{slug}/replies` |
+| Pains / lingo / proof / copy / offers / Slack / guidelines / materials | Evergreen search | `POST /api/search` (see types below) |
+
+**Rule:** try Evergreen first. Only fall back to GHL/Airtable/Smartlead MCP for something
+Evergreen genuinely does not have (e.g. a single live record by id), and never bulk-pull.
+`deals` = the subset that became opportunities. `contacts` = every categorized reply
+(bigger). For counts/breakdowns use the aggregates the endpoints return — don't fetch
+thousands of rows to count them yourself.
+
+---
+
 # WHAT'S NEW (July 20 update)
 
 1. **GUIDELINES — your persistent memory across sessions.** You now have a place to
@@ -194,7 +217,7 @@ Use for: "why are people saying no this week", objection trends, reply-quality t
 ## 5. `POST /api/search` — semantic search over any knowledge type (the workhorse)
 Body:
 ```json
-{ "type": "pains" | "calls" | "case_studies" | "copies" | "components" | "offers" | "deals" | "slack" | "guidelines" | "materials",
+{ "type": "pains" | "calls" | "case_studies" | "copies" | "components" | "offers" | "deals" | "slack" | "guidelines" | "materials" | "contacts",
   "query": "plain-english meaning to match",
   "limit": 10,
   "route": true,
@@ -221,6 +244,11 @@ Response: `{ "type", "query", "routed": [{"niche","score"}], "results": [...] }`
   handled successfully" or "asked to email instead" and get the real threads. Combine with
   filters client-side: e.g. keep `stage in (Meeting Booked, Won)` to study what conversations
   that BOOK look like, or `positive_reply_category = Not Interested` to study why people say no.
+- `contacts`: `id, client_slug, name, title, job_function, company, lead_category, channel,
+  campaign_name, copy_variant, conversation, created_at, score` — semantic search over every
+  categorized reply thread (not just deals). Query e.g. "price objection then went quiet" and
+  read the actual threads. Noise categories (Not Interested/Neutral/etc.) are stored for
+  counts but not embedded, so search surfaces meaningful replies.
 - `slack`: `id, client_slug, user_name, text, created_at, score` — semantic search over each
   client's Slack channel (feedback, campaign discussions, updates the team posted). Empty
   until the Slack sync is enabled.
