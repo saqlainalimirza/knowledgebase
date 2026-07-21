@@ -24,6 +24,7 @@ REGISTRY = [
     ("deals",              "conversation_embedding",     "left(conversation, 8000)"),
     ("slack_messages",     "embedding",                  "text"),
     ("guidelines",         "embedding",                  "guideline_text"),
+    ("material_chunks",    "embedding",                  "chunk_text"),
 ]
 
 BATCH = 64

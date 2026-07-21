@@ -35,7 +35,22 @@ Independent calls can be fired in parallel. Machine-readable spec: `GET /api/ope
 2. **Slack is in the memory**: `POST /api/search {"type":"slack"}` searches 2,500+
    messages from every client's Slack channel (client feedback, campaign updates,
    "don't book these people" style instructions). Check it when briefing on a client.
-3. Client Slack channels sync daily; deals/campaign stats sync daily as before.
+3. **MATERIALS — client context documents.** Proposals, audits, scraped website info,
+   brochures, pricing docs now live in the system, each with a `context` line saying what
+   the document is ("the audit deck sent after discovery calls").
+   - Browse: `GET /api/materials?client={slug}` (metadata + preview);
+     `GET /api/materials?client={slug}&id={id}` for full content.
+   - Semantic search: `POST /api/search {"type":"materials","query":"..."}` — returns
+     chunks with `client_slug, title, material_type, context, chunk_text, score`.
+     Use this to understand how a client positions themselves, their offer wording,
+     pricing, and proof — before writing as-them.
+   - Ingest: `POST /api/materials {"client_slug","title","material_type":
+     "proposal|audit|web_scrape|brochure|pricing|other","context","content"}`.
+     Same title re-uploads replace the old version.
+4. Client Slack channels sync daily; deals/campaign stats sync daily as before.
+5. **Winners/losers live HERE, not in local CSVs.** Copy search returns them with
+   why-it-worked/failed, patterns and real performance. Never read copy CSVs from disk;
+   they are the raw source and go stale. New copies are saved at launch via save-copy.
 
 # WHAT'S NEW (July 13 update — adapt your playbook to these)
 
@@ -174,7 +189,7 @@ Use for: "why are people saying no this week", objection trends, reply-quality t
 ## 5. `POST /api/search` — semantic search over any knowledge type (the workhorse)
 Body:
 ```json
-{ "type": "pains" | "calls" | "case_studies" | "copies" | "components" | "offers" | "deals" | "slack" | "guidelines",
+{ "type": "pains" | "calls" | "case_studies" | "copies" | "components" | "offers" | "deals" | "slack" | "guidelines" | "materials",
   "query": "plain-english meaning to match",
   "limit": 10,
   "route": true,

@@ -18,7 +18,7 @@ export default function ClientTabs(props: {
   const tabs = [
     ["pains", `Pains (${pains.length})`], ["campaigns", `Campaigns (${campaigns.length})`],
     ["copies", `Copies (${copies.length})`], ["offers", `Offers (${offers.length})`],
-    ["guidelines", "Guidelines"], ["deals", "Deals"], ["replies", "Replies"], ["cases", `Cases (${cases.length})`],
+    ["guidelines", "Guidelines"], ["materials", "Materials"], ["deals", "Deals"], ["replies", "Replies"], ["cases", `Cases (${cases.length})`],
     ["calls", `Calls (${calls.length})`], ["niche", "Niche brain"],
   ] as const;
   const [tab, setTab] = useState<string>("pains");
@@ -37,6 +37,7 @@ export default function ClientTabs(props: {
       {tab === "copies" && <CopiesTab copies={copies} slug={slug} />}
       {tab === "offers" && <OffersTab offers={offers} />}
       {tab === "guidelines" && <GuidelinesTab slug={slug} />}
+      {tab === "materials" && <MaterialsTab slug={slug} />}
       {tab === "deals" && <DealsTab slug={slug} />}
       {tab === "replies" && <RepliesTab slug={slug} />}
       {tab === "cases" && <CasesTab cases={cases} />}
@@ -244,6 +245,84 @@ function GuidelinesTab({ slug }: { slug: string }) {
           </div>
         ))}
         {rows.length === 0 && <p className="text-sm text-muted">No guidelines yet. The first one gets saved from a Claude session or right here.</p>}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Materials: proposals, audits, scraped web info — client context docs ---------- */
+function MaterialsTab({ slug }: { slug: string }) {
+  const [rows, setRows] = useState<any[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [mtype, setMtype] = useState("proposal");
+  const [ctx, setCtx] = useState("");
+  const [content, setContent] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const load = () =>
+    fetch(`/api/materials?client=${slug}`).then((r) => r.json())
+      .then((d) => (d.error ? setErr(d.error) : setRows(d.materials))).catch((e) => setErr(e.message));
+  useEffect(() => { load(); }, [slug]);
+  const save = async () => {
+    if (!title.trim() || !content.trim()) return;
+    setBusy(true); setMsg(null);
+    const r = await fetch("/api/materials", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ client_slug: slug, title: title.trim(), material_type: mtype, context: ctx.trim() || null, content }),
+    }).then((x) => x.json());
+    setBusy(false);
+    setMsg(r.ok ? "Saved and embedded." : r.output || r.error || "failed");
+    if (r.ok) { setTitle(""); setCtx(""); setContent(""); load(); }
+  };
+  const remove = async (id: number) => {
+    await fetch(`/api/materials?id=${id}`, { method: "DELETE" });
+    load();
+  };
+  if (err) return <p className="text-sm text-rose-600">{err}</p>;
+  if (!rows) return <p className="text-sm text-muted">Loading materials…</p>;
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-muted">
+        Client context documents: proposals, audits, scraped website info, brochures, pricing.
+        The context line tells the AI what the document IS ("the audit deck sent after discovery
+        calls") — it travels with every searchable chunk. Re-uploading the same title replaces it.
+      </p>
+      <div className="space-y-2 rounded-lg border border-edge p-3">
+        <div className="flex flex-wrap gap-2">
+          <input className="input flex-1 text-sm" placeholder="Title (e.g. Outbound audit deck)"
+            value={title} onChange={(e) => setTitle(e.target.value)} />
+          <select className="input w-auto text-xs" value={mtype} onChange={(e) => setMtype(e.target.value)}>
+            {["proposal", "audit", "web_scrape", "brochure", "pricing", "other"].map((k) => <option key={k}>{k}</option>)}
+          </select>
+        </div>
+        <input className="input w-full text-sm" placeholder="Context: what is this and how is it used?"
+          value={ctx} onChange={(e) => setCtx(e.target.value)} />
+        <textarea className="input h-32 w-full text-sm" placeholder="Paste the full document text here…"
+          value={content} onChange={(e) => setContent(e.target.value)} />
+        <div className="flex items-center gap-3">
+          <button className="btn px-3 py-1.5 text-xs" onClick={save} disabled={busy || !title.trim() || !content.trim()}>
+            {busy ? "Ingesting…" : "Ingest material"}
+          </button>
+          {msg && <span className="text-xs text-muted">{msg}</span>}
+        </div>
+      </div>
+      <div className="space-y-2">
+        {rows.map((m) => (
+          <details key={m.id} className="rounded-lg border border-edge p-2 text-xs">
+            <summary className="cursor-pointer select-none">
+              <b className="text-slate-700">{m.title}</b>{" "}
+              <span className="badge">{m.material_type}</span>{" "}
+              <span className="text-muted">{Number(m.content_chars).toLocaleString()} chars · {m.chunks} chunks · {String(m.created_at).slice(0, 10)}</span>
+            </summary>
+            <div className="mt-2 space-y-1 border-t border-edge pt-2">
+              {m.context && <p><span className="text-muted">Context:</span> {m.context}</p>}
+              <p className="whitespace-pre-wrap text-slate-700">{m.preview}{Number(m.content_chars) > 400 ? "…" : ""}</p>
+              <button className="text-rose-500 hover:underline" onClick={() => remove(m.id)}>delete</button>
+            </div>
+          </details>
+        ))}
+        {rows.length === 0 && <p className="text-sm text-muted">No materials yet. Paste the first proposal, audit, or scraped site above.</p>}
       </div>
     </div>
   );

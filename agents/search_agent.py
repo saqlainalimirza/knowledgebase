@@ -176,6 +176,10 @@ SPECS = {
         "guidelines", "embedding",
         "id, client_slug, kind, guideline_text, context, source, created_at", None,
     ),
+    "materials": (
+        "material_chunks", "embedding",
+        "id, material_id, client_slug, title, material_type, context, chunk_text", None,
+    ),
 }
 
 
