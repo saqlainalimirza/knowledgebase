@@ -67,34 +67,38 @@ def sync(slug):
 
             recs = list_records(TABLE, formula=f"FIND('{name}', ARRAYJOIN({{Client}}))", fields=FIELDS)
 
-            ins = 0
-            for rec in recs:
-                f = rec["fields"]
-                title = f.get("Title")
-                func, sen = _buckets(title)
-                camp_text = f.get("Relinked Campaigns")
-                cur.execute(
-                    """insert into contacts(airtable_contact_id, client_slug, name, title,
-                         job_function, seniority, company, website, linkedin, email, mobile,
-                         lead_category, channel, campaign_name, db_campaign_id, copy_variant,
-                         conversation, created_at)
-                       values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                       on conflict (airtable_contact_id) do update set
-                         lead_category=excluded.lead_category,
-                         conversation=excluded.conversation,
-                         campaign_name=excluded.campaign_name,
-                         db_campaign_id=excluded.db_campaign_id,
-                         copy_variant=excluded.copy_variant,
-                         synced_at=now()""",
-                    (rec["id"], slug, f.get("Name"), title, func, sen,
-                     f.get("Company Name"), f.get("Website"), f.get("LinkedIn profile"),
-                     f.get("email"), f.get("Mobile Number"),
-                     f.get("Lead Categorisation"), _channel(f.get("Contact Root Source")),
-                     camp_text, match_campaign(camp_text), f.get("Copy Variant"),
-                     f.get("Email history"), f.get("Date created")),
-                )
-                ins += 1
-        conn.commit()
+        # commit in batches so no single long transaction hits Supabase's statement
+        # timeout, and a mid-run failure keeps the rows already written.
+        ins = 0
+        for start in range(0, len(recs), 200):
+            with conn.cursor() as cur:
+                for rec in recs[start:start + 200]:
+                    f = rec["fields"]
+                    title = f.get("Title")
+                    func, sen = _buckets(title)
+                    camp_text = f.get("Relinked Campaigns")
+                    cur.execute(
+                        """insert into contacts(airtable_contact_id, client_slug, name, title,
+                             job_function, seniority, company, website, linkedin, email, mobile,
+                             lead_category, channel, campaign_name, db_campaign_id, copy_variant,
+                             conversation, created_at)
+                           values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                           on conflict (airtable_contact_id) do update set
+                             lead_category=excluded.lead_category,
+                             conversation=excluded.conversation,
+                             campaign_name=excluded.campaign_name,
+                             db_campaign_id=excluded.db_campaign_id,
+                             copy_variant=excluded.copy_variant,
+                             synced_at=now()""",
+                        (rec["id"], slug, f.get("Name"), title, func, sen,
+                         f.get("Company Name"), f.get("Website"), f.get("LinkedIn profile"),
+                         f.get("email"), f.get("Mobile Number"),
+                         f.get("Lead Categorisation"), _channel(f.get("Contact Root Source")),
+                         camp_text, match_campaign(camp_text), f.get("Copy Variant"),
+                         f.get("Email history"), f.get("Date created")),
+                    )
+                    ins += 1
+            conn.commit()
         # invalidate embeddings whose conversation changed materially: only NULLs get filled,
         # so nothing extra to do — the sweep embeds new/meaningful rows.
         n = embed_all(conn, only_tables={"contacts"})
