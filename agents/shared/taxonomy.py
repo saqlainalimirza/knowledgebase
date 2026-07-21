@@ -29,9 +29,26 @@ def _buckets(persona):
     return func, sen
 
 
+def _to_vec(v):
+    """Coerce a pgvector column to a float ndarray regardless of how the driver
+    returns it (ndarray when the numpy adapter is active, a pgvector Vector object,
+    or a '[..]' string on version drift). Fixes the Railway 'not Vector' TypeError."""
+    if v is None:
+        return None
+    if isinstance(v, np.ndarray):
+        return v.astype(float)
+    if isinstance(v, str):
+        return np.asarray([float(x) for x in v.strip("[] ").split(",") if x.strip()], dtype=float)
+    if hasattr(v, "to_numpy"):      # pgvector Vector
+        return v.to_numpy().astype(float)
+    if hasattr(v, "to_list"):
+        return np.asarray(v.to_list(), dtype=float)
+    return np.asarray(list(v), dtype=float)
+
+
 def _load_niches(cur):
     cur.execute("select id, name, parent_id, embedding from niches where embedding is not null")
-    return [(r[0], r[1], r[2], np.asarray(r[3], dtype=float)) for r in cur.fetchall()]
+    return [(r[0], r[1], r[2], _to_vec(r[3])) for r in cur.fetchall()]
 
 
 def resolve_niche(cur, text, min_score=0.5):
@@ -43,7 +60,7 @@ def resolve_niche(cur, text, min_score=0.5):
     niches = _load_niches(cur)
     if not niches:
         return None, None, 0.0
-    q = np.asarray(embed_documents([text])[0], dtype=float)
+    q = _to_vec(embed_documents([text])[0])
     best = max(niches, key=lambda n: float(np.dot(q, n[3])))
     score = float(np.dot(q, best[3]))
     if score < min_score:
