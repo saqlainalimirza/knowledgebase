@@ -29,6 +29,12 @@ def sync():
         with conn.cursor() as cur:
             cur.execute("select max(slack_ts) from bug_tickets where slack_channel_id=%s", (BUGS_CHANNEL,))
             last_ts = (cur.fetchone() or [None])[0]
+            # "from now on" floor: never pull messages older than this, even when the
+            # board is empty (so we don't re-backfill the old channel history).
+            cur.execute("select v from bug_ticket_state where k='floor_ts'")
+            floor = (cur.fetchone() or [None])[0]
+        # oldest = the later of the floor and the newest ticket we already have
+        oldest = max([t for t in (last_ts, floor) if t], default=None)
 
         # make sure the bot is in the channel (public -> auto-join)
         try:
@@ -36,7 +42,7 @@ def sync():
         except Exception:
             pass
 
-        msgs = slack.channel_history(BUGS_CHANNEL, oldest=last_ts)
+        msgs = slack.channel_history(BUGS_CHANNEL, oldest=oldest)
         base = slack.team_url()  # built once; permalinks constructed locally (no per-msg API call)
         ins = 0
         for start in range(0, len(msgs), 200):
