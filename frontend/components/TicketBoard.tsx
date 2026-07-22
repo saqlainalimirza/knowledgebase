@@ -13,11 +13,24 @@ type Data = {
 };
 
 const COLUMNS = [
-  { key: "unchecked", label: "Unchecked", tone: "border-slate-300" },
-  { key: "in_progress", label: "In Progress", tone: "border-amber-300" },
-  { key: "complete", label: "Complete", tone: "border-emerald-300" },
+  { key: "unchecked", label: "Unchecked", dot: "bg-slate-400", top: "border-t-slate-300", soft: "bg-slate-50/60" },
+  { key: "in_progress", label: "In Progress", dot: "bg-amber-400", top: "border-t-amber-300", soft: "bg-amber-50/40" },
+  { key: "complete", label: "Complete", dot: "bg-emerald-400", top: "border-t-emerald-300", soft: "bg-emerald-50/40" },
 ];
 const PAGE_SIZE = 30;
+
+// A slack user/bot id like U0B7T2D4A1H carries no meaning to a human -> hide it.
+const isSlackId = (s: string | null) => !!s && /^[UBW][A-Z0-9]{6,}$/.test(s);
+
+// Split a bug message into leading @-tags, a title line, and the rest.
+function parseTicket(text: string) {
+  let body = (text || "").replace(/^(?:@\w+\s*)+/, "").trim(); // drop leading @mentions
+  const tagCount = ((text || "").match(/^(?:@\w+\s*)+/)?.[0].match(/@\w+/g) || []).length;
+  const lines = body.split("\n").map((l) => l.trim()).filter(Boolean);
+  const title = lines[0] || "(no text)";
+  const detail = lines.slice(1).join("\n");
+  return { title, detail, tagCount };
+}
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
@@ -108,39 +121,54 @@ export default function TicketBoard() {
       </div>
 
       {/* counts */}
-      <div className="flex gap-2 text-xs">
-        <span className="badge">Unchecked {c.unchecked}</span>
-        <span className="badge badge-amber">In Progress {c.in_progress}</span>
-        <span className="badge badge-green">Complete {c.complete}</span>
+      <div className="flex flex-wrap gap-2 text-xs">
+        <span className="badge badge-gray"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Unchecked {c.unchecked}</span>
+        <span className="badge badge-amber"><span className="h-1.5 w-1.5 rounded-full bg-amber-400" />In Progress {c.in_progress}</span>
+        <span className="badge badge-green"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />Complete {c.complete}</span>
       </div>
 
       {/* board */}
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         {COLUMNS.map((col) => (
-          <div key={col.key} className={`rounded-xl border-t-4 ${col.tone} bg-panel p-2`}>
-            <div className="mb-2 px-1 text-xs font-semibold text-muted">{col.label} ({byCol(col.key).length})</div>
-            <div className="space-y-2">
-              {byCol(col.key).map((t) => (
-                <div key={t.id} className="rounded-lg border border-edge bg-white p-2.5 text-xs shadow-card">
-                  <p className="whitespace-pre-wrap text-slate-700">{t.text.length > 400 ? t.text.slice(0, 400) + "…" : t.text}</p>
-                  <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
-                    {t.reporter && <span>by {t.reporter}</span>}
-                    <span>· {String(t.day).slice(0, 10)}</span>
-                    {t.permalink && <a className="text-accent hover:underline" href={t.permalink} target="_blank" rel="noreferrer">Slack ↗</a>}
+          <div key={col.key} className={`rounded-xl2 border border-edge border-t-2 ${col.top} ${col.soft} p-2.5`}>
+            <div className="mb-2.5 flex items-center gap-2 px-1">
+              <span className={`h-2 w-2 rounded-full ${col.dot}`} />
+              <span className="text-[13px] font-semibold text-deep">{col.label}</span>
+              <span className="rounded-full bg-white px-1.5 text-[11px] font-semibold text-muted ring-1 ring-edge">{byCol(col.key).length}</span>
+            </div>
+            <div className="space-y-2.5">
+              {byCol(col.key).map((t) => {
+                const { title, detail, tagCount } = parseTicket(t.text);
+                return (
+                  <div key={t.id} className="group rounded-xl border border-edge bg-white p-3 shadow-card transition hover:shadow-lift">
+                    <p className="text-[13px] font-semibold leading-snug text-deep">{title}</p>
+                    {detail && (
+                      <p className="mt-1 max-h-32 overflow-hidden whitespace-pre-wrap text-[12px] leading-relaxed text-slate-500">{detail}</p>
+                    )}
+                    <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted">
+                      {tagCount > 0 && <span className="chip py-0 text-[10px]">🏷 {tagCount} tagged</span>}
+                      <span className="tabular-nums">{String(t.day).slice(0, 10)}</span>
+                      {!isSlackId(t.reporter) && t.reporter && <span>· {t.reporter}</span>}
+                      {t.permalink && <a className="font-medium text-accent hover:underline" href={t.permalink} target="_blank" rel="noreferrer">open in Slack ↗</a>}
+                    </div>
+                    <div className="mt-3 flex items-center gap-2 border-t border-edge/70 pt-2.5">
+                      <select className="input w-auto flex-1 py-1 text-[12px]" value={t.assignee} onChange={(e) => update(t.id, { assignee: e.target.value })}>
+                        {assignees.map((a) => <option key={a}>{a}</option>)}
+                        {!assignees.includes(t.assignee) && <option>{t.assignee}</option>}
+                      </select>
+                      <div className="flex items-center gap-1">
+                        {COLUMNS.filter((x) => x.key !== t.status).map((x) => (
+                          <button key={x.key} title={`Move to ${x.label}`} className="rounded-md border border-edge px-2 py-1 text-[11px] font-medium text-slate-600 transition hover:border-accent hover:text-accent" onClick={() => update(t.id, { status: x.key })}>{x.label}</button>
+                        ))}
+                        <button title="Delete" className="rounded-md px-1.5 py-1 text-[13px] text-slate-300 transition hover:text-rose-500" onClick={() => remove(t.id)}>✕</button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                    <select className="input w-auto py-0.5 text-[11px]" value={t.assignee} onChange={(e) => update(t.id, { assignee: e.target.value })}>
-                      {assignees.map((a) => <option key={a}>{a}</option>)}
-                      {!assignees.includes(t.assignee) && <option>{t.assignee}</option>}
-                    </select>
-                    {COLUMNS.filter((x) => x.key !== t.status).map((x) => (
-                      <button key={x.key} className="btn-ghost px-1.5 py-0.5 text-[11px]" onClick={() => update(t.id, { status: x.key })}>→ {x.label}</button>
-                    ))}
-                    <button className="ml-auto text-rose-400 hover:underline" onClick={() => remove(t.id)}>del</button>
-                  </div>
-                </div>
-              ))}
-              {byCol(col.key).length === 0 && <p className="px-1 py-4 text-center text-[11px] text-muted">none</p>}
+                );
+              })}
+              {byCol(col.key).length === 0 && (
+                <div className="rounded-lg border border-dashed border-edge py-6 text-center text-[11px] text-slate-400">nothing here</div>
+              )}
             </div>
           </div>
         ))}
