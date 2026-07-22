@@ -125,7 +125,7 @@ export default function TicketBoard() {
                   <p className="whitespace-pre-wrap text-slate-700">{t.text.length > 400 ? t.text.slice(0, 400) + "…" : t.text}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
                     {t.reporter && <span>by {t.reporter}</span>}
-                    <span>· {String(t.day)}</span>
+                    <span>· {String(t.day).slice(0, 10)}</span>
                     {t.permalink && <a className="text-accent hover:underline" href={t.permalink} target="_blank" rel="noreferrer">Slack ↗</a>}
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">

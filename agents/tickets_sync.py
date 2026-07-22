@@ -9,7 +9,9 @@ Usage:
   python tickets_sync.py
 """
 import os
+import re
 import sys
+import html
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -20,6 +22,32 @@ BUGS_CHANNEL = os.environ.get("BUGS_CHANNEL_ID", "C0890LFFRAB")
 # Only skip true noise. Bot-posted messages (Airtable Automation Error, Threat Lead
 # alerts, etc.) ARE the bugs in this channel, so they are kept.
 SKIP_SUBTYPES = {"channel_join", "channel_leave", "channel_topic", "channel_purpose"}
+
+
+_EMOJI = {
+    "rotating_light": "🚨", "red_circle": "🔴", "large_green_circle": "🟢",
+    "green_circle": "🟢", "white_check_mark": "✅", "heavy_check_mark": "✔️",
+    "warning": "⚠️", "x": "❌", "fire": "🔥", "tada": "🎉", "eyes": "👀",
+    "bell": "🔔", "no_entry": "⛔", "exclamation": "❗", "heavy_exclamation_mark": "❗",
+}
+
+
+def clean_slack(text, users=None):
+    """Turn Slack wire text into readable text: resolve mentions/links, render common
+    emoji shortcodes, strip bold/italic/strike markers, unescape html."""
+    if not text:
+        return ""
+    users = users or {}
+    text = re.sub(r"<@([A-Z0-9]+)>", lambda m: "@" + users.get(m.group(1), "user"), text)
+    text = re.sub(r"<#[A-Z0-9]+\|([^>]*)>", r"#\1", text)
+    text = re.sub(r"<#[A-Z0-9]+>", "#channel", text)
+    text = re.sub(r"<(?:https?|mailto):[^>|]+\|([^>]*)>", r"\1", text)  # <url|label> -> label
+    text = re.sub(r"<((?:https?|mailto):[^>]+)>", r"\1", text)          # <url> -> url
+    text = re.sub(r":([a-z0-9_+\-]+):", lambda m: _EMOJI.get(m.group(1), m.group(0)), text)
+    text = re.sub(r"(?<![\w*])\*([^*\n]+?)\*(?![\w*])", r"\1", text)    # *bold* -> bold
+    text = re.sub(r"(?<![\w_])_([^_\n]+?)_(?![\w_])", r"\1", text)      # _italic_ -> italic
+    text = re.sub(r"(?<![\w~])~([^~\n]+?)~(?![\w~])", r"\1", text)      # ~strike~ -> strike
+    return html.unescape(text).strip()
 
 
 def _extract_text(m):
@@ -79,10 +107,11 @@ def sync():
                 for m in msgs[start:start + 200]:
                     if m.get("subtype") in SKIP_SUBTYPES:
                         continue
-                    text = (m.get("text") or "").strip()
+                    raw = (m.get("text") or "").strip()
                     # bot alerts often put content in attachments/blocks, not `text`
-                    if not text:
-                        text = _extract_text(m)
+                    if not raw:
+                        raw = _extract_text(m)
+                    text = clean_slack(raw)
                     if not text:
                         continue
                     reporter = m.get("user") or m.get("username") or _bot_name(m)

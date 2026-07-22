@@ -31,6 +31,26 @@ function extractText(e: any): string {
   return Array.from(new Set(parts.map((p) => p.trim()).filter(Boolean))).join("\n").trim();
 }
 
+const EMOJI: Record<string, string> = {
+  rotating_light: "🚨", red_circle: "🔴", large_green_circle: "🟢", green_circle: "🟢",
+  white_check_mark: "✅", heavy_check_mark: "✔️", warning: "⚠️", x: "❌", fire: "🔥",
+  tada: "🎉", eyes: "👀", bell: "🔔", no_entry: "⛔", exclamation: "❗",
+};
+function cleanSlack(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/<@([A-Z0-9]+)>/g, "@user")
+    .replace(/<#[A-Z0-9]+\|([^>]*)>/g, "#$1")
+    .replace(/<#[A-Z0-9]+>/g, "#channel")
+    .replace(/<(?:https?|mailto):[^>|]+\|([^>]*)>/g, "$1")
+    .replace(/<((?:https?|mailto):[^>]+)>/g, "$1")
+    .replace(/:([a-z0-9_+-]+):/g, (m, c) => EMOJI[c] || m)
+    .replace(/(^|[^\w*])\*([^*\n]+?)\*(?![\w*])/g, "$1$2")
+    .replace(/(^|[^\w~])~([^~\n]+?)~(?![\w~])/g, "$1$2")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .trim();
+}
+
 function verifySignature(raw: string, ts: string | null, sig: string | null): boolean {
   const secret = process.env.SLACK_SIGNING_SECRET;
   if (!secret) return true; // not configured yet -> don't block (challenge still works)
@@ -73,7 +93,7 @@ export async function POST(req: Request) {
       const e = body.event;
       const isBugsChannel = e.channel === BUGS_CHANNEL;
       const isNoise = e.subtype && SKIP_SUBTYPES.has(e.subtype);
-      const text = (e.text || "").trim() || extractText(e);
+      const text = cleanSlack((e.text || "").trim() || extractText(e));
       if (isBugsChannel && !isNoise && text.length > 0) {
         const day = new Date(Number(e.ts) * 1000).toISOString().slice(0, 10);
         const permalink = `${TEAM_URL}/archives/${e.channel}/p${String(e.ts).replace(".", "")}`;
