@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 // This is NOT part of the Evergreen data API and is not referenced by the skill.
 
 const BUGS_CHANNEL = process.env.BUGS_CHANNEL_ID || "C0890LFFRAB";
+const TEAM_URL = (process.env.SLACK_TEAM_URL || "https://scaletopia.slack.com").replace(/\/$/, "");
 const SKIP_SUBTYPES = new Set([
   "channel_join", "channel_leave", "bot_message", "message_changed",
   "message_deleted", "thread_broadcast",
@@ -62,10 +63,11 @@ export async function POST(req: Request) {
       const text = (e.text || "").trim();
       if (isBugsChannel && !isNoise && !e.bot_id && text.length > 0) {
         const day = new Date(Number(e.ts) * 1000).toISOString().slice(0, 10);
+        const permalink = `${TEAM_URL}/archives/${e.channel}/p${String(e.ts).replace(".", "")}`;
         await q(
-          `insert into bug_tickets(slack_ts, slack_channel_id, reporter, text, day)
-           values($1,$2,$3,$4,$5) on conflict (slack_ts) do nothing`,
-          [e.ts, e.channel, e.user || e.username || null, text, day]
+          `insert into bug_tickets(slack_ts, slack_channel_id, reporter, permalink, text, day)
+           values($1,$2,$3,$4,$5,$6) on conflict (slack_ts) do nothing`,
+          [e.ts, e.channel, e.user || e.username || null, permalink, text, day]
         );
       }
     }

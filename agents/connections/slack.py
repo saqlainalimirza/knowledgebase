@@ -71,12 +71,36 @@ def post_message(channel_id, text):
 
 
 def permalink(channel_id, message_ts):
-    """Get the shareable permalink for a message. Returns None on failure."""
+    """Get the shareable permalink for a message via the API. Returns None on failure.
+    One API call — fine for single messages (events), too slow for bulk backfill."""
     try:
         data = _call("chat.getPermalink", channel=channel_id, message_ts=message_ts)
         return data.get("permalink")
     except Exception:
         return None
+
+
+_TEAM_URL = None
+
+
+def team_url():
+    """Workspace base url (e.g. https://scaletopia.slack.com/), cached. For building
+    permalinks locally without an API call per message."""
+    global _TEAM_URL
+    if _TEAM_URL is None:
+        try:
+            _TEAM_URL = _call("auth.test").get("url", "").rstrip("/")
+        except Exception:
+            _TEAM_URL = ""
+    return _TEAM_URL
+
+
+def build_permalink(channel_id, message_ts, base=None):
+    """Construct a message permalink with no API call. base defaults to team_url()."""
+    base = (base if base is not None else team_url()) or ""
+    if not base:
+        return None
+    return f"{base}/archives/{channel_id}/p{str(message_ts).replace('.', '')}"
 
 
 def join_channel(channel_id):

@@ -37,22 +37,24 @@ def sync():
             pass
 
         msgs = slack.channel_history(BUGS_CHANNEL, oldest=last_ts)
+        base = slack.team_url()  # built once; permalinks constructed locally (no per-msg API call)
         ins = 0
-        for m in msgs:
-            if m.get("subtype") in SKIP_SUBTYPES or m.get("bot_id"):
-                continue
-            text = (m.get("text") or "").strip()
-            if not text:
-                continue
-            day = datetime.fromtimestamp(float(m["ts"]), tz=timezone.utc).date()
-            link = slack.permalink(BUGS_CHANNEL, m["ts"])
+        for start in range(0, len(msgs), 200):
             with conn.cursor() as cur:
-                cur.execute(
-                    """insert into bug_tickets(slack_ts, slack_channel_id, reporter, permalink, text, day)
-                       values(%s,%s,%s,%s,%s,%s) on conflict (slack_ts) do nothing""",
-                    (m["ts"], BUGS_CHANNEL, m.get("user") or m.get("username"), link, text, day),
-                )
-                ins += cur.rowcount
+                for m in msgs[start:start + 200]:
+                    if m.get("subtype") in SKIP_SUBTYPES or m.get("bot_id"):
+                        continue
+                    text = (m.get("text") or "").strip()
+                    if not text:
+                        continue
+                    day = datetime.fromtimestamp(float(m["ts"]), tz=timezone.utc).date()
+                    link = slack.build_permalink(BUGS_CHANNEL, m["ts"], base)
+                    cur.execute(
+                        """insert into bug_tickets(slack_ts, slack_channel_id, reporter, permalink, text, day)
+                           values(%s,%s,%s,%s,%s,%s) on conflict (slack_ts) do nothing""",
+                        (m["ts"], BUGS_CHANNEL, m.get("user") or m.get("username"), link, text, day),
+                    )
+                    ins += cur.rowcount
             conn.commit()
         print(f"bug tickets: inserted {ins}")
         return ins
