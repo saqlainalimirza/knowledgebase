@@ -13,10 +13,23 @@ export const dynamic = "force-dynamic";
 
 const BUGS_CHANNEL = process.env.BUGS_CHANNEL_ID || "C0890LFFRAB";
 const TEAM_URL = (process.env.SLACK_TEAM_URL || "https://scaletopia.slack.com").replace(/\/$/, "");
+// Only skip true noise. Bot alerts (Airtable Automation Error, Threat Lead) ARE the bugs.
 const SKIP_SUBTYPES = new Set([
-  "channel_join", "channel_leave", "bot_message", "message_changed",
-  "message_deleted", "thread_broadcast",
+  "channel_join", "channel_leave", "channel_topic", "channel_purpose",
+  "message_changed", "message_deleted",
 ]);
+
+// bot alerts often carry content in attachments/blocks instead of `text`
+function extractText(e: any): string {
+  const parts: string[] = [];
+  for (const a of e.attachments || [])
+    for (const k of ["fallback", "pretext", "title", "text"]) if (a[k]) parts.push(String(a[k]));
+  for (const b of e.blocks || []) {
+    if (b.text?.text) parts.push(String(b.text.text));
+    for (const f of b.fields || []) if (f?.text) parts.push(String(f.text));
+  }
+  return Array.from(new Set(parts.map((p) => p.trim()).filter(Boolean))).join("\n").trim();
+}
 
 function verifySignature(raw: string, ts: string | null, sig: string | null): boolean {
   const secret = process.env.SLACK_SIGNING_SECRET;
@@ -60,14 +73,15 @@ export async function POST(req: Request) {
       const e = body.event;
       const isBugsChannel = e.channel === BUGS_CHANNEL;
       const isNoise = e.subtype && SKIP_SUBTYPES.has(e.subtype);
-      const text = (e.text || "").trim();
-      if (isBugsChannel && !isNoise && !e.bot_id && text.length > 0) {
+      const text = (e.text || "").trim() || extractText(e);
+      if (isBugsChannel && !isNoise && text.length > 0) {
         const day = new Date(Number(e.ts) * 1000).toISOString().slice(0, 10);
         const permalink = `${TEAM_URL}/archives/${e.channel}/p${String(e.ts).replace(".", "")}`;
+        const reporter = e.user || e.username || e.bot_profile?.name || null;
         await q(
           `insert into bug_tickets(slack_ts, slack_channel_id, reporter, permalink, text, day)
            values($1,$2,$3,$4,$5,$6) on conflict (slack_ts) do nothing`,
-          [e.ts, e.channel, e.user || e.username || null, permalink, text, day]
+          [e.ts, e.channel, reporter, permalink, text, day]
         );
       }
     }

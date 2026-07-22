@@ -17,7 +17,36 @@ from connections.supabase import get_conn
 from connections import slack
 
 BUGS_CHANNEL = os.environ.get("BUGS_CHANNEL_ID", "C0890LFFRAB")
-SKIP_SUBTYPES = {"channel_join", "channel_leave", "bot_message", "thread_broadcast"}
+# Only skip true noise. Bot-posted messages (Airtable Automation Error, Threat Lead
+# alerts, etc.) ARE the bugs in this channel, so they are kept.
+SKIP_SUBTYPES = {"channel_join", "channel_leave", "channel_topic", "channel_purpose"}
+
+
+def _extract_text(m):
+    """Pull readable text from a bot message that uses attachments/blocks instead of text."""
+    parts = []
+    for a in m.get("attachments", []) or []:
+        for k in ("fallback", "pretext", "title", "text"):
+            if a.get(k):
+                parts.append(str(a[k]))
+    for b in m.get("blocks", []) or []:
+        t = b.get("text")
+        if isinstance(t, dict) and t.get("text"):
+            parts.append(str(t["text"]))
+        for f in b.get("fields", []) or []:
+            if isinstance(f, dict) and f.get("text"):
+                parts.append(str(f["text"]))
+    # dedup while keeping order
+    seen, out = set(), []
+    for p in parts:
+        p = p.strip()
+        if p and p not in seen:
+            seen.add(p); out.append(p)
+    return "\n".join(out).strip()
+
+
+def _bot_name(m):
+    return (m.get("bot_profile") or {}).get("name") or m.get("username") or "bot"
 
 
 def sync():
@@ -48,17 +77,21 @@ def sync():
         for start in range(0, len(msgs), 200):
             with conn.cursor() as cur:
                 for m in msgs[start:start + 200]:
-                    if m.get("subtype") in SKIP_SUBTYPES or m.get("bot_id"):
+                    if m.get("subtype") in SKIP_SUBTYPES:
                         continue
                     text = (m.get("text") or "").strip()
+                    # bot alerts often put content in attachments/blocks, not `text`
+                    if not text:
+                        text = _extract_text(m)
                     if not text:
                         continue
+                    reporter = m.get("user") or m.get("username") or _bot_name(m)
                     day = datetime.fromtimestamp(float(m["ts"]), tz=timezone.utc).date()
                     link = slack.build_permalink(BUGS_CHANNEL, m["ts"], base)
                     cur.execute(
                         """insert into bug_tickets(slack_ts, slack_channel_id, reporter, permalink, text, day)
                            values(%s,%s,%s,%s,%s,%s) on conflict (slack_ts) do nothing""",
-                        (m["ts"], BUGS_CHANNEL, m.get("user") or m.get("username"), link, text, day),
+                        (m["ts"], BUGS_CHANNEL, reporter, link, text, day),
                     )
                     ins += cur.rowcount
             conn.commit()
