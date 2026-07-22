@@ -23,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/" className="btn-ghost">Clients</Link>
               <Link href="/graph" className="btn-ghost">Graph</Link>
               <Link href="/search" className="btn-ghost">Search</Link>
+              <Link href="/tickets" className="btn-ghost">Tickets</Link>
               <Link href="/clients/new" className="btn">+ Onboard client</Link>
             </nav>
           </div>

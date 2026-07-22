@@ -70,6 +70,15 @@ def post_message(channel_id, text):
     return _call("chat.postMessage", channel=channel_id, text=text)
 
 
+def permalink(channel_id, message_ts):
+    """Get the shareable permalink for a message. Returns None on failure."""
+    try:
+        data = _call("chat.getPermalink", channel=channel_id, message_ts=message_ts)
+        return data.get("permalink")
+    except Exception:
+        return None
+
+
 def join_channel(channel_id):
     """Join a public channel (needs channels:join). Private channels need /invite."""
     return _call("conversations.join", channel=channel_id)

@@ -62,7 +62,7 @@ def _canonical_niches():
 
 def run(only=None):
     _ensure_log_table()
-    steps = only or ["campaigns", "stats", "deals", "contacts", "slack", "brains", "embeds"]
+    steps = only or ["campaigns", "stats", "deals", "contacts", "slack", "tickets", "brains", "embeds"]
     t0 = time.time()
     lines, ok = [], True
 
@@ -138,6 +138,18 @@ def run(only=None):
                 lines.append("slack: skipped (no SLACK_BOT_TOKEN)")
         except Exception as e:
             ok = False; lines.append(f"slack: FAILED {e}")
+
+    if "tickets" in steps:
+        try:
+            from connections import slack as slack_conn
+            if slack_conn.enabled():
+                import tickets_sync
+                got = tickets_sync.sync()
+                lines.append(f"tickets: synced ({got} new)")
+            else:
+                lines.append("tickets: skipped (no SLACK_BOT_TOKEN)")
+        except Exception as e:
+            ok = False; lines.append(f"tickets: FAILED {e}")
 
     if "embeds" in steps:
         try:
