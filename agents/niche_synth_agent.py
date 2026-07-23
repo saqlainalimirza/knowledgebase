@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from connections.supabase import get_conn
 from connections.gemini import extract_json
 from shared.embed import embed_all
+from shared.taxonomy import _to_vec
 
 CLUSTER_THRESHOLD = 0.82
 
@@ -81,7 +82,7 @@ def gather(cur, niche):
 # ---------- cluster ----------
 
 def cluster(items, embedding_index):
-    vecs = [np.asarray(it[embedding_index], dtype=float) for it in items]
+    vecs = [_to_vec(it[embedding_index]) for it in items]
     used = [False] * len(items)
     clusters = []
     for i in range(len(items)):

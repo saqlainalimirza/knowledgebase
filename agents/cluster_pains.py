@@ -18,12 +18,13 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from connections.supabase import get_conn
+from shared.taxonomy import _to_vec
 
 
 def greedy_cluster(items, threshold):
     """items: list of dicts with 'vec' (L2-normalized). Greedy: each item joins the
     first existing cluster whose seed it is >= threshold similar to, else starts one."""
-    vecs = [np.asarray(it["vec"], dtype=float) for it in items]
+    vecs = [_to_vec(it["vec"]) for it in items]
     used = [False] * len(items)
     clusters = []
     for i in range(len(items)):
