@@ -51,6 +51,16 @@ export default function TicketBoard() {
   const [assignees, setAssignees] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [threads, setThreads] = useState<Record<number, { open: boolean; loading: boolean; items: any[]; err?: string }>>({});
+
+  const toggleThread = async (id: number) => {
+    const cur = threads[id];
+    if (cur?.open) { setThreads((s) => ({ ...s, [id]: { ...cur, open: false } })); return; }
+    if (cur && !cur.err) { setThreads((s) => ({ ...s, [id]: { ...cur, open: true } })); return; }
+    setThreads((s) => ({ ...s, [id]: { open: true, loading: true, items: [] } }));
+    const d = await fetch(`/api/tickets/replies?id=${id}`).then((r) => r.json()).catch((e) => ({ error: String(e) }));
+    setThreads((s) => ({ ...s, [id]: { open: true, loading: false, items: d.replies || [], err: d.error } }));
+  };
 
   const load = useCallback(async () => {
     const p = new URLSearchParams();
@@ -149,8 +159,24 @@ export default function TicketBoard() {
                       {tagCount > 0 && <span className="chip py-0 text-[10px]">🏷 {tagCount} tagged</span>}
                       <span className="tabular-nums">{String(t.day).slice(0, 10)}</span>
                       {!isSlackId(t.reporter) && t.reporter && <span>· {t.reporter}</span>}
+                      <button className="font-medium text-slate-500 hover:text-accent" onClick={() => toggleThread(t.id)}>
+                        {threads[t.id]?.open ? "▾ replies" : "▸ replies"}
+                      </button>
                       {t.permalink && <a className="font-medium text-accent hover:underline" href={t.permalink} target="_blank" rel="noreferrer">open in Slack ↗</a>}
                     </div>
+                    {threads[t.id]?.open && (
+                      <div className="mt-2 space-y-2 rounded-lg bg-slate-50 p-2 ring-1 ring-edge/60">
+                        {threads[t.id].loading && <p className="text-[11px] text-muted">loading replies…</p>}
+                        {!threads[t.id].loading && threads[t.id].err && <p className="text-[11px] text-rose-500">could not load ({threads[t.id].err})</p>}
+                        {!threads[t.id].loading && !threads[t.id].err && threads[t.id].items.length === 0 && <p className="text-[11px] text-muted">no replies in this thread</p>}
+                        {threads[t.id].items.map((rp: any, i: number) => (
+                          <div key={i} className="border-l-2 border-accent/30 pl-2">
+                            <p className="whitespace-pre-wrap text-[12px] leading-relaxed text-slate-600">{rp.text}</p>
+                            <span className="text-[10px] tabular-nums text-slate-400">{String(rp.at).slice(0, 10)}{rp.is_bot ? " · bot" : ""}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <div className="mt-3 flex items-center gap-2 border-t border-edge/70 pt-2.5">
                       <select className="input w-auto flex-1 py-1 text-[12px]" value={t.assignee} onChange={(e) => update(t.id, { assignee: e.target.value })}>
                         {assignees.map((a) => <option key={a}>{a}</option>)}
