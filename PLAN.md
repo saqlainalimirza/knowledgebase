@@ -41,13 +41,14 @@ credits, and can knock over Airtable/GHL that our automations depend on.
       3. Overall stats -> Evergreen client stats
       GHL/Airtable MCP: only for what Evergreen does not have. Never bulk-pull from them.
 
-## P3. All copies interconnected (not just winners)
+## P3. All copies interconnected (not just winners)  ✅ DONE
 
 **Problem:** Chamber Media has tons of data but the copy logs are not in the system,
 only curated winners/losers. Copies should flow in automatically.
 
 **Build:**
-- [ ] Launch-time flow: when copy is prepared in Claude Code, it saves through
+- [x] Copies mined from deal conversations (204 copies auto-linked to campaign+variant
+      with real stats). Plus the launch-time flow: when copy is prepared in Claude Code, it saves through
       `POST /api/agents/save-copy` with the campaign name, and Evergreen links it to the
       campaign automatically. No Airtable logging, no manual linking, stats flow in on
       their own via the daily sync. (Endpoint exists; make the skill push this flow hard.)
@@ -67,8 +68,8 @@ it is done once and reused, not re-invented per session.
 
 ## P5. Churn-proofing + sales calls
 
-- [ ] Churn section: when a client leaves (e.g. Digital Resource), their data stays in
-      Evergreen marked churned, never deleted. Compounding is the whole point.
+- [x] Churn section: mark a client churned (status 'past') from the Lifecycle tab; all
+      data stays in Evergreen as reference (downweighted), live syncs stop. Reactivate any time.
 - [ ] Sales-call transcripts ingestion (our own sales calls, not client GTM calls):
       new source type; Aaman will send recordings/transcripts. Reuse transcript agent
       with a `call_type='sales'` tag.

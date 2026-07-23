@@ -8,19 +8,22 @@ export default function ClientActions({
   slug,
   niche,
   airtableId,
+  status,
 }: {
   slug: string;
   niche: string | null;
   airtableId: string | null;
+  status?: string;
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<"case" | "transcript" | "campaigns" | "niche">("case");
+  const [tab, setTab] = useState<"case" | "transcript" | "campaigns" | "niche" | "lifecycle">("case");
 
   const tabs = [
     { id: "case", label: "Add case studies" },
     { id: "transcript", label: "Add transcript" },
     { id: "campaigns", label: "Sync campaigns" },
     { id: "niche", label: "Synthesize niche" },
+    { id: "lifecycle", label: "Lifecycle" },
   ] as const;
 
   return (
@@ -41,6 +44,43 @@ export default function ClientActions({
       {tab === "transcript" && <TranscriptForm slug={slug} onDone={() => router.refresh()} />}
       {tab === "campaigns" && <CampaignSync slug={slug} airtableId={airtableId} onDone={() => router.refresh()} />}
       {tab === "niche" && <NicheSynth niche={niche} onDone={() => router.refresh()} />}
+      {tab === "lifecycle" && <Lifecycle slug={slug} status={status} onDone={() => router.refresh()} />}
+    </div>
+  );
+}
+
+function Lifecycle({ slug, status, onDone }: { slug: string; status?: string; onDone: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const isChurned = status === "past";
+  async function setStatus(next: "active" | "past") {
+    if (next === "past" && !confirm(`Mark ${slug} as churned? Their data stays in Evergreen as reference; live syncs stop.`)) return;
+    setBusy(true); setMsg(null);
+    const r = await fetch(`/api/clients/${slug}/status`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: next }),
+    }).then((x) => x.json());
+    setBusy(false);
+    setMsg(r.ok ? (next === "past" ? "Marked churned." : "Reactivated.") : (r.error || "failed"));
+    if (r.ok) onDone();
+  }
+  return (
+    <div>
+      <p className="mb-3 text-sm text-muted">
+        Churn-proofing: when a client leaves, mark them churned. Nothing is deleted — their calls,
+        pains, deals, contacts, materials and copies stay in Evergreen as reference (auto-downweighted
+        in copy ranking), and live Airtable/Slack syncs stop. Reactivate any time.
+      </p>
+      <div className="flex items-center gap-3">
+        <span className={isChurned ? "badge badge-amber" : "badge badge-green"}>
+          {isChurned ? "churned" : "active"}
+        </span>
+        {isChurned ? (
+          <button className="btn" disabled={busy} onClick={() => setStatus("active")}>{busy ? "…" : "Reactivate client"}</button>
+        ) : (
+          <button className="btn-ghost border-amber-300 text-amber-700" disabled={busy} onClick={() => setStatus("past")}>{busy ? "…" : "Mark churned"}</button>
+        )}
+        {msg && <span className="text-xs text-muted">{msg}</span>}
+      </div>
     </div>
   );
 }

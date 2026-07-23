@@ -48,6 +48,7 @@ export default async function ClientPage({ params }: { params: { slug: string } 
         <Link href="/" className="text-xs text-muted hover:text-accent">← all clients</Link>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-semibold">{client.client}</h1>
+          {client.status === "past" && <span className="badge badge-amber">churned · reference only</span>}
           <NicheOverride slug={slug} current={client.niche} currentSub={client.sub_niche} source={client.niche_source} />
           <div className="ml-auto flex gap-2">
             <Link href={`/clients/${slug}/copy`} className="btn-ghost">✍️ Copy</Link>
@@ -61,7 +62,7 @@ export default async function ClientPage({ params }: { params: { slug: string } 
       <ClientStats slug={slug} />
 
       {/* feed data in */}
-      <ClientActions slug={slug} niche={client.niche} airtableId={client.airtable_client_id} />
+      <ClientActions slug={slug} niche={client.niche} airtableId={client.airtable_client_id} status={client.status} />
 
       {/* the full context (Dashboard V1) */}
       <ClientTabs
