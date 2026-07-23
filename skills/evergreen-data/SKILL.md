@@ -156,7 +156,7 @@ No params. Returns an array; counts are strings.
 Use to discover slugs. `slug` is the key for every other client endpoint.
 
 ## 2. `GET /api/clients/{slug}` — full client detail (the orientation call)
-Returns one object with 6 sections:
+Returns one object with these sections:
 - `client`: `{slug, client, niche, sub_niche, offer, airtable_client_id, status}`
 - `pains` (up to 500): `[{id, kind, persona, item_text, confidence, source}]`
   - `kind`: pain | lingo | dream | belief | objection. `confidence`: confirmed | needs_more.
@@ -169,6 +169,11 @@ Returns one object with 6 sections:
   - `power_rate` = power requests ÷ sent — reply quality per send; the best single signal
     for which campaign/angle is actually working.
 - `niche`: the niche brain — `{commonalities_summary, top_pains, shared_lingo, dream_outcomes, winning_levers, refreshed_at}` (JSON arrays; null if not built).
+- `guidelines`: this client's + global standing instructions (newest first) — read before writing.
+- `materials`: this client's identity docs (title, material_type, context, preview).
+
+Note: `client.status = "past"` means a churned client — their data is retained as
+reference and their copies are auto-downweighted; treat as evidence, not current gospel.
 
 ## 3. `GET /api/clients/{slug}/stats` — LIVE performance from Airtable
 No params. Two sections:
