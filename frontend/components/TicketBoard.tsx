@@ -42,7 +42,7 @@ function shiftDay(day: string, delta: number) {
 }
 
 export default function TicketBoard() {
-  const [view, setView] = useState<"day" | "all">("day");
+  const [view, setView] = useState<"day" | "all">("all");
   const [day, setDay] = useState(todayStr());
   const [page, setPage] = useState(1);
   const [assignee, setAssignee] = useState("");
@@ -77,14 +77,32 @@ export default function TicketBoard() {
     fetch("/api/tickets/assignees").then((r) => r.json()).then((d) => setAssignees(d.assignees || []));
   }, []);
 
-  const update = async (id: number, patch: Partial<Ticket>) => {
-    await fetch("/api/tickets", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, ...patch }) });
-    load();
+  // Optimistic: change the UI instantly, then persist in the background (no refetch).
+  const update = (id: number, patch: Partial<Ticket>) => {
+    setData((prev) => {
+      if (!prev) return prev;
+      const cur = prev.tickets.find((t) => t.id === id);
+      const tickets = prev.tickets.map((t) => (t.id === id ? { ...t, ...patch } : t));
+      let counts = prev.counts;
+      if (patch.status && cur && cur.status !== patch.status) {
+        counts = { ...prev.counts } as any;
+        (counts as any)[cur.status] = Math.max(0, ((counts as any)[cur.status] || 0) - 1);
+        (counts as any)[patch.status] = ((counts as any)[patch.status] || 0) + 1;
+      }
+      return { ...prev, tickets, counts };
+    });
+    fetch("/api/tickets", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, ...patch }) }).catch(() => {});
   };
-  const remove = async (id: number) => {
+  const remove = (id: number) => {
     if (!confirm("Delete this ticket?")) return;
-    await fetch(`/api/tickets?id=${id}`, { method: "DELETE" });
-    load();
+    setData((prev) => {
+      if (!prev) return prev;
+      const cur = prev.tickets.find((t) => t.id === id);
+      const counts = { ...prev.counts } as any;
+      if (cur) counts[cur.status] = Math.max(0, (counts[cur.status] || 0) - 1);
+      return { ...prev, tickets: prev.tickets.filter((t) => t.id !== id), counts, total: Math.max(0, prev.total - 1) };
+    });
+    fetch(`/api/tickets?id=${id}`, { method: "DELETE" }).catch(() => {});
   };
   const syncNow = async () => {
     setBusy(true); setMsg("Pulling from Slack…");
