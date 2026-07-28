@@ -44,6 +44,19 @@ def _channel(src):
     return s.lower() or None
 
 
+_CAMPAIGN_NAMES = None
+
+
+def _campaign_name_by_id():
+    """The Contacts 'Campaign' link points to the Relinked Campaigns table (not our
+    synced 📢 Campaigns), so resolve those rec ids -> campaign name. Cached."""
+    global _CAMPAIGN_NAMES
+    if _CAMPAIGN_NAMES is None:
+        recs = list_records("Relinked Campaigns", fields=["Name"])
+        _CAMPAIGN_NAMES = {r["id"]: (r["fields"].get("Name") or "").strip() for r in recs}
+    return _CAMPAIGN_NAMES
+
+
 def sync(slug):
     conn = get_conn()
     try:
@@ -82,7 +95,11 @@ def sync(slug):
                     f = rec["fields"]
                     title = f.get("Title")
                     func, sen = _buckets(title)
-                    camp_text = f.get("Relinked Campaigns")
+                    # resolve the Campaign link (Relinked Campaigns rec id) -> name;
+                    # fall back to the (usually empty) text field
+                    camp_ids = f.get("Campaign") or []
+                    camp_text = (_campaign_name_by_id().get(camp_ids[0]) if camp_ids else None) \
+                        or f.get("Relinked Campaigns")
                     cur.execute(
                         """insert into contacts(airtable_contact_id, client_slug, name, title,
                              job_function, seniority, company, website, linkedin, email, mobile,
