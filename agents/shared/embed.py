@@ -25,11 +25,11 @@ REGISTRY = [
     ("slack_messages",     "embedding",                  "text"),
     ("guidelines",         "embedding",                  "guideline_text"),
     ("material_chunks",    "embedding",                  "chunk_text"),
-    # contacts: embed only meaningful reply categories; noise (not interested / neutral /
-    # disqualified / AI error / out of office) resolves to NULL and is skipped by the sweep.
+    # contacts: embed negative replies too (Not Interested / Neutral / Disqualified) so
+    # reply analysis of "why campaigns aren't working" is searchable. Only true auto-noise
+    # (AI error / out of office bots) and empty rows are skipped.
     ("contacts",           "conversation_embedding",
-     "case when lower(coalesce(lead_category,'')) in "
-     "('not interested','neutral','disqualified','ai error','out of office','') "
+     "case when lower(coalesce(lead_category,'')) in ('ai error','out of office','') "
      "then null else left(conversation, 8000) end"),
 ]
 

@@ -253,8 +253,9 @@ Response: `{ "type", "query", "routed": [{"niche","score"}], "results": [...] }`
 - `contacts`: `id, client_slug, name, title, job_function, company, lead_category, channel,
   campaign_name, copy_variant, conversation, created_at, score` — semantic search over every
   categorized reply thread (not just deals). Query e.g. "price objection then went quiet" and
-  read the actual threads. Noise categories (Not Interested/Neutral/etc.) are stored for
-  counts but not embedded, so search surfaces meaningful replies.
+  read the actual threads. Negative replies (Not Interested / Neutral / Disqualified) are
+  now embedded too, so you CAN search them (e.g. "already have an agency", "price was too
+  high") to diagnose why a campaign is failing. Only auto-noise (AI error / OOO) is skipped.
 - `slack`: `id, client_slug, user_name, text, created_at, score` — semantic search over each
   client's Slack channel (feedback, campaign discussions, updates the team posted). Empty
   until the Slack sync is enabled.
@@ -282,6 +283,17 @@ Returns `{ client, count, matched, fresh, prospects: [...] }`. Each prospect:
 - **`suggested_next`**: who to contact next (e.g. "already reached director-level, go higher
   to co-founder / SVP biz dev"), based on the seniority already contacted.
 Note: only as complete as ingested data — a call Aaman had that was never ingested won't show.
+
+## 5c. `POST /api/clients/{slug}/reply-diagnosis` — why a campaign isn't working
+Reads the actual inbound replies and buckets the REASON behind each: opt-out, wrong
+contact, wrong fit, already-has-a-solution, price, timing, "how'd you get my number",
+not interested, hostile, positive. Body: `{ "campaign"?: "name substring", "weeks"?: 8 }`
+(both optional; omit for all-time / all campaigns).
+Returns `{ total_replies_analyzed, by_lead_category, negative_share_pct, reasons: [{reason,
+count, pct, examples:[{company, quote}]}] }`. Use to diagnose a failing campaign fast:
+a high opt-out + wrong-contact + "how'd you get my #" share = list-quality / spam problem,
+not copy. Fast keyword classification, so an "Other / unclear" bucket remains — for the
+qualitative read, semantic-search the negatives (contacts search now covers them).
 
 ## 6. `POST /api/clusters` — dominant pains across a whole niche (or one client)
 Body: `{ "niche": "DTC ecom" }` OR `{ "client": "kynship" }`, optional `"threshold": 0.82` (cosine cutoff for grouping).
