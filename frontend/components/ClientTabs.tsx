@@ -177,13 +177,24 @@ function OffersTab({ offers }: { offers: Offer[] }) {
 }
 
 /* ---------- Replies (inbox-lite) ---------- */
-/* ---------- Guidelines: persistent copy/process memory the AI learns from ---------- */
+/* ---------- Guidelines: persistent memory — copy rules, GTM memory, audit/test log ---------- */
+const GL_KINDS: { value: string; label: string }[] = [
+  { value: "preference", label: "copy · preference" },
+  { value: "process", label: "copy · process" },
+  { value: "rule", label: "copy · rule" },
+  { value: "learning", label: "copy · learning" },
+  { value: "gtm_memory", label: "GTM memory" },
+  { value: "audit", label: "audit / test log" },
+];
+const laneOf = (k: string) => (k === "gtm_memory" ? "gtm" : k === "audit" ? "audit" : "copy");
+
 function GuidelinesTab({ slug }: { slug: string }) {
   const [rows, setRows] = useState<any[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [kind, setKind] = useState("preference");
   const [global, setGlobal] = useState(false);
+  const [lane, setLane] = useState("all");
   const [busy, setBusy] = useState(false);
   const load = () =>
     fetch(`/api/guidelines?client=${slug}`).then((r) => r.json())
@@ -207,44 +218,54 @@ function GuidelinesTab({ slug }: { slug: string }) {
   };
   if (err) return <p className="text-sm text-rose-600">{err}</p>;
   if (!rows) return <p className="text-sm text-muted">Loading guidelines…</p>;
+  const shown = lane === "all" ? rows : rows.filter((g: any) => laneOf(g.kind) === lane);
   return (
     <div className="space-y-4">
       <p className="text-xs text-muted">
-        Persistent memory for how copy should be built — the AI saves what the strategist liked
-        each session ("save this into Evergreen") and reads it back before writing. Anything goes:
-        word preferences, process steps, rules, learnings. Global ones apply to every client.
+        Persistent memory across sessions, three lanes in one place: <b>copy</b> rules the AI reads
+        before writing; <b>GTM memory</b> — durable facts/decisions per client it keeps re-deriving
+        (who the real decision-maker is, cadence, what's been tried); and the <b>audit / test log</b>
+        — a campaign issue + what to test next (resolve it once fixed). Global ones apply to every client.
       </p>
       <div className="space-y-2 rounded-lg border border-edge p-3">
-        <textarea className="input h-20 w-full text-sm" placeholder="e.g. For this client, keep T1 under 140 chars and never open with a question…"
+        <textarea className="input h-20 w-full text-sm" placeholder="GTM memory: decision-maker is VP Growth, CEO ignores cold. — or — Audit: Zenvyk spam-flagged + 0 positives, test a softer non-salesy opener next."
           value={text} onChange={(e) => setText(e.target.value)} />
         <div className="flex flex-wrap items-center gap-3">
           <select className="input w-auto text-xs" value={kind} onChange={(e) => setKind(e.target.value)}>
-            {["preference", "process", "rule", "learning"].map((k) => <option key={k}>{k}</option>)}
+            {GL_KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}
           </select>
           <label className="flex items-center gap-1.5 text-xs text-muted">
             <input type="checkbox" checked={global} onChange={(e) => setGlobal(e.target.checked)} />
             global (all clients)
           </label>
           <button className="btn px-3 py-1.5 text-xs" onClick={save} disabled={busy || !text.trim()}>
-            {busy ? "Saving…" : "Save guideline"}
+            {busy ? "Saving…" : "Save"}
           </button>
         </div>
       </div>
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        {([["all", "All"], ["copy", "Copy"], ["gtm", "GTM memory"], ["audit", "Audit / test log"]] as const).map(([v, l]) => (
+          <button key={v} onClick={() => setLane(v)} className={`badge ${lane === v ? "badge-amber" : ""}`}>{l}</button>
+        ))}
+        <span className="text-muted">· {shown.length} shown</span>
+      </div>
       <div className="max-h-[480px] space-y-2 overflow-auto pr-1">
-        {rows.map((g) => (
+        {shown.map((g: any) => (
           <div key={g.id} className="rounded-lg border border-edge p-2 text-xs">
             <div className="mb-1 flex items-center gap-2 text-muted">
               <span className={g.client_slug ? "badge" : "badge badge-amber"}>{g.client_slug || "global"}</span>
               <span className="badge">{g.kind}</span>
               <span>{String(g.created_at).slice(0, 10)}</span>
               {g.source && <span>· {g.source}</span>}
-              <button className="ml-auto text-rose-500 hover:underline" onClick={() => remove(g.id)}>remove</button>
+              <button className="ml-auto text-rose-500 hover:underline" onClick={() => remove(g.id)}>
+                {g.kind === "audit" ? "resolve" : "remove"}
+              </button>
             </div>
             <p className="whitespace-pre-wrap text-slate-700">{g.guideline_text}</p>
             {g.context && <p className="mt-1 text-muted">context: {g.context}</p>}
           </div>
         ))}
-        {rows.length === 0 && <p className="text-sm text-muted">No guidelines yet. The first one gets saved from a Claude session or right here.</p>}
+        {shown.length === 0 && <p className="text-sm text-muted">Nothing in this lane yet. Saved from a Claude session or added right here.</p>}
       </div>
     </div>
   );

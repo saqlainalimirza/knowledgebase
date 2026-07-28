@@ -56,6 +56,19 @@ thousands of rows to count them yourself.
      act on next session. Anything can be a guideline: word choices, structure rules,
      process steps ("always check replies before drafting"), things that failed.
    - Semantic search over them: `POST /api/search {"type":"guidelines", ...}`.
+   - **Two more lanes live in the SAME guidelines store — separate them with `?kind=`:**
+     - **GTM memory** (`kind:"gtm_memory"`) — durable facts/decisions per client you'd
+       otherwise keep re-deriving: who the real decision-maker is, outreach cadence, what's
+       already been tried, positioning that landed. **Load before ANY GTM / prospecting
+       work:** `GET /api/guidelines?client={slug}&kind=gtm_memory,audit`. Save one whenever
+       you learn something durable (`POST` with `kind:"gtm_memory"`).
+     - **Audit / test log** (`kind:"audit"`) — a campaign problem + what to test next. Put
+       the campaign name in `context`, the observation + hypothesis in `guideline_text`
+       (e.g. "spam-flagged + 0 positives → test a softer, non-salesy opener"). It stays OPEN
+       while active; once tested/resolved, retire it with `PATCH {id, active:false}`. This
+       pairs with reply-diagnosis (5c): diagnose why a campaign fails → log the fix to test
+       → resolve it when it's fixed. Copy tasks can ignore this lane by fetching
+       `?kind=preference,process,rule,learning`.
 2. **Slack is in the memory**: `POST /api/search {"type":"slack"}` searches 2,500+
    messages from every client's Slack channel (client feedback, campaign updates,
    "don't book these people" style instructions). Check it when briefing on a client.
@@ -340,13 +353,19 @@ Use for: tracing provenance and seeing how everything connects. Heavy; prefer ta
 - `components[].component_type`: disarmer | identity | case_line | unique_mechanism | relevance | cta.
 Returns `{ok, output}` (output includes the new copy id). Char counts + embeddings computed server-side.
 
-## 10b. Guidelines — persistent strategist memory
+## 10b. Guidelines — persistent strategist memory (3 lanes: copy · gtm_memory · audit)
 - `GET /api/guidelines?client={slug}` -> `{count, guidelines:[{id, client_slug, kind,
   guideline_text, context, source, created_at}]}` — the client's + global, newest first.
-  **Fetch this before every copy task.**
+  **Fetch this before every copy task.** Add `&kind=gtm_memory,audit` to load only the
+  GTM lanes (before prospecting / GTM work), or `&kind=preference,process,rule,learning`
+  for just the copy rules. `kind` is comma-separated and case-insensitive.
+- Lanes by `kind`: **copy** = `preference|process|rule|learning` (read before writing);
+  **`gtm_memory`** = durable per-client GTM facts/decisions; **`audit`** = a campaign
+  problem + what to test next (campaign in `context`; open while active, `PATCH active:false`
+  to resolve).
 - `POST /api/guidelines` — save one `{client_slug?, kind?, guideline_text, context?, source?}`
   or `{items:[...]}`. `client_slug` null/absent = global. Duplicates auto-skipped.
-- `PATCH /api/guidelines` `{id, active:false}` — retire an outdated guideline.
+- `PATCH /api/guidelines` `{id, active:false}` — retire an outdated guideline / resolve an audit item.
 - `POST /api/search {"type":"guidelines","query":"..."}` — semantic search
   (returns `id, client_slug, kind, guideline_text, context, source, created_at, score`).
 

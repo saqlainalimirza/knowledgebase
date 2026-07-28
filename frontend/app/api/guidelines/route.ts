@@ -7,21 +7,23 @@ export const maxDuration = 120;
 
 // GET /api/guidelines?client=kynship  -> that client's guidelines + all globals, newest first.
 // No ?client= -> everything (grouped view for the dashboard).
+// Optional ?kind=gtm_memory,audit -> only those lanes (copy rules vs GTM memory vs audit log).
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const client = url.searchParams.get("client");
+  const kinds = (url.searchParams.get("kind") || "")
+    .split(",").map((k) => k.trim().toLowerCase()).filter(Boolean);
   try {
-    const rows = client
-      ? await q(
-          `select id, client_slug, kind, guideline_text, context, source, created_at
-           from guidelines where active and (client_slug=$1 or client_slug is null)
-           order by client_slug nulls last, created_at desc`,
-          [client]
-        )
-      : await q(
-          `select id, client_slug, kind, guideline_text, context, source, created_at
-           from guidelines where active order by created_at desc`
-        );
+    const where: string[] = ["active"];
+    const args: any[] = [];
+    if (client) { args.push(client); where.push(`(client_slug=$${args.length} or client_slug is null)`); }
+    if (kinds.length) { args.push(kinds); where.push(`lower(kind) = any($${args.length}::text[])`); }
+    const rows = await q(
+      `select id, client_slug, kind, guideline_text, context, source, created_at
+       from guidelines where ${where.join(" and ")}
+       order by client_slug nulls last, created_at desc`,
+      args
+    );
     return NextResponse.json({ count: rows.length, guidelines: rows });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
