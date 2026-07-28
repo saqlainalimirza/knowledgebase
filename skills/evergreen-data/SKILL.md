@@ -28,6 +28,7 @@ to 12,000 records) burns API credits and can take Airtable/GHL down. Route by qu
 | Overall performance (sent, positives, booked, conversion, KPIs) | **stats** | `GET /api/clients/{slug}/stats`, campaigns in `GET /api/clients/{slug}` |
 | Reply-reason analytics for a client (categories, lost reasons, trend) | **replies** | `GET /api/clients/{slug}/replies` |
 | Pains / lingo / proof / copy / offers / Slack / guidelines / materials | Evergreen search | `POST /api/search` (see types below) |
+| **Prospect research** — "have we touched these companies, what stage, who did we reach" | **prospects/lookup** | `POST /api/prospects/lookup` (do NOT semantic-search deals for this) |
 
 **Rule:** try Evergreen first. Only fall back to GHL/Airtable/Smartlead MCP for something
 Evergreen genuinely does not have (e.g. a single live record by id), and never bulk-pull.
@@ -266,6 +267,21 @@ Response: `{ "type", "query", "routed": [{"niche","score"}], "results": [...] }`
   (free_audit | performance_guarantee | done_for_you | free_pilot | case_study_teardown |
   unique_mechanism_pitch | partnership | risk_reversal). `proof_hint` names the case
   study that backs the offer — cross-reference it with a `case_studies` search.
+
+## 5b. `POST /api/prospects/lookup` — prospect touch-history (for outreach research)
+**Use this for "what stage is this prospect at / have we touched them / who did we reach"
+— NOT semantic search.** It is a deterministic company-name lookup, instant.
+Body: `{ "client": "scaletopia", "companies": ["Amsive", "First Media", ...] }`
+(pass the whole prospect list at once; `client` defaults to `scaletopia`).
+Returns `{ client, count, matched, fresh, prospects: [...] }`. Each prospect:
+- `matched` (false = fresh, never contacted), `touches`, `first_touch`, `last_touch`
+- `furthest_stage` (how far down the funnel they got)
+- `had_call` + `call.title` (whether we had a discovery/sales call, from the transcripts)
+- `contacts_reached`: `[{name, title, seniority}]` — who we already hit
+- `outcomes` (reply categories / lost reasons), `campaigns`
+- **`suggested_next`**: who to contact next (e.g. "already reached director-level, go higher
+  to co-founder / SVP biz dev"), based on the seniority already contacted.
+Note: only as complete as ingested data — a call Aaman had that was never ingested won't show.
 
 ## 6. `POST /api/clusters` — dominant pains across a whole niche (or one client)
 Body: `{ "niche": "DTC ecom" }` OR `{ "client": "kynship" }`, optional `"threshold": 0.82` (cosine cutoff for grouping).
