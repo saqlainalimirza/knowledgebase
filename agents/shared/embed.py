@@ -25,11 +25,13 @@ REGISTRY = [
     ("slack_messages",     "embedding",                  "text"),
     ("guidelines",         "embedding",                  "guideline_text"),
     ("material_chunks",    "embedding",                  "chunk_text"),
-    # contacts: embed negative replies too (Not Interested / Neutral / Disqualified) so
-    # reply analysis of "why campaigns aren't working" is searchable. Only true auto-noise
-    # (AI error / out of office bots) and empty rows are skipped.
+    # contacts: embed only the meaningful/positive categories (cost control). Negatives
+    # (not interested / neutral / disqualified) are NOT embedded — the reply-diagnosis
+    # endpoint reads their text directly (keyword), so it needs no vectors. The ~4.9k
+    # negatives embedded once already stay searchable; we just don't grow that spend.
     ("contacts",           "conversation_embedding",
-     "case when lower(coalesce(lead_category,'')) in ('ai error','out of office','') "
+     "case when lower(coalesce(lead_category,'')) in "
+     "('not interested','neutral','disqualified','ai error','out of office','') "
      "then null else left(conversation, 8000) end"),
 ]
 
