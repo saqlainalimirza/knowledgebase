@@ -26,6 +26,7 @@ to 12,000 records) burns API credits and can take Airtable/GHL down. Route by qu
 | Winning replies / booked meetings / deal outcomes, with variant + full thread | **deals** | `GET /api/clients/{slug}/deals`, `POST /api/search {"type":"deals"}` |
 | ALL replies by category (Not Interested, Objection Handling, Positive, Maybe, Power Request…), negative-reply threads, "why aren't people responding" | **contacts** | `GET /api/clients/{slug}/contacts`, `POST /api/search {"type":"contacts"}` |
 | Overall performance (sent, positives, booked, conversion, KPIs) | **stats** | `GET /api/clients/{slug}/stats`, campaigns in `GET /api/clients/{slug}` |
+| **Client report** — the copy actually running per campaign + its performance + KPIs vs target | **report** | `GET /api/clients/{slug}/report` |
 | Reply-reason analytics for a client (categories, lost reasons, trend) | **replies** | `GET /api/clients/{slug}/replies` |
 | Pains / lingo / proof / copy / offers / Slack / guidelines / materials | Evergreen search | `POST /api/search` (see types below) |
 | **Prospect research** — "have we touched these companies, what stage, who did we reach" | **prospects/lookup** | `POST /api/prospects/lookup` (do NOT semantic-search deals for this) |
@@ -232,6 +233,27 @@ Optional `?weeks=4` window. Returns:
 - `no_examples`: the 15 most recent "no" threads with company, job_title, variant,
   campaign and a 500-char conversation snippet — read these to understand objections.
 Use for: "why are people saying no this week", objection trends, reply-quality tracking.
+
+## 4d. `GET /api/clients/{slug}/report` — the client report (live copy + performance + KPIs)
+The one call for "how is this client doing and what copy is actually running." The live
+campaign copy is never stored in the CRM (it lives in the sending tools), so we RECONSTRUCT
+it from the outbound messages inside the reply threads and link it to the campaign — so each
+campaign's stats ARE that copy's performance. Returns:
+- `client`: `{slug, name, niche, status}`.
+- `kpi` (from the client's Airtable record; null if unavailable): `targets`
+  `{weeklyBooked, monthlyBooked, weeklyPositives}`, `this_week` / `this_month`
+  `{sent, positives, booked, conversion}`, and `on_track` booleans. The benchmark is the
+  client's OWN targets — not invented industry numbers.
+- `weekly_trend`: last 8 weeks `[{week, positives, booked}]` from real deal data.
+- `campaigns` (sorted by power, dead shells dropped): each with `sent, replies, positives,
+  power_requests, booked, power_rate_pct`, **`live_copy`** `{t1, t2, variant, char_t1,
+  char_t2, source, reconstructed_at}` (the reconstructed running copy, or null),
+  `copy_status` (`reconstructed` | `no_reply_captured`), and `vs_client_avg`
+  (`above`|`at`|`below` this client's own average power_rate).
+- `summary`: `{campaigns, with_live_copy, avg_power_rate_pct}`.
+Use for: writing a client report, spotting which live copy is under/over-performing, grading
+the client against their own KPIs. `copy_status: no_reply_captured` = that campaign got no
+replies we could mine copy from (copy is only recoverable where at least one lead replied).
 
 ## 5. `POST /api/search` — semantic search over any knowledge type (the workhorse)
 Body:

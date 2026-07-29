@@ -62,7 +62,7 @@ def _canonical_niches():
 
 def run(only=None):
     _ensure_log_table()
-    steps = only or ["campaigns", "stats", "deals", "contacts", "slack", "tickets", "brains", "embeds"]
+    steps = only or ["campaigns", "stats", "deals", "contacts", "mine", "slack", "tickets", "brains", "embeds"]
     t0 = time.time()
     lines, ok = [], True
 
@@ -125,6 +125,17 @@ def run(only=None):
         except Exception as e:
             ok = False; lines.append(f"contacts: FAILED {e}")
 
+    if "mine" in steps:
+        try:
+            from copy_mine_agent import mine_client
+            total = 0
+            for s in slugs:
+                try: total += mine_client(s, fill_only=True)
+                except Exception as e: lines.append(f"mine {s}: ERR {e}")
+            lines.append(f"copy-mine: reconstructed {total} new campaign copies")
+        except Exception as e:
+            ok = False; lines.append(f"copy-mine: FAILED {e}")
+
     if "slack" in steps:
         try:
             from connections import slack as slack_conn
@@ -184,7 +195,7 @@ def run(only=None):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--only", default=None, help="comma list: campaigns,stats,deals,brains,embeds")
+    ap.add_argument("--only", default=None, help="comma list: campaigns,stats,deals,contacts,mine,slack,tickets,brains,embeds")
     args = ap.parse_args()
     only = [s.strip() for s in args.only.split(",")] if args.only else None
     try:

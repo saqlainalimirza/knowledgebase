@@ -65,7 +65,8 @@ def outbound_messages(conv):
     return out
 
 
-def _groups(cur, slug):
+def _deal_groups(cur, slug):
+    """Deals carry a variant, so mine variant-accurate (campaign_id, variant) groups."""
     cur.execute(
         """select campaign_id, variant, conversation
            from deals
@@ -80,7 +81,78 @@ def _groups(cur, slug):
     return groups
 
 
-def mine_client(slug, dry_run=False, max_groups=None):
+def _contact_groups(cur, slug, covered):
+    """Campaign-level copy from the contact reply threads — for campaigns that got NO
+    deal-mined copy (e.g. campaigns whose only replies were negative/neutral, which live
+    in contacts, not deals). Variant is ignored: one representative template per campaign
+    is enough for reporting 'what copy is live'. Skips campaigns already covered by deals."""
+    cur.execute(
+        """select db_campaign_id, conversation
+           from contacts
+           where client_slug=%s and db_campaign_id is not null
+             and conversation is not null and length(conversation) > 150
+           order by db_campaign_id""",
+        (slug,),
+    )
+    groups = {}
+    for cid, conv in cur.fetchall():
+        if cid in covered:
+            continue
+        groups.setdefault(cid, []).append(conv)
+    return groups
+
+
+def _mine_group(conn, slug, cid, variant, convs, origin, niche, sub_niche, dry_run):
+    """Extract one canonical copy from a group of conversations, save it linked to the
+    campaign (so it inherits real stats). Returns True if a copy was saved."""
+    t1s, t2s = [], []
+    for conv in convs:
+        msgs = outbound_messages(conv)
+        if msgs:
+            t1s.append(msgs[0])
+        if len(msgs) > 1:
+            t2s.append(msgs[1])
+    if not t1s:
+        return False
+    t1_ex = "\n---\n".join(t1s[:MAX_EXAMPLES])
+    t2_ex = "\n---\n".join(t2s[:MAX_EXAMPLES]) or "(none)"
+    try:
+        data = extract_json(PROMPT.format(t1=t1_ex, t2=t2_ex), system=SYSTEM)
+    except Exception as e:
+        print(f"  campaign {cid} var {variant}: extract failed {e}")
+        return False
+    t1 = (data.get("t1") or "").strip()
+    t2 = (data.get("t2") or "").strip() or None
+    if not t1:
+        return False
+    with conn.cursor() as cur:
+        cur.execute("select channel, niche, persona from campaigns where id=%s", (cid,))
+        crow = cur.fetchone()
+        channel, c_niche, c_persona = (crow or (None, None, None))
+    print(f"  [{origin}] campaign {cid} var {variant} ({len(convs)} threads): {t1[:66]}...")
+    if dry_run:
+        return False
+    with conn.cursor() as cur:
+        # replace any prior mined copy for this (origin, campaign, variant)
+        cur.execute(
+            "delete from copies where origin=%s and campaign_id=%s and coalesce(variant,'')=coalesce(%s,'')",
+            (origin, cid, variant),
+        )
+        from shared.writers import save_copy
+        save_copy(cur, {
+            "origin": origin, "client_slug": slug, "campaign_id": cid,
+            "variant": variant, "channel": channel or "sms",
+            "niche": c_niche or niche, "sub_niche": sub_niche, "persona": c_persona,
+            "t1": t1, "t2": t2, "status": "neutral",
+        })
+    conn.commit()
+    return True
+
+
+def mine_client(slug, dry_run=False, max_groups=None, fill_only=False):
+    """Reconstruct the live copy per campaign from its reply threads.
+    fill_only=True (daily sync): skip campaigns that already have a mined copy — cheap,
+    only reconstructs copy for NEW campaigns. Full run (default) re-mines everything."""
     conn = get_conn()
     made = 0
     try:
@@ -88,55 +160,42 @@ def mine_client(slug, dry_run=False, max_groups=None):
             cur.execute("select niche, sub_niche from client_roster where slug=%s", (slug,))
             row = cur.fetchone()
             niche, sub_niche = (row or (None, None))
-            groups = _groups(cur, slug)
-        items = list(groups.items())
+            existing = set()
+            if fill_only:
+                cur.execute(
+                    """select distinct campaign_id from copies
+                       where campaign_id is not null and client_slug=%s
+                         and origin in ('mined_from_deal','mined_from_contact')""",
+                    (slug,),
+                )
+                existing = {r[0] for r in cur.fetchall()}
+            deal_groups = _deal_groups(cur, slug)
+
+        # 1) variant-accurate copy from deal (positive/opportunity) threads
+        items = list(deal_groups.items())
         if max_groups:
             items = items[:max_groups]
-        print(f"{slug}: {len(items)} campaign+variant groups")
-
+        print(f"{slug}: {len(items)} deal campaign+variant groups"
+              + (f" ({len(existing)} campaigns already have copy, skipping)" if fill_only else ""))
+        covered = set(existing)  # campaigns that already have (or now get) a mined copy
         for (cid, variant), convs in items:
-            t1s, t2s = [], []
-            for conv in convs:
-                msgs = outbound_messages(conv)
-                if msgs:
-                    t1s.append(msgs[0])
-                if len(msgs) > 1:
-                    t2s.append(msgs[1])
-            if not t1s:
+            if fill_only and cid in existing:
                 continue
-            t1_ex = "\n---\n".join(t1s[:MAX_EXAMPLES])
-            t2_ex = "\n---\n".join(t2s[:MAX_EXAMPLES]) or "(none)"
-            try:
-                data = extract_json(PROMPT.format(t1=t1_ex, t2=t2_ex), system=SYSTEM)
-            except Exception as e:
-                print(f"  campaign {cid} var {variant}: extract failed {e}")
-                continue
-            t1 = (data.get("t1") or "").strip()
-            t2 = (data.get("t2") or "").strip() or None
-            if not t1:
-                continue
-            with conn.cursor() as cur:
-                cur.execute("select channel, niche, persona from campaigns where id=%s", (cid,))
-                crow = cur.fetchone()
-                channel, c_niche, c_persona = (crow or (None, None, None))
-            print(f"  campaign {cid} var {variant} ({len(convs)} deals): {t1[:70]}...")
-            if dry_run:
-                continue
-            with conn.cursor() as cur:
-                # replace any prior mined copy for this group
-                cur.execute(
-                    "delete from copies where origin='mined_from_deal' and campaign_id=%s and variant=%s",
-                    (cid, variant),
-                )
-                from shared.writers import save_copy
-                save_copy(cur, {
-                    "origin": "mined_from_deal", "client_slug": slug, "campaign_id": cid,
-                    "variant": variant, "channel": channel or "sms",
-                    "niche": c_niche or niche, "sub_niche": sub_niche, "persona": c_persona,
-                    "t1": t1, "t2": t2, "status": "neutral",
-                })
-            conn.commit()
-            made += 1
+            if _mine_group(conn, slug, cid, variant, convs, "mined_from_deal", niche, sub_niche, dry_run):
+                made += 1
+                covered.add(cid)
+
+        # 2) fill campaigns with no deal-mined copy using their contact threads (negatives etc.)
+        with conn.cursor() as cur:
+            contact_groups = _contact_groups(cur, slug, covered)
+        c_items = list(contact_groups.items())
+        if max_groups:
+            c_items = c_items[:max_groups]
+        print(f"{slug}: {len(c_items)} contacts-only campaign groups")
+        for cid, convs in c_items:
+            if _mine_group(conn, slug, cid, "A", convs, "mined_from_contact", niche, sub_niche, dry_run):
+                made += 1
+
         if not dry_run:
             n = embed_all(conn, only_tables={"copies"})
             print(f"{slug}: mined {made} copies, embedded {n} vectors")
