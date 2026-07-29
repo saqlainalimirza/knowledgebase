@@ -17,7 +17,7 @@ export default function ClientTabs(props: {
   const { slug, pains, campaigns, copies, offers, cases, calls, nicheBrain } = props;
   const tabs = [
     ["pains", `Pains (${pains.length})`], ["campaigns", `Campaigns (${campaigns.length})`],
-    ["copies", `Copies (${copies.length})`], ["offers", `Offers (${offers.length})`],
+    ["copies", `Copies (${copies.length})`], ["report", "Report"], ["offers", `Offers (${offers.length})`],
     ["guidelines", "Guidelines"], ["materials", "Materials"], ["deals", "Deals"], ["replies", "Replies"], ["cases", `Cases (${cases.length})`],
     ["calls", `Calls (${calls.length})`], ["niche", "Niche brain"],
   ] as const;
@@ -35,6 +35,7 @@ export default function ClientTabs(props: {
       {tab === "pains" && <PainsTab pains={pains} />}
       {tab === "campaigns" && <CampaignsTab campaigns={campaigns} />}
       {tab === "copies" && <CopiesTab copies={copies} slug={slug} />}
+      {tab === "report" && <ReportTab slug={slug} />}
       {tab === "offers" && <OffersTab offers={offers} />}
       {tab === "guidelines" && <GuidelinesTab slug={slug} />}
       {tab === "materials" && <MaterialsTab slug={slug} />}
@@ -145,6 +146,99 @@ function CopiesTab({ copies, slug }: { copies: Copy[]; slug: string }) {
           </div>
         ))}
         {copies.length === 0 && <p className="text-sm text-muted">No copies yet.</p>}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Report: reconstructed live copy + performance + KPIs (what the AI report uses) ---------- */
+function ReportTab({ slug }: { slug: string }) {
+  const [data, setData] = useState<any>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [channel, setChannel] = useState("all");
+  const [onlyCopy, setOnlyCopy] = useState(false);
+  useEffect(() => {
+    fetch(`/api/clients/${slug}/report`).then((r) => r.json())
+      .then((d) => (d.error ? setErr(d.error) : setData(d))).catch((e) => setErr(e.message));
+  }, [slug]);
+  if (err) return <p className="text-sm text-rose-600">{err}</p>;
+  if (!data) return <p className="text-sm text-muted">Loading report… (same call the AI uses)</p>;
+
+  const shown = (data.campaigns || []).filter((c: any) =>
+    (channel === "all" || (c.channel || "?") === channel) &&
+    (!onlyCopy || c.copy_status === "reconstructed")
+  );
+  const chBadge = (ch: string | null) =>
+    ch === "email" ? "badge badge-amber" : ch === "sms" ? "badge badge-green" : "badge";
+  const flag = (v: string) =>
+    v === "above" ? "text-emerald-600" : v === "below" ? "text-rose-600" : "text-muted";
+  const k = data.kpi;
+  const ok = (b: boolean | null) => (b == null ? "—" : b ? "✅" : "⚠️");
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-muted">
+        Same data as <code>/api/clients/{slug}/report</code> — per campaign, the copy actually running
+        (reconstructed from real reply threads, tagged SMS/email) plus its performance, and the client's
+        KPIs vs their own targets. {data.summary.with_live_copy}/{data.summary.campaigns} campaigns have
+        reconstructed copy; client avg power rate {data.summary.avg_power_rate_pct}%.
+      </p>
+
+      {k && (
+        <div className="rounded-lg border border-edge p-3 text-xs">
+          <div className="mb-1 font-medium">KPIs vs the client's own targets</div>
+          <div className="flex flex-wrap gap-4 tabular-nums">
+            <span>Weekly booked: {k.this_week.booked}/{k.targets.weeklyBooked} {ok(k.on_track.weeklyBooked)}</span>
+            <span>Weekly positives: {k.this_week.positives}/{k.targets.weeklyPositives} {ok(k.on_track.weeklyPositives)}</span>
+            <span>Monthly booked: {k.this_month.booked}/{k.targets.monthlyBooked} {ok(k.on_track.monthlyBooked)}</span>
+          </div>
+          {data.weekly_trend?.length > 0 && (
+            <div className="mt-2 text-muted">
+              trend (wk · pos/booked): {data.weekly_trend.slice(0, 6).map((w: any) => `${String(w.week).slice(5)} ${w.positives}/${w.booked}`).join("   ")}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <select className="input w-auto text-xs" value={channel} onChange={(e) => setChannel(e.target.value)}>
+          <option value="all">All channels</option><option value="sms">SMS</option><option value="email">Email</option>
+        </select>
+        <label className="flex items-center gap-1.5 text-muted">
+          <input type="checkbox" checked={onlyCopy} onChange={(e) => setOnlyCopy(e.target.checked)} />
+          only campaigns with reconstructed copy
+        </label>
+        <span className="text-muted">· {shown.length} shown</span>
+      </div>
+
+      <div className="max-h-[560px] space-y-2 overflow-auto pr-1">
+        {shown.map((c: any) => (
+          <details key={c.id} className="rounded-lg border border-edge p-2 text-xs">
+            <summary className="cursor-pointer select-none">
+              <span className={chBadge(c.channel)}>{c.channel || "?"}</span>{" "}
+              <span className="font-medium">{c.name}</span>
+              <span className="ml-2 tabular-nums text-muted">
+                sent {Number(c.sent).toLocaleString()} · PR {c.positives} · ⚡{c.power_rate_pct}%{" "}
+                <span className={flag(c.vs_client_avg)}>({c.vs_client_avg})</span> · booked {c.booked}
+              </span>
+            </summary>
+            <div className="mt-2">
+              {c.live_copy ? (
+                <>
+                  <div className="mb-1 text-muted">
+                    live copy · var {c.live_copy.variant || "A"} · {c.live_copy.source}
+                    {c.live_copy.reconstructed_at && <> · {String(c.live_copy.reconstructed_at).slice(0, 10)}</>}
+                  </div>
+                  <p className="whitespace-pre-wrap text-slate-800">{c.live_copy.t1}</p>
+                  {c.live_copy.t2 && <p className="mt-1 whitespace-pre-wrap text-slate-500">{c.live_copy.t2}</p>}
+                </>
+              ) : (
+                <p className="text-muted">No copy reconstructed — this campaign has no captured reply thread to mine from yet.</p>
+              )}
+            </div>
+          </details>
+        ))}
+        {shown.length === 0 && <p className="text-sm text-muted">No campaigns match.</p>}
       </div>
     </div>
   );
