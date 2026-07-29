@@ -130,7 +130,7 @@ def run(only=None):
             from copy_mine_agent import mine_client
             total = 0
             for s in slugs:
-                try: total += mine_client(s, fill_only=True)
+                try: total += mine_client(s)  # orphan-only: reconstructs copy for NEW campaigns
                 except Exception as e: lines.append(f"mine {s}: ERR {e}")
             lines.append(f"copy-mine: reconstructed {total} new campaign copies")
         except Exception as e:
