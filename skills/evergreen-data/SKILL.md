@@ -264,11 +264,13 @@ Response: `{ "type", "query", "routed": [{"niche","score"}], "results": [...] }`
   filters client-side: e.g. keep `stage in (Meeting Booked, Won)` to study what conversations
   that BOOK look like, or `positive_reply_category = Not Interested` to study why people say no.
 - `contacts`: `id, client_slug, name, title, job_function, company, lead_category, channel,
-  campaign_name, copy_variant, conversation, created_at, score` — semantic search over every
-  categorized reply thread (not just deals). Query e.g. "price objection then went quiet" and
-  read the actual threads. Negative replies (Not Interested / Neutral / Disqualified) are
-  now embedded too, so you CAN search them (e.g. "already have an agency", "price was too
-  high") to diagnose why a campaign is failing. Only auto-noise (AI error / OOO) is skipped.
+  campaign_name, copy_variant, conversation, created_at, score` — semantic search over
+  categorized reply threads (not just deals). Query e.g. "price objection then went quiet"
+  and read the actual threads. NOTE: only positive/meaningful categories are vector-indexed;
+  most negatives (Not Interested / Neutral / Disqualified) are NOT semantically searchable
+  (cost control). To work with negatives, don't rely on this search — use reply-diagnosis
+  (5c) for the "why", or `GET /api/clients/{slug}/contacts?category=Not%20Interested` to pull
+  and read the actual negative threads directly (that endpoint covers every category).
 - `slack`: `id, client_slug, user_name, text, created_at, score` — semantic search over each
   client's Slack channel (feedback, campaign discussions, updates the team posted). Empty
   until the Slack sync is enabled.
@@ -306,7 +308,8 @@ Returns `{ total_replies_analyzed, by_lead_category, negative_share_pct, reasons
 count, pct, examples:[{company, quote}]}] }`. Use to diagnose a failing campaign fast:
 a high opt-out + wrong-contact + "how'd you get my #" share = list-quality / spam problem,
 not copy. Fast keyword classification, so an "Other / unclear" bucket remains — for the
-qualitative read, semantic-search the negatives (contacts search now covers them).
+qualitative read, pull the actual negative threads with
+`GET /api/clients/{slug}/contacts?category=Not%20Interested` (or another category) and read them.
 
 ## 6. `POST /api/clusters` — dominant pains across a whole niche (or one client)
 Body: `{ "niche": "DTC ecom" }` OR `{ "client": "kynship" }`, optional `"threshold": 0.82` (cosine cutoff for grouping).
