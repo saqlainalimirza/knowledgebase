@@ -59,6 +59,11 @@ def _placeholderize(text, name, company):
         first = name.strip().split()[0]
         if len(first) >= 2:
             out = re.sub(r"\b" + re.escape(first) + r"\b", "{first_name}", out, flags=re.I)
+    # greeting-name leak guard: catch the recipient's name even when the record's name field
+    # didn't match what the message actually used (e.g. "Hi David," / "David,\n").
+    out = re.sub(r"^(\s*(?:hi|hey|hello|dear|hiya)\s+)([A-Z][a-zA-Z'’\-]+)",
+                 r"\1{first_name}", out, count=1, flags=re.I)
+    out = re.sub(r"^(\s*)[A-Z][a-z]{1,}(,[ \t]*(?:\n|$))", r"\1{first_name}\2", out, count=1)
     return out
 
 
@@ -109,15 +114,72 @@ def _orphan_threads(cur, slug, rebuild=False):
     return cand
 
 
-def _best_thread(threads):
-    """Pick the thread whose first outbound message is the fullest (most complete opener)."""
-    best, best_len = None, -1
+_GREETING = re.compile(r"^\s*(hi|hey|hello|dear|hiya)\b", re.I)
+# a follow-up / bump / breakup, not the opener
+_FOLLOWUP = re.compile(
+    r"\b(no worries|just (following|checking)|follow(ing)? up|circl(e|ing) back|bump(ing)? this|"
+    r"thought i'?d try|try my luck|did you get a chance|checking in|in case you missed|"
+    r"gentle nudge|quick bump|any thoughts|haven'?t heard|wanted to bump|resurfac)", re.I)
+# a reaction/reply from the rep mid-conversation, not a cold opener (allow an optional greeting+name)
+_REACTION = re.compile(
+    r"^\s*(?:(?:hi|hey|hello|dear|hiya)[,\s]+)?(?:[A-Z][a-z]+[,\s]+)?"
+    r"(thanks|thank you|appreciate|no worries|sounds good|sure\b|great\b|awesome|will get back|"
+    r"let me (take|check|look|get)|happy to|got it|understood|perfect|makes sense|will do|noted|"
+    r"of course|no problem)", re.I)
+# outbound pitch signals that mark a genuine cold opener
+_PITCH = re.compile(
+    r"(we (recently|just)?\s*(helped|took|scaled|grew|built|work(ed|ing) with)|figured i'?d|"
+    r"i know (you|your)|reaching out|can i (share|walk|show)|not sure if (it'?s|this)|noticed|"
+    r"came across|saw (that|your|you)|helped (grow|scale)|from (gbp|usd|\$|£))", re.I)
+# email 'From: <us> ... Subject: ...\n\n<body>' quoted-original block — the real email opener
+_EMAIL_FROM = re.compile(
+    r"^From:[^\n]*\n(?:[A-Za-z-]+:[^\n]*\n)*\n?(.*?)(?=^From:|^On .+wrote:|\Z)", re.S | re.M)
+
+
+def _candidates(conv):
+    """Plausible outbound bodies: SMS 'Outbound - said:' blocks + email From-block originals.
+    Returns [(body, kind)] with kind in {'sms','email'}."""
+    out = [(b, "sms") for b in outbound_messages(conv)]
+    for m in _EMAIL_FROM.finditer(conv or ""):
+        body = m.group(1).strip()
+        if len(body) >= 40:
+            out.append((body, "email"))
+    return out
+
+
+def _is_opener(text):
+    """True only for a genuine cold opener — rejects follow-ups, bumps, and rep replies."""
+    t = text.strip()
+    if _FOLLOWUP.search(t[:120]) or _REACTION.match(t):
+        return False
+    return bool(_GREETING.match(t) or _PITCH.search(t[:400]))
+
+
+def _rank(text):
+    t = text.strip()
+    s = min(len(t), 600) * 0.2
+    if _GREETING.match(t):
+        s += 100
+    if _PITCH.search(t[:400]):
+        s += 300
+    return s
+
+
+def _best_opener(threads):
+    """Across all threads, pick the best genuine opener. Returns (t1, t2, name, company,
+    variant, origin) or None if nothing qualifies (then we honestly show no copy). T2 is
+    the paired second SMS message when the opener is an SMS first message."""
+    best, best_score = None, -1
     for conv, name, company, variant, origin in threads:
-        msgs = outbound_messages(conv)
-        if not msgs:
-            continue
-        if len(msgs[0]) > best_len:
-            best, best_len = (msgs, name, company, variant, origin), len(msgs[0])
+        cands = _candidates(conv)
+        sms = [b for b, k in cands if k == "sms"]
+        for body, kind in cands:
+            if not _is_opener(body):
+                continue
+            sc = _rank(body)
+            if sc > best_score:
+                t2 = sms[1] if (kind == "sms" and sms and body == sms[0] and len(sms) > 1) else None
+                best, best_score = (body, t2, name, company, variant, origin), sc
     return best
 
 
@@ -137,12 +199,12 @@ def mine_client(slug, rebuild=False):
         print(f"{slug}: {len(cand)} orphan campaigns with reply threads")
 
         for cid, threads in cand.items():
-            picked = _best_thread(threads)
+            picked = _best_opener(threads)
             if not picked:
-                continue   # no parseable outbound in any thread (e.g. email-only format)
-            msgs, name, company, variant, origin = picked
-            t1 = _clean(_placeholderize(msgs[0], name, company))
-            t2 = _clean(_placeholderize(msgs[1], name, company)) if len(msgs) > 1 else None
+                continue   # no genuine opener recoverable (auto-replies / rep replies only)
+            t1_raw, t2_raw, name, company, variant, origin = picked
+            t1 = _clean(_placeholderize(t1_raw, name, company))
+            t2 = _clean(_placeholderize(t2_raw, name, company)) if t2_raw else None
             with conn.cursor() as cur:
                 cur.execute("select channel, niche, persona from campaigns where id=%s", (cid,))
                 channel, c_niche, c_persona = (cur.fetchone() or (None, None, None))
