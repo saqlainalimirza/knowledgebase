@@ -17,7 +17,7 @@ export default function ClientTabs(props: {
   const { slug, pains, campaigns, copies, offers, cases, calls, nicheBrain } = props;
   const tabs = [
     ["pains", `Pains (${pains.length})`], ["campaigns", `Campaigns (${campaigns.length})`],
-    ["copies", `Copies (${copies.length})`], ["report", "Report"], ["offers", `Offers (${offers.length})`],
+    ["copies", `Copies (${copies.length})`], ["report", "Report"], ["copyprs", "Copy PRs"], ["offers", `Offers (${offers.length})`],
     ["guidelines", "Guidelines"], ["materials", "Materials"], ["deals", "Deals"], ["replies", "Replies"], ["cases", `Cases (${cases.length})`],
     ["calls", `Calls (${calls.length})`], ["niche", "Niche brain"],
   ] as const;
@@ -36,6 +36,7 @@ export default function ClientTabs(props: {
       {tab === "campaigns" && <CampaignsTab campaigns={campaigns} />}
       {tab === "copies" && <CopiesTab copies={copies} slug={slug} />}
       {tab === "report" && <ReportTab slug={slug} />}
+      {tab === "copyprs" && <CopyPerfTab slug={slug} />}
       {tab === "offers" && <OffersTab offers={offers} />}
       {tab === "guidelines" && <GuidelinesTab slug={slug} />}
       {tab === "materials" && <MaterialsTab slug={slug} />}
@@ -237,6 +238,79 @@ function ReportTab({ slug }: { slug: string }) {
               )}
             </div>
           </details>
+        ))}
+        {shown.length === 0 && <p className="text-sm text-muted">No campaigns match.</p>}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Copy PRs: per-variant performance (PRs per copy) ---------- */
+function CopyPerfTab({ slug }: { slug: string }) {
+  const [data, setData] = useState<any>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [weeks, setWeeks] = useState(0);
+  const [abOnly, setAbOnly] = useState(true);
+  useEffect(() => {
+    setData(null);
+    fetch(`/api/clients/${slug}/copy-performance?weeks=${weeks}`).then((r) => r.json())
+      .then((d) => (d.error ? setErr(d.error) : setData(d))).catch((e) => setErr(e.message));
+  }, [slug, weeks]);
+  if (err) return <p className="text-sm text-rose-600">{err}</p>;
+  if (!data) return <p className="text-sm text-muted">Loading copy performance…</p>;
+  const shown = (data.campaigns || []).filter((c: any) => !abOnly || c.ab);
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-muted">
+        PRs per copy — each campaign's variants (A/B/C) with reach and positive replies, from the
+        variant tag on every reply. "Reached" = categorized replies on that variant (a fair A-vs-B
+        denominator, not raw sends). {data.ab_campaigns} campaigns ran a real A/B.
+      </p>
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <select className="input w-auto text-xs" value={weeks} onChange={(e) => setWeeks(Number(e.target.value))}>
+          <option value={0}>all time</option><option value={1}>this week</option>
+          <option value={4}>last 4 weeks</option><option value={12}>last 12 weeks</option>
+        </select>
+        <label className="flex items-center gap-1.5 text-muted">
+          <input type="checkbox" checked={abOnly} onChange={(e) => setAbOnly(e.target.checked)} />
+          only A/B campaigns
+        </label>
+        <span className="text-muted">· {shown.length} shown</span>
+      </div>
+      <div className="max-h-[560px] space-y-3 overflow-auto pr-1">
+        {shown.map((c: any) => (
+          <div key={c.campaign} className="rounded-lg border border-edge p-2 text-xs">
+            <div className="mb-1 flex flex-wrap items-center gap-2">
+              {c.channel && <span className={c.channel === "email" ? "badge badge-amber" : "badge badge-green"}>{c.channel}</span>}
+              <span className="font-medium">{c.campaign}</span>
+              {c.winner && <span className="badge badge-green">winning variant: {c.winner}</span>}
+            </div>
+            <table className="tbl">
+              <thead>
+                <tr><th>Variant</th><th className="text-right">Reached</th><th className="text-right">Positive</th><th className="text-right">PR%</th><th>Reconstructed copy</th></tr>
+              </thead>
+              <tbody>
+                {c.variants.map((v: any) => (
+                  <tr key={v.variant}>
+                    <td>
+                      <span className="chip">{v.variant}</span>
+                      {c.winner === v.variant && <span className="ml-1 text-emerald-600">✓</span>}
+                    </td>
+                    <td className="text-right tabular-nums">{v.reached}</td>
+                    <td className="text-right tabular-nums">{v.positive}</td>
+                    <td className="text-right tabular-nums">{v.pr_pct}%</td>
+                    <td className="max-w-[430px]">
+                      {v.copy ? (
+                        <span className="text-slate-700" title={v.copy.t1}>{String(v.copy.t1).slice(0, 90)}…</span>
+                      ) : (
+                        <span className="text-muted">no copy</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ))}
         {shown.length === 0 && <p className="text-sm text-muted">No campaigns match.</p>}
       </div>

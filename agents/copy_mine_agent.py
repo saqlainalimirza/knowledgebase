@@ -75,18 +75,23 @@ def _clean(text):
     return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 
+def _vkey(variant):
+    """Normalize a variant label; blank (untagged / old data) folds to 'A'."""
+    return (variant or "").strip().upper()[:8] or "A"
+
+
 def _orphan_threads(cur, slug, rebuild=False):
-    """Candidate reply threads for each campaign that has no reconstructed copy yet.
-    Returns {campaign_id: [(conversation, name, company, variant, origin), ...]}."""
+    """Candidate reply threads keyed by (campaign_id, variant) that has no copy yet — so a
+    campaign running A/B gets one reconstructed copy PER variant, not one merged copy.
+    Returns {(campaign_id, vkey): [(conversation, name, company, vkey, origin), ...]}."""
     covered = set()
     if not rebuild:
         cur.execute(
-            """select distinct campaign_id from copies
-               where campaign_id is not null and client_slug=%s
-                 and origin in %s""",
+            """select distinct campaign_id, coalesce(nullif(upper(trim(variant)),''),'A')
+               from copies where campaign_id is not null and client_slug=%s and origin in %s""",
             (slug, MINED_ORIGINS),
         )
-        covered = {r[0] for r in cur.fetchall()}
+        covered = {(cid, v) for cid, v in cur.fetchall()}
 
     cand = {}
     # deals first (positive/opportunity threads = cleaner openers)
@@ -97,10 +102,11 @@ def _orphan_threads(cur, slug, rebuild=False):
         (slug,),
     )
     for cid, conv, name, company, variant in cur.fetchall():
-        if cid in covered:
+        vk = _vkey(variant)
+        if (cid, vk) in covered:
             continue
-        cand.setdefault(cid, []).append((conv, name, company, variant, "mined_from_deal"))
-    # contacts add the campaigns deals never reach (negative/neutral-only campaigns)
+        cand.setdefault((cid, vk), []).append((conv, name, company, vk, "mined_from_deal"))
+    # contacts add the campaigns/variants deals never reach (negative/neutral-only)
     cur.execute(
         """select db_campaign_id, conversation, name, company, copy_variant from contacts
            where client_slug=%s and db_campaign_id is not null
@@ -108,9 +114,10 @@ def _orphan_threads(cur, slug, rebuild=False):
         (slug,),
     )
     for cid, conv, name, company, variant in cur.fetchall():
-        if cid in covered:
+        vk = _vkey(variant)
+        if (cid, vk) in covered:
             continue
-        cand.setdefault(cid, []).append((conv, name, company, variant, "mined_from_contact"))
+        cand.setdefault((cid, vk), []).append((conv, name, company, vk, "mined_from_contact"))
     return cand
 
 
@@ -196,9 +203,9 @@ def mine_client(slug, rebuild=False):
                     (slug, MINED_ORIGINS),
                 )
             cand = _orphan_threads(cur, slug, rebuild=rebuild)
-        print(f"{slug}: {len(cand)} orphan campaigns with reply threads")
+        print(f"{slug}: {len(cand)} orphan (campaign, variant) groups with reply threads")
 
-        for cid, threads in cand.items():
+        for (cid, vk), threads in cand.items():
             picked = _best_opener(threads)
             if not picked:
                 continue   # no genuine opener recoverable (auto-replies / rep replies only)
@@ -208,14 +215,14 @@ def mine_client(slug, rebuild=False):
             with conn.cursor() as cur:
                 cur.execute("select channel, niche, persona from campaigns where id=%s", (cid,))
                 channel, c_niche, c_persona = (cur.fetchone() or (None, None, None))
-                # idempotent: clear any prior reconstruction for this campaign, then write one
+                # idempotent: clear any prior reconstruction for THIS (campaign, variant), then write one
                 cur.execute(
-                    "delete from copies where campaign_id=%s and origin in %s",
-                    (cid, MINED_ORIGINS),
+                    "delete from copies where campaign_id=%s and coalesce(upper(variant),'A')=%s and origin in %s",
+                    (cid, vk, MINED_ORIGINS),
                 )
                 save_copy(cur, {
                     "origin": origin, "client_slug": slug, "campaign_id": cid,
-                    "variant": variant or "A", "channel": channel or "sms",
+                    "variant": vk, "channel": channel or "sms",
                     "niche": c_niche or niche, "sub_niche": sub_niche, "persona": c_persona,
                     "t1": t1, "t2": t2, "status": "neutral",
                 })
@@ -223,7 +230,7 @@ def mine_client(slug, rebuild=False):
             made += 1
 
         n = embed_all(conn, only_tables={"copies"})
-        print(f"{slug}: reconstructed {made} campaign copies, embedded {n} vectors")
+        print(f"{slug}: reconstructed {made} (campaign, variant) copies, embedded {n} vectors")
     finally:
         conn.close()
     return made
