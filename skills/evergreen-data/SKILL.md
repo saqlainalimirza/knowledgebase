@@ -14,6 +14,26 @@ Independent calls can be fired in parallel. Machine-readable spec: `GET /api/ope
 
 ---
 
+# BEFORE YOU WRITE ANY COPY (do this every time, no exceptions)
+
+The system holds the game tape; press play before writing. For the target client, fetch
+these FOUR in parallel and write from them, not from any local cheat-sheet:
+
+1. **Winners** — `POST /api/search {"type":"copies","query":"<angle>","status":"winner"}`
+   plus their `why_it_worked`. These are real sent copies with per-send performance.
+2. **This week's objections** — `GET /api/clients/{slug}/replies` (now sourced from ALL
+   categorized replies incl. negatives). Read `no_examples` + `by_category_recent`; your
+   copy must pre-empt what people actually reply.
+3. **The client's voice/identity** — `GET /api/clients/{slug}` `materials`, or
+   `POST /api/search {"type":"materials"}` for positioning/voice.
+4. **Saved guidelines** — `GET /api/guidelines?client={slug}` (the strategist's standing
+   rules and preferences; newer wins).
+
+If you skip these, you are writing blind. After writing, SAVE it (see save-copy) so the
+loop compounds.
+
+---
+
 # DATA HIERARCHY — read this before fetching anything (avoids MCP over-pulling)
 
 Evergreen already mirrors the CRM data. **Get reply/deal/stat data from Evergreen, NOT
