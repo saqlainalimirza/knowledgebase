@@ -278,7 +278,7 @@ replies we could mine copy from (copy is only recoverable where at least one lea
 ## 5. `POST /api/search` — semantic search over any knowledge type (the workhorse)
 Body:
 ```json
-{ "type": "pains" | "calls" | "case_studies" | "copies" | "components" | "offers" | "deals" | "slack" | "guidelines" | "materials" | "contacts",
+{ "type": "pains" | "calls" | "case_studies" | "copies" | "components" | "offers" | "deals" | "slack" | "guidelines" | "materials" | "contacts" | "drafts",
   "query": "plain-english meaning to match",
   "limit": 10,
   "route": true,
@@ -467,3 +467,8 @@ What you do with these signals is your playbook's business.
 - Never invent metrics, results, or proof; only cite what the API returned.
 - Only write through the endpoints above; never assume DB access.
 - Save copy as `draft`; winner/loser comes from real metrics later, not from the writer.
+
+
+## Drafts — research scratchpad per client
+`GET/POST/DELETE /api/drafts` and `POST /api/search {"type":"drafts"}` — your working
+research/ICP/angle/draft notes per client, including clients not yet onboarded.
