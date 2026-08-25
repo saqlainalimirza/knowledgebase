@@ -51,23 +51,48 @@ def _load_niches(cur):
     return [(r[0], r[1], r[2], _to_vec(r[3])) for r in cur.fetchall()]
 
 
-def resolve_niche(cur, text, min_score=0.5):
-    """Embed the inferred niche text and snap to the nearest canonical niche.
-    Returns (niche_id, sub_niche_id, score). Below min_score -> (None,None,score)
-    so the caller can flag for human review instead of mis-tagging."""
-    if not text:
+def _pack(nid, parent, score):
+    """(niche_id, sub_niche_id, score): top-level -> (id, None); sub -> (parent, id)."""
+    return (nid, None, score) if parent is None else (parent, nid, score)
+
+
+def resolve_niche(cur, text, min_score=0.5, create=False):
+    """Map an inferred niche to a canonical one, so cross-client pooling never splits on
+    casing/spelling. Order:
+      1. exact case-insensitive name match (kills 'DTC Ecom' vs 'DTC ecom' dupes instantly),
+      2. embedding snap to the nearest canonical niche (>= min_score),
+      3. if create=True and nothing matched, CREATE a new canonical niche and use it
+         (so a genuinely new category becomes a home future clients can pool into);
+         otherwise return (None, None, score) for human review.
+    Returns (niche_id, sub_niche_id, score)."""
+    if not text or not text.strip():
         return None, None, 0.0
+    t = text.strip()
+
+    # 1. exact, case-insensitive
+    cur.execute("select id, parent_id from niches where lower(name)=lower(%s) limit 1", (t,))
+    row = cur.fetchone()
+    if row:
+        return _pack(row[0], row[1], 1.0)
+
+    # 2. embedding snap
     niches = _load_niches(cur)
-    if not niches:
-        return None, None, 0.0
-    q = _to_vec(embed_documents([text])[0])
-    best = max(niches, key=lambda n: float(np.dot(q, n[3])))
-    score = float(np.dot(q, best[3]))
-    if score < min_score:
-        return None, None, score
-    if best[2] is None:                 # matched a top-level niche
-        return best[0], None, score
-    return best[2], best[0], score       # matched a sub-niche -> (parent, sub)
+    q = _to_vec(embed_documents([t])[0])
+    if niches:
+        best = max(niches, key=lambda n: float(np.dot(q, n[3])))
+        score = float(np.dot(q, best[3]))
+        if score >= min_score:
+            return _pack(best[0], best[2], score)
+    else:
+        score = 0.0
+
+    # 3. connect-or-create: no match -> mint a new canonical (top-level) niche
+    if create:
+        cur.execute("insert into niches(name) values (%s) returning id", (t,))
+        nid = cur.fetchone()[0]
+        cur.execute("update niches set embedding=%s where id=%s", (list(map(float, q)), nid))
+        return nid, None, 1.0
+    return None, None, score
 
 
 def tag_client_and_inherit(cur, slug, niche_text=None):
@@ -79,7 +104,8 @@ def tag_client_and_inherit(cur, slug, niche_text=None):
         return None
     niche, niche_id, source = row
     if source != 'human':
-        nid, sid, _ = resolve_niche(cur, niche_text or niche)
+        # connect-or-create: onboarding always lands the client on a canonical niche
+        nid, sid, _ = resolve_niche(cur, niche_text or niche, create=True)
         if nid:
             cur.execute("update client_roster set niche_id=%s, sub_niche_id=%s where slug=%s",
                         (nid, sid, slug))
