@@ -27,6 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from connections.supabase import get_conn
 from shared.embed import embed_all
 from shared.writers import save_copy
+from shared.cta import extract_cta
 
 MIN_BODY = 15   # ignore trivial outbound blocks (delivery receipts, "ok", etc.)
 MINED_ORIGINS = ("mined_from_deal", "mined_from_contact")
@@ -224,7 +225,7 @@ def mine_client(slug, rebuild=False):
                     "origin": origin, "client_slug": slug, "campaign_id": cid,
                     "variant": vk, "channel": channel or "sms",
                     "niche": c_niche or niche, "sub_niche": sub_niche, "persona": c_persona,
-                    "t1": t1, "t2": t2, "status": "neutral",
+                    "t1": t1, "t2": t2, "cta": extract_cta(t1, t2), "status": "neutral",
                 })
             conn.commit()
             made += 1
