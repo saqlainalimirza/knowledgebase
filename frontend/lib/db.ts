@@ -1,4 +1,10 @@
-import { Pool } from "pg";
+import { Pool, types } from "pg";
+
+// node-postgres returns bigint (int8) and numeric as STRINGS by default, which crashes
+// naive consumers (e.g. sum(sent) came back as "0"). Parse them as JS numbers globally so
+// every endpoint returns numbers as numbers. Counts here are well within safe-integer range.
+types.setTypeParser(20, (v) => (v === null ? null : parseInt(v, 10)));   // int8 / bigint
+types.setTypeParser(1700, (v) => (v === null ? null : parseFloat(v)));   // numeric / decimal
 
 // One shared pool across hot-reloads in dev.
 declare global {
