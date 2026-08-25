@@ -43,6 +43,7 @@ deals/contacts and analyze by hand, and do NOT fall back to GHL/Airtable MCP for
 |---|---|
 | "copy + stats of {client}'s campaigns" (SMS/email/BD/etc.) | `GET /api/clients/{slug}/report` → filter campaigns by channel/name client-side |
 | "which variant / copy performed better for {client}" | `GET /api/clients/{slug}/copy-performance` |
+| "which VARIANT / CTA arm inside {campaign} won" | `GET /api/clients/{slug}/variant-performance?campaign={name}` (variant recovered from the sent copy) |
 | "which CTA / hook / lever performed better" | `POST /api/search {"type":"copies","client":"{slug}"}` → group results by `cta`/`lever`, compare `positive_rate`/`power_rate` |
 | "why isn't {campaign} working" | `GET /api/clients/{slug}/reply-diagnosis` |
 | "have we touched these companies / what stage" | `POST /api/prospects/lookup {"companies":[...]}` |
