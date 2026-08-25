@@ -34,6 +34,26 @@ loop compounds.
 
 ---
 
+# COMMON QUESTIONS → ONE CALL (do not explore; call the exact endpoint)
+
+Most strategist questions are ONE Evergreen call. Answer in one; do NOT bulk-pull
+deals/contacts and analyze by hand, and do NOT fall back to GHL/Airtable MCP for these.
+
+| The question | Make exactly this call |
+|---|---|
+| "copy + stats of {client}'s campaigns" (SMS/email/BD/etc.) | `GET /api/clients/{slug}/report` → filter campaigns by channel/name client-side |
+| "which variant / copy performed better for {client}" | `GET /api/clients/{slug}/copy-performance` |
+| "which CTA / hook / lever performed better" | `POST /api/search {"type":"copies","client":"{slug}"}` → group results by `cta`/`lever`, compare `positive_rate`/`power_rate` |
+| "why isn't {campaign} working" | `GET /api/clients/{slug}/reply-diagnosis` |
+| "have we touched these companies / what stage" | `POST /api/prospects/lookup {"companies":[...]}` |
+| "weekly report for {client}" | `GET /api/clients/{slug}/report` + `GET /api/clients/{slug}/benchmarks` |
+| "why are people saying no / reply reasons" | `GET /api/clients/{slug}/replies` |
+
+If a question maps to a row here, make THAT call first. Exploring the graph or scanning
+raw deals for these is the slow path and is wrong.
+
+---
+
 # DATA HIERARCHY — read this before fetching anything (avoids MCP over-pulling)
 
 Evergreen already mirrors the CRM data. **Get reply/deal/stat data from Evergreen, NOT
