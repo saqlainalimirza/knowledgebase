@@ -17,6 +17,7 @@ REGISTRY = [
     ("master_sheet_pains", "embedding",                  "item_text"),
     ("copies",             "full_copy_embedding",        "concat_ws(' ', t1, t2)"),
     ("copies",             "t1_embedding",               "t1"),
+    ("copies",             "cta_embedding",              "cta"),
     ("copies",             "unique_mechanism_embedding", "unique_mechanism"),
     ("copy_components",    "embedding",                  "item_text"),
     ("niche_knowledge",    "summary_embedding",          "commonalities_summary"),
