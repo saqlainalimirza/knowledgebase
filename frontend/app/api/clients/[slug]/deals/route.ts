@@ -90,6 +90,11 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     if (fVariant) deals = deals.filter((d) => String(d.copy_variant || "").toLowerCase().includes(fVariant.toLowerCase()));
     if (fChannel) deals = deals.filter((d) => d.channel === fChannel.toLowerCase());
     if (fCategory) deals = deals.filter((d) => String(d.positive_reply_category || "").toLowerCase().includes(fCategory.toLowerCase()));
+    // #6: filter by campaign — matches the deal's campaign text OR its matched db campaign id
+    const fCampaign = url.searchParams.get("campaign");
+    const fCampaignId = url.searchParams.get("campaignId");
+    if (fCampaign) deals = deals.filter((d) => String(d.campaign_name || "").toLowerCase().includes(fCampaign.toLowerCase()));
+    if (fCampaignId) deals = deals.filter((d) => String(d.db_campaign_id || "") === fCampaignId);
 
     // quick aggregates so the AI can orient without recomputing
     const by = (key: (d: any) => any) => {

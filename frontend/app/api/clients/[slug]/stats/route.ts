@@ -85,7 +85,18 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
       // leave campaigns empty if the formula/field lookup fails
     }
 
-    return NextResponse.json({ stats, campaigns });
+    return NextResponse.json({
+      // provenance so a consumer can't silently compare Evergreen to a different/dead source
+      source: {
+        from: "Airtable client record (📂 Clients)",
+        airtable_client_id: client.airtable_client_id,
+        client: client.client,
+        note: "sent counts LEADS, not messages. On SMS we send ~2 texts per lead, so a GHL " +
+              "outbound message count will be roughly 2x this. Numbers reflect this client's " +
+              "own Airtable record, not any single GHL sub-account.",
+      },
+      stats, campaigns,
+    });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

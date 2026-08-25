@@ -41,7 +41,7 @@ deals/contacts and analyze by hand, and do NOT fall back to GHL/Airtable MCP for
 
 | The question | Make exactly this call |
 |---|---|
-| "copy + stats of {client}'s campaigns" (SMS/email/BD/etc.) | `GET /api/clients/{slug}/report` → filter campaigns by channel/name client-side |
+| "copy + stats of {client}'s campaigns" (SMS/email/BD/etc.) | `GET /api/clients/{slug}/report?channel=sms&q=BD` (server-side filter) |
 | "which variant / copy performed better for {client}" | `GET /api/clients/{slug}/copy-performance` |
 | "which VARIANT / CTA arm inside {campaign} won" | `GET /api/clients/{slug}/variant-performance?campaign={name}` (variant recovered from the sent copy) |
 | "which CTA / hook / lever performed better" | `POST /api/search {"type":"copies","client":"{slug}"}` → group results by `cta`/`lever`, compare `positive_rate`/`power_rate` |

@@ -21,8 +21,15 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
   const slug = params.slug;
   // ?granularity=day|week (default week). Day-level surfaces mid-week cutovers (e.g. a CTA
   // arm turned off mid-week) that week buckets hide and that cause confounded comparisons.
-  const gran = new URL(_req.url).searchParams.get("granularity") === "day" ? "day" : "week";
+  const sp = new URL(_req.url).searchParams;
+  const gran = sp.get("granularity") === "day" ? "day" : "week";
   const points = gran === "day" ? 30 : 8;
+  const fChannel = sp.get("channel");        // sms | email
+  const fq = sp.get("q");                     // name contains (e.g. "BD", "sniper")
+  const campWhere = ["r.client_slug = $1"];
+  const campArgs: any[] = [slug];
+  if (fChannel) { campArgs.push(fChannel); campWhere.push(`r.channel = $${campArgs.length}`); }
+  if (fq) { campArgs.push(`%${fq}%`); campWhere.push(`r.name ilike $${campArgs.length}`); }
   try {
     const client = await one<any>(
       `select slug, client, niche, status, airtable_client_id from client_roster where slug=$1`,
@@ -47,10 +54,10 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
          order by (co.origin = 'mined_from_deal') desc, co.updated_at desc
          limit 1
        ) cp on true
-       where r.client_slug = $1
+       where ${campWhere.join(" and ")}
        order by r.power_requests desc nulls last, r.sent desc nulls last
        limit 300`,
-      [slug]
+      campArgs
     );
 
     // keep campaigns that actually ran or have a reconstructed copy (drop dead shells)
