@@ -19,6 +19,10 @@ const num = (v: any) => (typeof v === "number" ? v : Number(v) || 0);
 
 export async function GET(_req: Request, { params }: { params: { slug: string } }) {
   const slug = params.slug;
+  // ?granularity=day|week (default week). Day-level surfaces mid-week cutovers (e.g. a CTA
+  // arm turned off mid-week) that week buckets hide and that cause confounded comparisons.
+  const gran = new URL(_req.url).searchParams.get("granularity") === "day" ? "day" : "week";
+  const points = gran === "day" ? 30 : 8;
   try {
     const client = await one<any>(
       `select slug, client, niche, status, airtable_client_id from client_roster where slug=$1`,
@@ -133,20 +137,23 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
       }
     }
 
-    // weekly trend from real deal data (last 8 weeks): positives + booked per week
+    // trend from real deal data: positives + booked per period. Day-level ($granularity=day)
+    // shows mid-week changes; week-level is the default overview.
     const weekly = await q<any>(
-      `select to_char(date_trunc('week', deal_created_at), 'YYYY-MM-DD') as week,
+      `select to_char(date_trunc('${gran}', deal_created_at), 'YYYY-MM-DD') as ${gran},
               count(*) filter (where positive_reply_category is not null)::int as positives,
               count(*) filter (where meeting_booked_at is not null)::int as booked
        from deals
        where client_slug = $1 and deal_created_at is not null
-       group by 1 order by 1 desc limit 8`,
+       group by 1 order by 1 desc limit ${points}`,
       [slug]
     );
 
     return NextResponse.json({
       client: { slug: client.slug, name: client.client, niche: client.niche, status: client.status },
+      granularity: gran,
       kpi,
+      trend: weekly,
       weekly_trend: weekly,
       summary: {
         campaigns: rows.length,
