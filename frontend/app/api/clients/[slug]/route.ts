@@ -40,11 +40,12 @@ export async function GET(
         [slug]
       ),
       q(
-        `select id, name, channel, angle, segment, niche, notes,
-                sent, positive_replies, power_requests, booked,
-                case when coalesce(sent,0) > 0 and power_requests is not null
-                     then round(power_requests::numeric / sent, 5) end as power_rate
-         from campaigns where client_slug=$1 order by power_requests desc nulls last, name limit 200`,
+        // one row per logical campaign (campaign_rollup dedupes same-name Airtable records:
+        // sent summed, name-level stats counted once) so totals aren't Nx inflated.
+        `select primary_id as id, name, channel, segment, angle, niche, source_rows,
+                sent, positive_replies, power_requests, booked, power_rate
+         from campaign_rollup where client_slug=$1
+         order by power_requests desc nulls last, name limit 200`,
         [slug]
       ),
       one(

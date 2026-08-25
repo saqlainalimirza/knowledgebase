@@ -26,22 +26,25 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
     );
     if (!client) return NextResponse.json({ error: "unknown client" }, { status: 404 });
 
-    // campaigns + their reconstructed live copy (prefer deal-mined, else contact-mined, newest)
+    // ONE logical campaign per name (campaign_rollup dedupes the many Airtable records that
+    // share a name: sent SUMMED, name-level stats counted ONCE — so totals aren't Nx inflated),
+    // plus its reconstructed live copy (prefer deal-mined, else contact-mined, newest).
     const campaigns = await q<any>(
-      `select c.id, c.name, c.channel, c.sent, c.replies, c.positive_replies,
-              c.power_requests, c.booked,
+      `select r.primary_id as id, r.name, r.channel, r.sent, r.replies, r.positive_replies,
+              r.power_requests, r.booked, r.source_rows,
               cp.t1, cp.t2, cp.variant, cp.char_t1, cp.char_t2,
               cp.origin as copy_origin, cp.updated_at as copy_updated_at
-       from campaigns c
+       from campaign_rollup r
        left join lateral (
-         select t1, t2, variant, char_t1, char_t2, origin, updated_at
-         from copies
-         where campaign_id = c.id and origin in ('mined_from_deal','mined_from_contact')
-         order by (origin = 'mined_from_deal') desc, updated_at desc
+         select co.t1, co.t2, co.variant, co.char_t1, co.char_t2, co.origin, co.updated_at
+         from copies co join campaigns c2 on c2.id = co.campaign_id
+         where c2.client_slug = r.client_slug and c2.name = r.name
+           and co.origin in ('mined_from_deal','mined_from_contact')
+         order by (co.origin = 'mined_from_deal') desc, co.updated_at desc
          limit 1
        ) cp on true
-       where c.client_slug = $1
-       order by c.power_requests desc nulls last, c.sent desc nulls last
+       where r.client_slug = $1
+       order by r.power_requests desc nulls last, r.sent desc nulls last
        limit 300`,
       [slug]
     );
@@ -69,6 +72,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
         power_requests: num(c.power_requests),
         booked: num(c.booked),
         power_rate_pct: Math.round(powerRate * 1000) / 10,
+        source_rows: num(c.source_rows),
         live_copy: hasCopy
           ? {
               t1: c.t1,
