@@ -77,7 +77,7 @@ def detect_client(slug, incremental=False):
                 # permanently-unassignable rare tails don't trigger a re-embed every run.
                 cur.execute(
                     """select ca.name from contacts ct join campaigns ca on ca.id=ct.db_campaign_id
-                       where ct.client_slug=%s and ct.derived_variant is null
+                       where ct.client_slug=%s and ct.variant_checked_at is null
                          and ct.conversation is not null and length(ct.conversation) > 60
                        group by ca.name having count(*) >= %s""",
                     (slug, MIN_GROUP),
@@ -115,9 +115,11 @@ def detect_client(slug, incremental=False):
             n_variants = len(set(labels.values()))
             with conn.cursor() as cur:
                 for cid, sig in items:
-                    lab = labels.get(sig)
+                    lab = labels.get(sig)   # None for rare tails -> stays null but IS marked checked
+                    cur.execute(
+                        "update contacts set derived_variant=%s, variant_checked_at=now() where id=%s",
+                        (lab, cid))
                     if lab:
-                        cur.execute("update contacts set derived_variant=%s where id=%s", (lab, cid))
                         total_tagged += 1
             conn.commit()
             if n_variants > 1:
