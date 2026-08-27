@@ -62,7 +62,7 @@ def _canonical_niches():
 
 def run(only=None):
     _ensure_log_table()
-    steps = only or ["campaigns", "stats", "deals", "contacts", "mine", "slack", "tickets", "brains", "embeds"]
+    steps = only or ["campaigns", "stats", "deals", "contacts", "mine", "variants", "slack", "tickets", "brains", "embeds"]
     t0 = time.time()
     lines, ok = [], True
 
@@ -135,6 +135,16 @@ def run(only=None):
             lines.append(f"copy-mine: reconstructed {total} new campaign copies")
         except Exception as e:
             ok = False; lines.append(f"copy-mine: FAILED {e}")
+
+    if "variants" in steps:
+        try:
+            from variant_detect_agent import detect_client
+            for s in slugs:
+                try: detect_client(s, incremental=True)  # only campaigns with new untagged contacts
+                except Exception as e: lines.append(f"variants {s}: ERR {e}")
+            lines.append("variants: detected for new contacts")
+        except Exception as e:
+            ok = False; lines.append(f"variants: FAILED {e}")
 
     if "slack" in steps:
         try:

@@ -67,10 +67,24 @@ def _cluster(signatures):
     return label_of
 
 
-def detect_client(slug):
+def detect_client(slug, incremental=False):
     conn = get_conn()
     try:
         with conn.cursor() as cur:
+            needing = None
+            if incremental:
+                # only campaigns with a real batch of NEW untagged contacts (>= MIN_GROUP), so
+                # permanently-unassignable rare tails don't trigger a re-embed every run.
+                cur.execute(
+                    """select ca.name from contacts ct join campaigns ca on ca.id=ct.db_campaign_id
+                       where ct.client_slug=%s and ct.derived_variant is null
+                         and ct.conversation is not null and length(ct.conversation) > 60
+                       group by ca.name having count(*) >= %s""",
+                    (slug, MIN_GROUP),
+                )
+                needing = {r[0] for r in cur.fetchall()}
+                if not needing:
+                    print(f"{slug}: no new contacts to detect"); return
             cur.execute(
                 """select ct.id, ct.name, ct.company, ct.conversation, ca.name as campaign
                    from contacts ct join campaigns ca on ca.id = ct.db_campaign_id
@@ -88,6 +102,8 @@ def detect_client(slug):
 
         total_tagged = 0
         for campaign, items in by_campaign.items():
+            if needing is not None and campaign not in needing:
+                continue                      # incremental: skip campaigns with nothing new
             if len(items) < MIN_GROUP:
                 continue
             # cluster the most common distinct signatures (cap 100 = Gemini batch + noise guard);
@@ -115,15 +131,16 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--client")
     ap.add_argument("--all", action="store_true")
+    ap.add_argument("--incremental", action="store_true", help="only campaigns with new untagged contacts")
     args = ap.parse_args()
     if args.all:
         conn = get_conn(); cur = conn.cursor()
         cur.execute("select slug from client_roster where status='active' order by slug")
         slugs = [r[0] for r in cur.fetchall()]; conn.close()
         for s in slugs:
-            try: detect_client(s)
+            try: detect_client(s, incremental=args.incremental)
             except Exception as e: print(f"{s}: ERR {e}")
     elif args.client:
-        detect_client(args.client)
+        detect_client(args.client, incremental=args.incremental)
     else:
         raise SystemExit("pass --client or --all")
