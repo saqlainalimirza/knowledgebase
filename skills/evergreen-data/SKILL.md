@@ -296,6 +296,20 @@ Use for: writing a client report, spotting which live copy is under/over-perform
 the client against their own KPIs. `copy_status: no_reply_captured` = that campaign got no
 replies we could mine copy from (copy is only recoverable where at least one lead replied).
 
+## 4e. `GET /api/clients/{slug}/variant-performance?campaign={name}` — which VARIANT/CTA arm won
+The sending tool never tags which arm each lead got, so Evergreen RECOVERS the variant from
+the copy we actually sent (clusters each lead's outbound opener) and attributes replies to it.
+Pass `?campaign={name}` (or `?campaignId={id}`). Returns `{ campaign, significant_variants,
+minor_variants_collapsed, verdict, variants:[{variant, reached, positives, booked,
+positive_rate_pct, sample_message}] }`. `reached` = leads attributable to a variant (the fair
+A/B denominator, not raw sends); noise clusters are collapsed. If a campaign is too small or
+had no real A/B, `verdict` says so — it will not invent a winner.
+
+## 4f. `GET /api/clients/{slug}/benchmarks` — is a number good or bad?
+Client's send-based `positive_rate/power_rate/book_rate` next to the **niche** and **overall**
+benchmarks, plus `vs_niche`/`vs_overall` ratios (>1 beats the benchmark). Use in reporting so
+a rate reads as good/bad vs peers instead of a naked number.
+
 ## 5. `POST /api/search` — semantic search over any knowledge type (the workhorse)
 Body:
 ```json
