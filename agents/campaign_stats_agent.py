@@ -21,8 +21,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from connections.supabase import get_conn
 from connections.airtable import list_records
 
-POWER_CATS = {"power request", "positive", "meeting booked"}
-BOOKED_STAGES = {"meeting booked", "show", "won", "next stage", "proposal sent", "verbal agreement"}
+# genuine positive reply categories (NOT every deal, NOT negatives). power_requests is
+# counted separately as ONLY 'power request'; booked as ONLY 'meeting booked'.
+POSITIVE_CATS = ("positive", "power request", "meeting booked", "more info request",
+                 "email me request", "maybe", "referral request", "future request")
 
 
 def sync(slug):
@@ -44,22 +46,22 @@ def sync(slug):
                 sent = f.get("Emails Sent") or f.get("Completed Leads") or 0
                 sent_by_rec[r["id"]] = int(sent or 0)
 
-            # 2) outcomes per campaign name (from Deals)
-            deals = list_records("Deals", formula=f"FIND('{name}', ARRAYJOIN({{Client}}))",
-                                 fields=["Campaign (from Contacts)", "📢 Campaigns",
-                                         "Pipeline stage", "Positive Reply Category"])
-            agg = defaultdict(lambda: {"pos": 0, "power": 0, "booked": 0})
-            for d in deals:
-                f = d["fields"]
-                cname = (f.get("Campaign (from Contacts)") or f.get("📢 Campaigns") or "").strip()
-                if not cname:
-                    continue
-                a = agg[cname.lower()]
-                a["pos"] += 1
-                if str(f.get("Positive Reply Category") or "").lower() in POWER_CATS:
-                    a["power"] += 1
-                if str(f.get("Pipeline stage") or "").lower() in BOOKED_STAGES:
-                    a["booked"] += 1
+            # 2) outcomes per campaign NAME from CLEAN reply categories (contacts.lead_category).
+            # Each metric is its OWN category — power_requests = ONLY Power Request (not lumped
+            # with Positive/Meeting Booked), positive_replies = the genuine positive categories
+            # (NOT every deal). This is the fix for the inflated/miscategorized PR counts.
+            cur.execute(
+                """select ca.name,
+                     count(*) filter (where lower(ct.lead_category) = any(%s)) as pos,
+                     count(*) filter (where lower(ct.lead_category) = 'power request') as power,
+                     count(*) filter (where lower(ct.lead_category) = 'meeting booked') as booked
+                   from contacts ct join campaigns ca on ca.id = ct.db_campaign_id
+                   where ct.client_slug = %s group by ca.name""",
+                (list(POSITIVE_CATS), slug),
+            )
+            agg = {}
+            for cname, pos, power, booked in cur.fetchall():
+                agg[(cname or "").strip().lower()] = {"pos": pos, "power": power, "booked": booked}
 
             # 3) write onto our campaigns
             cur.execute("select id, airtable_campaign_id, name from campaigns where client_slug=%s", (slug,))
