@@ -1,7 +1,11 @@
 ---
 name: evergreen-data
-description: "Data supply for copywriting and research: pull real pains, buyer lingo, tiered proof, winning/losing copy, niche intelligence, live campaign stats, and the knowledge graph from Scaletopia's Evergreen API. This skill does NOT write copy and does not impose a copywriting method. Your own playbook decides how to write; this skill documents every endpoint in full detail so you can fetch evidence from anywhere in the system, read its quality signals, and save finished copy back. Triggers on 'get data for', 'brief me on {client}', 'what works for {niche}', 'pull pains/proof/winners', or any task needing Evergreen data."
+description: "REFERENCE ONLY — the full Evergreen API endpoint catalogue. This skill has been SPLIT for day-to-day use: for NUMBERS/stats/performance (PRs, sent, booked, which variant won, reports) use the `evergreen-stats` skill; for WRITING copy and research use the `evergreen-copy` skill. Load this one only when you need a field-level detail those two do not cover. Do not use it as the default entry point."
 ---
+
+> **This skill was split.** Use **`evergreen-stats`** for numbers/reporting and
+> **`evergreen-copy`** for writing/research. Keep this file only as the full endpoint
+> reference. The definitions and rules in the two focused skills win over anything here.
 
 # Evergreen Data Supply
 
