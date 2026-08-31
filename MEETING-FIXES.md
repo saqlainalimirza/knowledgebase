@@ -5,12 +5,14 @@ The eight issues from the review, each mapped to a concrete fix and status.
 ## Data accuracy (the "wrong numbers" cluster)
 
 ### 1. PR counts inaccurate (duplicates / negatives counted as positive) — FIXED
-- Root cause found: `power_requests` was counting `{power request, positive, meeting booked}`
-  lumped together (mislabeled as PR), and `positive_replies` counted EVERY deal (so
-  negatives in the Deals table counted as positive).
-- Fix shipped: counts now come from clean `contacts.lead_category` — `power_requests` = ONLY
-  "power request", `positive_replies` = the genuine positive categories, `booked` = "meeting
-  booked". Recomputed all clients. (ICP Hook Enriched PR: 13 -> 10.)
+- Definition (confirmed with Hilal): **PR = Positive Reply**, and a deal IS a positive reply,
+  so **PR for a campaign = the total number of deals for it** (meeting-booked deals included).
+- Root cause: the reported "PR" was `power_requests`, which lumped {power request, positive,
+  meeting booked} and was mislabeled as PR; and a handful of mis-tagged hard-negatives
+  (threat / wrong number / not interested / retired ~11 total) sat in Deals.
+- Fix shipped: `positive_replies` (PR) = count of ALL deals for the campaign EXCEPT those
+  hard-negatives; `power_requests` = ONLY the 'power request' sub-category (kept separate,
+  correctly labelled); `booked` = meeting booked / show / won. (ICP Hook Enriched PR = 25.)
 - Duplicate side already fixed earlier: `campaign_rollup` collapses same-name campaign rows
   so totals aren't Nx inflated.
 

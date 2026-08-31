@@ -21,10 +21,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from connections.supabase import get_conn
 from connections.airtable import list_records
 
-# genuine positive reply categories (NOT every deal, NOT negatives). power_requests is
-# counted separately as ONLY 'power request'; booked as ONLY 'meeting booked'.
-POSITIVE_CATS = ("positive", "power request", "meeting booked", "more info request",
-                 "email me request", "maybe", "referral request", "future request")
+# PR (positive_replies) = EVERY deal for the campaign (a deal IS a positive reply),
+# EXCEPT the few mis-tagged hard negatives that shouldn't be in Deals at all.
+# power_requests = ONLY the 'power request' sub-category. booked = 'meeting booked'.
+NEGATIVE_CATS = ("not interested", "wrong number", "threat", "retired",
+                 "disqualified", "ai error", "out of office")
 
 
 def sync(slug):
@@ -46,18 +47,18 @@ def sync(slug):
                 sent = f.get("Emails Sent") or f.get("Completed Leads") or 0
                 sent_by_rec[r["id"]] = int(sent or 0)
 
-            # 2) outcomes per campaign NAME from CLEAN reply categories (contacts.lead_category).
-            # Each metric is its OWN category — power_requests = ONLY Power Request (not lumped
-            # with Positive/Meeting Booked), positive_replies = the genuine positive categories
-            # (NOT every deal). This is the fix for the inflated/miscategorized PR counts.
+            # 2) outcomes per campaign NAME from the DEALS table (a deal = a positive reply).
+            # PR = count of all deals for the campaign, minus the few mis-tagged hard negatives.
+            # power_requests = ONLY 'power request'; booked = meeting booked / show / won.
             cur.execute(
                 """select ca.name,
-                     count(*) filter (where lower(ct.lead_category) = any(%s)) as pos,
-                     count(*) filter (where lower(ct.lead_category) = 'power request') as power,
-                     count(*) filter (where lower(ct.lead_category) = 'meeting booked') as booked
-                   from contacts ct join campaigns ca on ca.id = ct.db_campaign_id
-                   where ct.client_slug = %s group by ca.name""",
-                (list(POSITIVE_CATS), slug),
+                     count(*) filter (where lower(coalesce(d.positive_reply_category,'')) <> all(%s)) as pos,
+                     count(*) filter (where lower(coalesce(d.positive_reply_category,'')) = 'power request') as power,
+                     count(*) filter (where lower(coalesce(d.stage,'')) in ('meeting booked','show','won')
+                                        or lower(coalesce(d.positive_reply_category,'')) = 'meeting booked') as booked
+                   from deals d join campaigns ca on ca.id = d.campaign_id
+                   where d.client_slug = %s group by ca.name""",
+                (list(NEGATIVE_CATS), slug),
             )
             agg = {}
             for cname, pos, power, booked in cur.fetchall():
