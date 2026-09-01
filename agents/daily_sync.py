@@ -13,7 +13,7 @@ writes a row to sync_log so the app can show when data was last refreshed.
 
 Usage:
   python daily_sync.py            # full run
-  python daily_sync.py --only stats,deals   # subset (comma list: campaigns,stats,deals,brains,embeds)
+  python daily_sync.py --only stats,deals   # subset (comma list: churn,campaigns,stats,deals,brains,embeds)
 """
 import os
 import sys
@@ -62,7 +62,7 @@ def _canonical_niches():
 
 def run(only=None):
     _ensure_log_table()
-    steps = only or ["campaigns", "stats", "deals", "contacts", "mine", "variants", "slack", "tickets", "brains", "embeds"]
+    steps = only or ["churn", "campaigns", "stats", "deals", "contacts", "mine", "variants", "slack", "tickets", "brains", "embeds"]
     t0 = time.time()
     lines, ok = [], True
 
@@ -71,6 +71,16 @@ def run(only=None):
         cur.execute("insert into sync_log(summary) values ('running...') returning id")
         log_id = cur.fetchone()[0]
     conn.commit(); conn.close()
+
+    # churn state first: mirror CRM status so a newly-churned client is moved to 'past'
+    # (and dropped from the active run) before we build the active-slug list below.
+    if "churn" in steps:
+        try:
+            from churn_sync_agent import sync as churn_sync
+            churn_sync()
+            lines.append("churn: CRM status mirrored to roster")
+        except Exception as e:
+            ok = False; lines.append(f"churn: FAILED {e}")
 
     slugs = _active_slugs()
 

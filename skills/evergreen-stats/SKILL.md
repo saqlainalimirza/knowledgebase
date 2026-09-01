@@ -60,6 +60,7 @@ All bodies JSON. Full endpoint field-lists (if ever needed) live in the `evergre
 | "is this number good or bad (vs peers)" | `GET /api/clients/{slug}/benchmarks` |
 | "why isn't {campaign} working / why are people saying no" | `GET /api/clients/{slug}/reply-diagnosis` or `/replies` |
 | "have we touched these companies / what stage" | `POST /api/prospects/lookup {"companies":[...]}` |
+| "churn analysis / which clients left, when, why / who's drying up" | `GET /api/churn` (cohort) — filter `?status=churned|paused&niche=` |
 
 If the question maps here, make THAT call. Slugs from `GET /api/clients` (kynship, chamber_media,
 big_leap, go_fish, redo, growth_lab, leadgenix, digital_resource, scaletopia, seedx, wise_digital, …).
@@ -82,6 +83,12 @@ big_leap, go_fish, redo, growth_lab, leadgenix, digital_resource, scaletopia, se
   reconstructed copy label. `GET /api/clients/{slug}/benchmarks` — client rate vs niche/overall.
 - `GET /api/clients/{slug}/replies` (reply-reason analytics) / `POST
   /api/clients/{slug}/reply-diagnosis` (why a campaign fails: opt-out / wrong-contact / etc.).
+- `GET /api/churn` — the churned/paused client cohort with pre-churn performance. Per client:
+  `churn_status` (Churned/Paused), `churn_reason`, `churned_at`, `tenure_months`, `lifetime`
+  (sent, positive_replies, book_rate), and `deals.trend` (`drying_up` = PR volume in the final
+  60d before churn fell to <=half the prior 60d). Churn date/status mirror the Airtable CRM;
+  Airtable has NO free-text reason, so `churn_reason` is the status label until a real reason is
+  added to `client_roster.churn_reason`. Filters: `?status=churned|paused&niche=`.
 
 # Honesty
 - Small samples are directional — say so (e.g. "6 of 26, directional").

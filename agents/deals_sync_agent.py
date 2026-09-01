@@ -85,6 +85,12 @@ def sync(slug):
                     meeting_booked_at=f.get("Date of Meeting Booked"),
                     deal_created_at=f.get("Date created"),
                 )
+                # Postgres text cannot hold NUL (0x00) bytes; strip them from any string
+                # field, else the whole batch insert aborts on one bad row (e.g. a deal
+                # whose email conversation carries a stray \x00).
+                for k, v in vals.items():
+                    if isinstance(v, str) and "\x00" in v:
+                        vals[k] = v.replace("\x00", "")
                 cols = list(vals.keys())
                 cur.execute(
                     f"""insert into deals ({','.join(cols)})
