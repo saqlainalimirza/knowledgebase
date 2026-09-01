@@ -5,14 +5,17 @@ The eight issues from the review, each mapped to a concrete fix and status.
 ## Data accuracy (the "wrong numbers" cluster)
 
 ### 1. PR counts inaccurate (duplicates / negatives counted as positive) — FIXED
-- Definition (confirmed with Hilal): **PR = Positive Reply**, and a deal IS a positive reply,
-  so **PR for a campaign = the total number of deals for it** (meeting-booked deals included).
+- Definition (confirmed with Hilal, twice): **PR = Positive Reply**, and a deal IS a positive
+  reply, so **PR for a campaign = the count of its Deal records in Airtable** (meeting-booked
+  deals included). No filtering, no subtraction — every deal counts.
 - Root cause: the reported "PR" was `power_requests`, which lumped {power request, positive,
-  meeting booked} and was mislabeled as PR; and a handful of mis-tagged hard-negatives
-  (threat / wrong number / not interested / retired ~11 total) sat in Deals.
-- Fix shipped: `positive_replies` (PR) = count of ALL deals for the campaign EXCEPT those
-  hard-negatives; `power_requests` = ONLY the 'power request' sub-category (kept separate,
-  correctly labelled); `booked` = meeting booked / show / won. (ICP Hook Enriched PR = 25.)
+  meeting booked} and was mislabeled as PR. A follow-up attempt then subtracted "hard-negative"
+  categories, which under-counted any campaign holding one (big_leap Food & Bev showed 29 vs
+  its real 30 deals).
+- Fix shipped: `positive_replies` (PR) = **COUNT of all deals** for the campaign, no filter;
+  `power_requests` = ONLY the 'power request' sub-category (kept separate, correctly labelled);
+  `booked` = meeting booked / show / won. Verified: 0 campaigns where stored PR != raw deal
+  count. (ICP Hook Enriched PR = 25; big_leap Food & Bev PR = 30.)
 - Duplicate side already fixed earlier: `campaign_rollup` collapses same-name campaign rows
   so totals aren't Nx inflated.
 

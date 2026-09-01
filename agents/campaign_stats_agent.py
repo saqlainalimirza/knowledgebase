@@ -21,11 +21,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from connections.supabase import get_conn
 from connections.airtable import list_records
 
-# PR (positive_replies) = EVERY deal for the campaign (a deal IS a positive reply),
-# EXCEPT the few mis-tagged hard negatives that shouldn't be in Deals at all.
+# PR (positive_replies) = EVERY deal created for the campaign. A deal IS a positive
+# reply, so PR for a campaign = the count of its Deal records in Airtable. No
+# subtraction, no category filtering — if a row exists in Deals, it counts as a PR.
 # power_requests = ONLY the 'power request' sub-category. booked = 'meeting booked'.
-NEGATIVE_CATS = ("not interested", "wrong number", "threat", "retired",
-                 "disqualified", "ai error", "out of office")
 
 
 def sync(slug):
@@ -48,17 +47,17 @@ def sync(slug):
                 sent_by_rec[r["id"]] = int(sent or 0)
 
             # 2) outcomes per campaign NAME from the DEALS table (a deal = a positive reply).
-            # PR = count of all deals for the campaign, minus the few mis-tagged hard negatives.
+            # PR = count of ALL deals for the campaign (no filtering — every deal counts).
             # power_requests = ONLY 'power request'; booked = meeting booked / show / won.
             cur.execute(
                 """select ca.name,
-                     count(*) filter (where lower(coalesce(d.positive_reply_category,'')) <> all(%s)) as pos,
+                     count(*) as pos,
                      count(*) filter (where lower(coalesce(d.positive_reply_category,'')) = 'power request') as power,
                      count(*) filter (where lower(coalesce(d.stage,'')) in ('meeting booked','show','won')
                                         or lower(coalesce(d.positive_reply_category,'')) = 'meeting booked') as booked
                    from deals d join campaigns ca on ca.id = d.campaign_id
                    where d.client_slug = %s group by ca.name""",
-                (list(NEGATIVE_CATS), slug),
+                (slug,),
             )
             agg = {}
             for cname, pos, power, booked in cur.fetchall():

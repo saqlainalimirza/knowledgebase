@@ -32,10 +32,10 @@ All bodies JSON. Full endpoint field-lists (if ever needed) live in the `evergre
 
 # DEFINITIONS (get these exactly right — this is what was wrong before)
 
-- **PR = Positive Reply.** A deal IS a positive reply, so **PR for a campaign = the total
-  number of deals for it** (meeting-booked deals included), minus a few mis-tagged hard
-  negatives. In the data this is the campaign's `positive_replies`. When someone asks "PRs",
-  answer with `positive_replies`.
+- **PR = Positive Reply.** A deal IS a positive reply, so **PR for a campaign = the count of
+  its Deal records in Airtable** (meeting-booked deals included). No filtering, no subtraction:
+  if a deal exists for the campaign, it counts as a PR. In the data this is the campaign's
+  `positive_replies`. When someone asks "PRs", answer with `positive_replies`.
 - **`power_requests`** is a SEPARATE, narrower sub-count (only the "Power Request" reply
   category). Do NOT report it as "PRs". Only use it if they explicitly ask for power requests.
 - **`booked`** = meetings booked (stage meeting booked / show / won).
