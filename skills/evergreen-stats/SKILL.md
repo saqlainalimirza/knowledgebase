@@ -1,13 +1,14 @@
 ---
 name: evergreen-stats
-description: "Answer NUMBERS and performance questions about Scaletopia's outbound from the Evergreen API — how many sent, PRs (positive replies), positives, meetings booked, conversion; how a client or campaign is doing; which variant / CTA / copy performed better; weekly reports and benchmarks. This skill returns clean, correct numbers FAST and SHORT. It does NOT write copy (use the evergreen-copy skill for writing/research). Triggers on 'how many … did we get', 'stats for {client}', 'PRs / positives / sent / booked', 'how is {campaign} doing', 'which variant/CTA won', 'weekly report', 'is it worth running'."
+description: "Answer NUMBERS and performance questions about Scaletopia's outbound from the Evergreen API — how many sent, PRs (positive replies), positives, meetings booked, conversion; how a client or campaign is doing; which variant / CTA / copy performed better; weekly reports, benchmarks, churn. Evergreen is the info/research provider, NOT the copywriter: this skill just returns clean, correct numbers FAST and SHORT. For evidence/research use the evergreen-research skill; the actual copywriting is a SEPARATE copywriter skill. Triggers on 'how many … did we get', 'stats for {client}', 'PRs / positives / sent / booked', 'how is {campaign} doing', 'which variant/CTA won', 'weekly report', 'is it worth running'."
 ---
 
 # Evergreen Stats
 
 You answer stat questions with **clean numbers, fast and short**. This skill is ONLY for
-numbers/performance. If the task is writing copy or pulling research, stop and use the
-**evergreen-copy** skill instead.
+numbers/performance. Evergreen is the **info/research provider, not the copywriter**: for
+evidence/findings use the **evergreen-research** skill, and the actual copywriting is a
+**separate copywriter skill** that consumes what Evergreen returns. Never write copy from here.
 
 **Base URL (live):** `https://knowledgebase-production-f52e.up.railway.app`
 All bodies JSON. Full endpoint field-lists (if ever needed) live in the `evergreen-data` reference.

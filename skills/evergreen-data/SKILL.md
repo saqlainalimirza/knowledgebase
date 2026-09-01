@@ -1,16 +1,18 @@
 ---
 name: evergreen-data
-description: "REFERENCE ONLY — the full Evergreen API endpoint catalogue. This skill has been SPLIT for day-to-day use: for NUMBERS/stats/performance (PRs, sent, booked, which variant won, reports) use the `evergreen-stats` skill; for WRITING copy and research use the `evergreen-copy` skill. Load this one only when you need a field-level detail those two do not cover. Do not use it as the default entry point."
+description: "REFERENCE ONLY — the full Evergreen API endpoint catalogue. Evergreen is the info/research PROVIDER, not a copywriter. This skill has been SPLIT for day-to-day use: for NUMBERS/stats/performance (PRs, sent, booked, which variant won, reports, churn) use the `evergreen-stats` skill; for pulling and saving research/findings use the `evergreen-research` skill. The actual copywriting is a SEPARATE copywriter skill that consumes Evergreen's output. Load this one only when you need a field-level detail those two do not cover. Do not use it as the default entry point."
 ---
 
 > **This skill was split.** Use **`evergreen-stats`** for numbers/reporting and
-> **`evergreen-copy`** for writing/research. Keep this file only as the full endpoint
-> reference. The definitions and rules in the two focused skills win over anything here.
+> **`evergreen-research`** for pulling/saving findings. Evergreen provides evidence and
+> numbers; it does NOT write copy — that is a separate copywriter skill. Keep this file only
+> as the full endpoint reference. The definitions and rules in the two focused skills win.
 
-# Evergreen Data Supply
+# Evergreen Data Supply (endpoint reference)
 
-Your copywriting method comes from YOUR playbook. This skill covers: how to **fetch**
-from every endpoint, how to **read the quality signals**, and how to **save** results back.
+Evergreen is the research/knowledge provider; the copywriter skill writes FROM it. This file
+covers: how to **fetch** from every endpoint, how to **read the quality signals**, and how to
+**save** findings back.
 
 **Base URL (live):** `https://knowledgebase-production-f52e.up.railway.app`
 All paths below are relative to it. All bodies are JSON (`Content-Type: application/json`).
@@ -18,10 +20,10 @@ Independent calls can be fired in parallel. Machine-readable spec: `GET /api/ope
 
 ---
 
-# BEFORE YOU WRITE ANY COPY (do this every time, no exceptions)
+# THE EVIDENCE PULL FOR A BRIEF (Evergreen provides; the copywriter skill writes)
 
-The system holds the game tape; press play before writing. For the target client, fetch
-these FOUR in parallel and write from them, not from any local cheat-sheet:
+Evergreen holds the game tape; pull it so the copywriter writes from evidence, not a local
+cheat-sheet. For the target client, fetch these FOUR in parallel and hand them to the writer:
 
 1. **Winners** — `POST /api/search {"type":"copies","query":"<angle>","status":"winner"}`
    plus their `why_it_worked`. These are real sent copies with per-send performance.
