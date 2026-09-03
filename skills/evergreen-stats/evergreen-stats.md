@@ -58,6 +58,7 @@ All bodies JSON. Full endpoint field-lists (if ever needed) live in the `evergre
 | "how is {campaign} doing / is it worth running" | `GET /api/clients/{slug}/report` → find the campaign row (sent, positives, power_requests, booked, power_rate_pct, vs_client_avg, live_copy) |
 | "which VARIANT / CTA arm inside {campaign} won" | `GET /api/clients/{slug}/variant-performance?campaign={name}` |
 | "which copy / variant performed better for {client}" | `GET /api/clients/{slug}/copy-performance` |
+| "month-by-month trend / PR per SMS by month / which months peaked / was summer slow" | `GET /api/clients/{slug}/monthly?months=12&channel=sms` |
 | "is this number good or bad (vs peers)" | `GET /api/clients/{slug}/benchmarks` |
 | "why isn't {campaign} working / why are people saying no" | `GET /api/clients/{slug}/reply-diagnosis` or `/replies` |
 | "have we touched these companies / what stage" | `POST /api/prospects/lookup {"companies":[...]}` |
@@ -84,6 +85,11 @@ big_leap, go_fish, redo, growth_lab, leadgenix, digital_resource, scaletopia, se
   reconstructed copy label. `GET /api/clients/{slug}/benchmarks` — client rate vs niche/overall.
 - `GET /api/clients/{slug}/replies` (reply-reason analytics) / `POST
   /api/clients/{slug}/reply-diagnosis` (why a campaign fails: opt-out / wrong-contact / etc.).
+- `GET /api/clients/{slug}/monthly?months=12&channel=sms|email` — month-by-month trend in
+  ONE call: per month `sent` (messages, from the daily send feed), `prs`, `booked`
+  (meeting_booked_at), and `pr_per_send_pct` (PR per SMS/email), split sms vs email, plus a
+  `peaks` block (best month by volume / PRs / rate). Use for "PR per SMS by month", "which
+  months peaked", "was summer slow". `sent` = messages; on SMS that is ~2x the lead-based sent.
 - `GET /api/churn` — the churned/paused client cohort with pre-churn performance. Per client:
   `churn_status` (Churned/Paused), `churn_reason`, `churned_at`, `tenure_months`, `lifetime`
   (sent, positive_replies, book_rate), and `deals.trend` (`drying_up` = PR volume in the final

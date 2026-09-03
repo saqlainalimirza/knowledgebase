@@ -46,13 +46,40 @@ def list_records(table, *, formula=None, max_records=None, fields=None):
     if fields:
         params["fields[]"] = fields
     out = []
+    for page in iter_record_pages(table, formula=formula, max_records=max_records, fields=fields):
+        out.extend(page)
+    return out
+
+
+def iter_record_pages(table, *, formula=None, max_records=None, fields=None, sort=None):
+    """Yield records one API page at a time (list of {id, fields}). Lets a caller
+    commit per page and stop early. `sort` is a list of (field, 'asc'|'desc'); with a
+    desc sort on a date the caller can break as soon as records fall past a cutoff,
+    reading only recent pages instead of scanning the whole table."""
+    url = f"{_API}/{_base_id()}/{table}"
+    params = {}
+    if formula:
+        params["filterByFormula"] = formula
+    if max_records:
+        params["maxRecords"] = max_records
+    if fields:
+        params["fields[]"] = fields
+    for i, (fld, direction) in enumerate(sort or []):
+        params[f"sort[{i}][field]"] = fld
+        params[f"sort[{i}][direction]"] = direction
     while True:
-        r = requests.get(url, headers=_headers(), params=params, timeout=30)
-        r.raise_for_status()
-        data = r.json()
-        out.extend({"id": rec["id"], "fields": rec.get("fields", {})} for rec in data.get("records", []))
+        data = None
+        for attempt in range(4):  # retry a page on read timeout for big tables
+            try:
+                r = requests.get(url, headers=_headers(), params=params, timeout=60)
+                r.raise_for_status()
+                data = r.json()
+                break
+            except requests.exceptions.ReadTimeout:
+                if attempt == 3:
+                    raise
+        yield [{"id": rec["id"], "fields": rec.get("fields", {})} for rec in data.get("records", [])]
         offset = data.get("offset")
         if not offset:
             break
         params["offset"] = offset
-    return out

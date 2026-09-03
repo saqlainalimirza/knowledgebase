@@ -62,7 +62,7 @@ def _canonical_niches():
 
 def run(only=None):
     _ensure_log_table()
-    steps = only or ["churn", "campaigns", "stats", "deals", "contacts", "mine", "variants", "slack", "tickets", "brains", "embeds"]
+    steps = only or ["churn", "campaigns", "stats", "sends", "deals", "contacts", "mine", "variants", "slack", "tickets", "brains", "embeds"]
     t0 = time.time()
     lines, ok = [], True
 
@@ -104,6 +104,14 @@ def run(only=None):
             lines.append(f"stats: refreshed for {len(slugs)} clients")
         except Exception as e:
             ok = False; lines.append(f"stats: FAILED {e}")
+
+    if "sends" in steps:
+        try:
+            from daily_stats_sync_agent import sync as sends_sync
+            sends_sync()  # incremental: last ~14 days of daily SMS/email send volume
+            lines.append("sends: daily send stats refreshed")
+        except Exception as e:
+            ok = False; lines.append(f"sends: FAILED {e}")
 
     if "deals" in steps:
         try:
