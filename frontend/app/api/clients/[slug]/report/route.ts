@@ -41,7 +41,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
     // share a name: sent SUMMED, name-level stats counted ONCE — so totals aren't Nx inflated),
     // plus its reconstructed live copy (prefer deal-mined, else contact-mined, newest).
     const campaigns = await q<any>(
-      `select r.primary_id as id, r.name, r.channel, r.sent, r.replies, r.positive_replies,
+      `select r.primary_id as id, r.name, r.channel, r.sent, r.replies, r.bounces, r.positive_replies,
               r.power_requests, r.booked, r.source_rows,
               cp.t1, cp.t2, cp.variant, cp.char_t1, cp.char_t2,
               cp.origin as copy_origin, cp.updated_at as copy_updated_at
@@ -79,10 +79,14 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
         channel: c.channel,
         sent,
         replies: num(c.replies),
+        bounces: num(c.bounces),
         positives: num(c.positive_replies),
         power_requests: num(c.power_requests),
         booked: num(c.booked),
         power_rate_pct: Math.round(powerRate * 1000) / 10,
+        // email deliverability/engagement: rates on sent (email campaigns; sms has no bounces)
+        reply_rate_pct: sent ? Math.round((num(c.replies) / sent) * 1000) / 10 : null,
+        bounce_rate_pct: sent ? Math.round((num(c.bounces) / sent) * 1000) / 10 : null,
         source_rows: num(c.source_rows),
         live_copy: hasCopy
           ? {

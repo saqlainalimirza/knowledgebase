@@ -37,14 +37,21 @@ def sync(slug):
                 print(f"{slug}: not in roster"); return
             name = row[0].replace("'", "\\'")
 
-            # 1) sent volume per campaign (matched by airtable_campaign_id)
+            # 1) sent volume + email reply/bounce counts per campaign (by airtable_campaign_id)
             camps = list_records("📢 Campaigns", formula=f"FIND('{name}', ARRAYJOIN({{📂 Clients}}))",
-                                 fields=["Name", "Completed Leads", "Total Leads", "Emails Sent"])
-            sent_by_rec = {}
+                                 fields=["Name", "Completed Leads", "Total Leads", "Emails Sent",
+                                         "Email Replies", "Email Bounces"])
+            sent_by_rec, reply_by_rec, bounce_by_rec = {}, {}, {}
             for r in camps:
                 f = r["fields"]
                 sent = f.get("Emails Sent") or f.get("Completed Leads") or 0
                 sent_by_rec[r["id"]] = int(sent or 0)
+                # replies/bounces are email-only fields; leave None (not 0) when absent so an
+                # SMS campaign doesn't get a misleading 0 reply/bounce count.
+                if "Email Replies" in f:
+                    reply_by_rec[r["id"]] = int(f.get("Email Replies") or 0)
+                if "Email Bounces" in f:
+                    bounce_by_rec[r["id"]] = int(f.get("Email Bounces") or 0)
 
             # 2) outcomes per campaign NAME from the DEALS table (a deal = a positive reply).
             # PR = count of ALL deals for the campaign (no filtering — every deal counts).
@@ -68,19 +75,23 @@ def sync(slug):
             updated = 0
             for cid, at_id, cname in cur.fetchall():
                 sent = sent_by_rec.get(at_id)
+                replies = reply_by_rec.get(at_id)
+                bounces = bounce_by_rec.get(at_id)
                 key = (cname or "").strip().lower()
                 out = agg.get(key)
-                if sent is None and out is None:
+                if sent is None and out is None and replies is None and bounces is None:
                     continue
                 cur.execute("""update campaigns set
                                  sent=coalesce(%s, sent),
                                  positive_replies=coalesce(%s, positive_replies),
                                  power_requests=coalesce(%s, power_requests),
                                  booked=coalesce(%s, booked),
+                                 replies=coalesce(%s, replies),
+                                 bounces=coalesce(%s, bounces),
                                  stats_synced_at=now()
                                where id=%s""",
                             (sent, out and out["pos"], out and out["power"],
-                             out and out["booked"], cid))
+                             out and out["booked"], replies, bounces, cid))
                 updated += 1
         conn.commit()
         print(f"{slug}: campaigns with stats updated={updated} (deals matched on {len(agg)} campaign names)")

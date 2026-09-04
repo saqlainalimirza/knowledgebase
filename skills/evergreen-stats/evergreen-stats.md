@@ -85,8 +85,10 @@ big_leap, go_fish, redo, growth_lab, leadgenix, digital_resource, scaletopia, se
   booked:{...}, conversion}`; `kpi` targets; `activeCampaigns {sms,email}`; live `campaigns`
   with `status` (ACTIVE/COMPLETED/PAUSED). `source` block names the Airtable record used.
 - `GET /api/clients/{slug}/report?channel=&q=&granularity=day|week` — per campaign: `sent,
-  positives, power_requests, booked, power_rate_pct, vs_client_avg, live_copy, source_rows`;
-  plus `kpi` (targets vs this week/month) and `trend`. This is the campaign-level workhorse.
+  positives, power_requests, booked, power_rate_pct, vs_client_avg, live_copy, source_rows`,
+  and for email: `replies, bounces, reply_rate_pct, bounce_rate_pct` (deliverability/engagement;
+  replies = ALL email replies, not PRs; bounces are SMS-null). Plus `kpi` and `trend`. The
+  campaign-level workhorse.
 - `GET /api/clients/{slug}/variant-performance?campaign={name}` — which arm won, recovered
   from the sent copy. `{verdict, variants:[{variant, reached, positives, positive_rate_pct,
   sample_message}]}`. If reach is thin it SAYS "not enough reach" — never invent a winner.
