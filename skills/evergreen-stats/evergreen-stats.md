@@ -39,10 +39,17 @@ All bodies JSON. Full endpoint field-lists (if ever needed) live in the `evergre
   `positive_replies`. When someone asks "PRs", answer with `positive_replies`.
 - **`power_requests`** is a SEPARATE, narrower sub-count (only the "Power Request" reply
   category). Do NOT report it as "PRs". Only use it if they explicitly ask for power requests.
-- **`booked`** = meetings booked (stage meeting booked / show / won).
-- **positive rate** = positive_replies ÷ sent. **power rate** = power_requests ÷ sent.
-- **`sent` counts LEADS, not messages.** On SMS ~2 texts go per lead, so a GHL outbound
-  message count is ~2× Evergreen `sent`. Say this if a number looks "half" of GHL.
+- **`booked`** = meetings booked. Count it from `meeting_booked_at` (the event that persists),
+  NOT from current stage — a booked deal moves on to show/no-show/won and would drop out of a
+  stage-based count. `/period` and `/monthly` already do this right.
+- **Two different "sent", pick the right source:**
+  - **Period sent (today / this week / this month)** = messages from the ops daily feed. Get it
+    from **`/period`** (or `/monthly`). This is the ONLY correct source for "SMS sent this week"
+    and positive-per-SMS. Do NOT use `campaigns.sent` or `/stats.periods` for period sent — they
+    are a lifetime total / a lagging rollup and give wrong weekly numbers (e.g. 723 vs the real 1300).
+  - **Campaign lifetime `sent`** (on `campaigns`, used by `/report`) counts LEADS, not messages.
+    On SMS ~2 texts go per lead, so daily-feed messages ≈ 2× a campaign's lead-based sent.
+- **positive rate** = PRs ÷ sent. **positive-per-SMS** = PRs ÷ daily-feed messages (via `/period`).
 - Campaign totals are **deduped**: many Airtable records share one campaign name; the API
   already rolls them into one logical campaign (sent summed, stats counted once). Never sum
   raw campaign rows yourself.
@@ -53,7 +60,9 @@ All bodies JSON. Full endpoint field-lists (if ever needed) live in the `evergre
 
 | Question | Call |
 |---|---|
-| "how many sent / PRs / positives / booked" for a client (today/week/month) | `GET /api/clients/{slug}/stats` → read `stats.periods[window]` |
+| "how many SENT / PRs / positive-per-SMS for a window" (today, this/last week, this/last month) | `GET /api/clients/{slug}/period?window=this_week&channel=sms` — **sent comes from the ops daily feed, this is the correct source for period sent** |
+| "this week vs last week" | call `/period?window=this_week` and `/period?window=last_week` and compare |
+| KPI targets / account manager / campaign status (Airtable-native view) | `GET /api/clients/{slug}/stats` — but its `periods` sent is an Airtable rollup that can LAG/undercount; for period sent + positive-per-SMS use `/period` instead |
 | "copy + stats of {client}'s campaigns" (filter SMS/email/name) | `GET /api/clients/{slug}/report?channel=sms&q=BD` |
 | "how is {campaign} doing / is it worth running" | `GET /api/clients/{slug}/report` → find the campaign row (sent, positives, power_requests, booked, power_rate_pct, vs_client_avg, live_copy) |
 | "which VARIANT / CTA arm inside {campaign} won" | `GET /api/clients/{slug}/variant-performance?campaign={name}` |
@@ -85,6 +94,11 @@ big_leap, go_fish, redo, growth_lab, leadgenix, digital_resource, scaletopia, se
   reconstructed copy label. `GET /api/clients/{slug}/benchmarks` — client rate vs niche/overall.
 - `GET /api/clients/{slug}/replies` (reply-reason analytics) / `POST
   /api/clients/{slug}/reply-diagnosis` (why a campaign fails: opt-out / wrong-contact / etc.).
+- `GET /api/clients/{slug}/period?window=today|this_week|last_week|this_month|last_month|last_7d|last_30d&channel=sms|email`
+  — sent/PRs/booked/pr_per_send for a window, with **sent sourced from the ops daily feed
+  (daily_stats), the accurate source** — use this for "SMS sent this week" and
+  "positive-per-SMS", NOT `/stats` (whose sent is a lagging Airtable rollup) or campaigns.sent.
+  Returns `data_through` (last day in the feed) and warns if today is not fully counted yet.
 - `GET /api/clients/{slug}/monthly?months=12&channel=sms|email` — month-by-month trend in
   ONE call: per month `sent` (messages, from the daily send feed), `prs`, `booked`
   (meeting_booked_at), and `pr_per_send_pct` (PR per SMS/email), split sms vs email, plus a
