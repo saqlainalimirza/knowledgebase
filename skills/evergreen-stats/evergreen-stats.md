@@ -28,6 +28,11 @@ All bodies JSON. Full endpoint field-lists (if ever needed) live in the `evergre
    assumption in one line, or ask ONE short question. Never guess silently.
 5. **State the window** in the answer: "yesterday:", "this week:", "all-time:". Ambiguous
    "how many X" defaults to the natural window for the question — say which you used.
+6. **For a period's sent/PRs use a `period` endpoint — NEVER derive a window by arithmetic.**
+   Do not compute "last week" as "this month minus this week", do not sum campaign rows, do not
+   subtract Airtable rollups. That is how "how many SMS did we send last week" came back 728
+   when the real number was 16,404. Agency-wide ("we"/"total", no client named) →
+   `GET /api/period?window=...`. A named client → `GET /api/clients/{slug}/period?window=...`.
 
 ---
 
@@ -60,8 +65,9 @@ All bodies JSON. Full endpoint field-lists (if ever needed) live in the `evergre
 
 | Question | Call |
 |---|---|
-| "how many SENT / PRs / positive-per-SMS for a window" (today, this/last week, this/last month) | `GET /api/clients/{slug}/period?window=this_week&channel=sms` — **sent comes from the ops daily feed, this is the correct source for period sent** |
-| "this week vs last week" | call `/period?window=this_week` and `/period?window=last_week` and compare |
+| "how many SMS/emails did WE send / PRs for a window" — **agency-wide, no client named** ("we", "total", "across all clients") | `GET /api/period?window=last_week&channel=sms` (add `by=client` for the breakdown) |
+| "how many SENT / PRs / positive-per-SMS for {a named client}" (today, this/last week, this/last month) | `GET /api/clients/{slug}/period?window=this_week&channel=sms` — **sent comes from the ops daily feed** |
+| "this week vs last week" | call the matching `period` endpoint twice (`?window=this_week` and `?window=last_week`) and compare |
 | KPI targets / account manager / campaign status (Airtable-native view) | `GET /api/clients/{slug}/stats` — but its `periods` sent is an Airtable rollup that can LAG/undercount; for period sent + positive-per-SMS use `/period` instead |
 | "copy + stats of {client}'s campaigns" (filter SMS/email/name) | `GET /api/clients/{slug}/report?channel=sms&q=BD` |
 | "how is {campaign} doing / is it worth running" | `GET /api/clients/{slug}/report` → find the campaign row (sent, positives, power_requests, booked, power_rate_pct, vs_client_avg, live_copy) |
@@ -96,6 +102,10 @@ big_leap, go_fish, redo, growth_lab, leadgenix, digital_resource, scaletopia, se
   reconstructed copy label. `GET /api/clients/{slug}/benchmarks` — client rate vs niche/overall.
 - `GET /api/clients/{slug}/replies` (reply-reason analytics) / `POST
   /api/clients/{slug}/reply-diagnosis` (why a campaign fails: opt-out / wrong-contact / etc.).
+- `GET /api/period?window=today|this_week|last_week|this_month|last_month|last_7d|last_30d&channel=sms|email&by=client`
+  — **AGENCY-WIDE** totals across all clients for a window ("how many SMS did WE send last week").
+  Sent summed from the ops daily feed. `by=client` adds the per-client split. Use this whenever
+  no single client is named. Reports `data_through`.
 - `GET /api/clients/{slug}/period?window=today|this_week|last_week|this_month|last_month|last_7d|last_30d&channel=sms|email`
   — sent/PRs/booked/pr_per_send for a window, with **sent sourced from the ops daily feed
   (daily_stats), the accurate source** — use this for "SMS sent this week" and

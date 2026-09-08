@@ -1,0 +1,127 @@
+import { NextResponse } from "next/server";
+import { q, one } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
+
+// GET /api/period?window=last_week&channel=sms&by=client
+// AGENCY-WIDE totals for a window (all clients), e.g. "how many SMS did WE send last week".
+// Sent is summed from the ops daily feed (daily_stats), PRs from deals, booked from
+// meeting_booked_at. This is the ONE call for agency-wide "how many X did we send/get for
+// {window}" — do NOT derive it by subtracting monthly/weekly Airtable rollups (that is what
+// produced 728 vs the real 16,404). Add by=client for a per-client breakdown.
+//
+// windows: today, yesterday, this_week, last_week, this_month, last_month, last_7d, last_30d
+// week = Monday..Sunday.
+
+const pctVal = (n: any, d: any) =>
+  Number(d) ? Math.round((Number(n) / Number(d)) * 100000) / 1000 : null;
+
+function range(window: string): { start: string; end: string } | null {
+  const today = new Date();
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  const d = (base: Date, days: number) => { const x = new Date(base); x.setUTCDate(x.getUTCDate() + days); return x; };
+  const monday = (base: Date) => { const x = new Date(base); const wd = (x.getUTCDay() + 6) % 7; return d(x, -wd); };
+  const firstOfMonth = (base: Date) => new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), 1));
+  switch (window) {
+    case "today": return { start: iso(today), end: iso(today) };
+    case "yesterday": return { start: iso(d(today, -1)), end: iso(d(today, -1)) };
+    case "this_week": return { start: iso(monday(today)), end: iso(today) };
+    case "last_week": return { start: iso(d(monday(today), -7)), end: iso(d(monday(today), -1)) };
+    case "this_month": return { start: iso(firstOfMonth(today)), end: iso(today) };
+    case "last_month": {
+      const lm = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1));
+      return { start: iso(lm), end: iso(d(firstOfMonth(today), -1)) };
+    }
+    case "last_7d": return { start: iso(d(today, -6)), end: iso(today) };
+    case "last_30d": return { start: iso(d(today, -29)), end: iso(today) };
+    default: return null;
+  }
+}
+
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const window = (url.searchParams.get("window") || "last_week").toLowerCase();
+  const channel = (url.searchParams.get("channel") || "").toLowerCase();
+  const by = (url.searchParams.get("by") || "").toLowerCase();
+  const r = range(window);
+  if (!r) return NextResponse.json({ error: `unknown window '${window}'` }, { status: 400 });
+  const chFilter = channel === "sms" || channel === "email" ? channel : null;
+
+  try {
+    const [sends, prs, booked, fresh, breakdown] = await Promise.all([
+      q<any>(
+        `select channel, sum(sent)::int sent, sum(coalesce(leads_reached,0))::int leads
+         from daily_stats where stat_date between $1 and $2 and ($3::text is null or channel=$3)
+         group by channel`,
+        [r.start, r.end, chFilter]
+      ),
+      q<any>(
+        `select lower(coalesce(channel,'')) channel, count(*)::int prs
+         from deals where deal_created_at::date between $1 and $2
+           and ($3::text is null or lower(coalesce(channel,''))=$3) group by 1`,
+        [r.start, r.end, chFilter]
+      ),
+      q<any>(
+        `select lower(coalesce(channel,'')) channel, count(*)::int booked
+         from deals where meeting_booked_at::date between $1 and $2
+           and ($3::text is null or lower(coalesce(channel,''))=$3) group by 1`,
+        [r.start, r.end, chFilter]
+      ),
+      one<any>(`select max(stat_date) as through from daily_stats`),
+      by === "client"
+        ? q<any>(
+            `select ds.client_slug,
+                    sum(ds.sent)::int sent,
+                    coalesce(dl.prs,0)::int prs
+             from daily_stats ds
+             left join lateral (
+               select count(*) prs from deals d
+               where d.client_slug=ds.client_slug and d.deal_created_at::date between $1 and $2
+                 and ($3::text is null or lower(coalesce(d.channel,''))=$3)
+             ) dl on true
+             where ds.stat_date between $1 and $2 and ($3::text is null or ds.channel=$3)
+             group by ds.client_slug, dl.prs
+             order by sent desc`,
+            [r.start, r.end, chFilter]
+          )
+        : Promise.resolve([]),
+    ]);
+
+    type Ch = { sent: number; leads: number; prs: number; booked: number };
+    const blank = (): Ch => ({ sent: 0, leads: 0, prs: 0, booked: 0 });
+    const acc: Record<string, Ch> = { sms: blank(), email: blank() };
+    for (const x of sends) if (acc[x.channel]) { acc[x.channel].sent += x.sent; acc[x.channel].leads += x.leads; }
+    for (const x of prs) if (acc[x.channel]) acc[x.channel].prs += x.prs;
+    for (const x of booked) if (acc[x.channel]) acc[x.channel].booked += x.booked;
+
+    const chOut = (c: Ch, isEmail: boolean) => ({
+      sent: c.sent,
+      ...(isEmail ? { leads_reached: c.leads } : {}),
+      prs: c.prs,
+      booked: c.booked,
+      pr_per_send_pct: pctVal(c.prs, c.sent),
+    });
+    const totSent = acc.sms.sent + acc.email.sent;
+    const totPrs = acc.sms.prs + acc.email.prs;
+    const through = fresh?.through ? String(fresh.through).slice(0, 10) : null;
+    const stale = through && through < r.end;
+
+    return NextResponse.json({
+      scope: "agency (all clients)",
+      window,
+      range: { start: r.start, end: r.end },
+      channel: chFilter || "all",
+      data_through: through,
+      note:
+        "Agency-wide totals. sent = messages from the ops daily feed summed across ALL clients " +
+        "(the accurate source). week = Mon..Sun." +
+        (stale ? ` NOTE: feed is current through ${through}; ${r.end} not fully counted yet.` : ""),
+      sms: chOut(acc.sms, false),
+      email: chOut(acc.email, true),
+      total: { sent: totSent, prs: totPrs, booked: acc.sms.booked + acc.email.booked, pr_per_send_pct: pctVal(totPrs, totSent) },
+      ...(by === "client" ? { by_client: breakdown } : {}),
+    });
+  } catch (e: any) {
+    return NextResponse.json({ error: String(e?.message || e) }, { status: 500 });
+  }
+}
