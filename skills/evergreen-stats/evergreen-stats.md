@@ -28,6 +28,9 @@ All bodies JSON. Full endpoint field-lists (if ever needed) live in the `evergre
    assumption in one line, or ask ONE short question. Never guess silently.
 5. **State the window** in the answer: "yesterday:", "this week:", "all-time:". Ambiguous
    "how many X" defaults to the natural window for the question — say which you used.
+5b. **When an answer is filtered to one channel, SAY "SMS only" / "email only".** Never state
+   or imply the other channel was zero unless you actually queried it. A `channel=sms` call
+   tells you nothing about email — do not say "no email went out".
 6. **For a period's sent/PRs use a `period` endpoint — NEVER derive a window by arithmetic.**
    Do not compute "last week" as "this month minus this week", do not sum campaign rows, do not
    subtract Airtable rollups. That is how "how many SMS did we send last week" came back 728
