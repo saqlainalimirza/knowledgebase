@@ -92,7 +92,40 @@ def sync(only_slug=None):
                 if cur.fetchone()[0]:
                     flipped += 1
             conn.commit()
-        print(f"churn-sync: matched={matched} unmatched={unmatched} now-past={flipped}")
+
+            # Catch NEW clients that exist in the CRM but were never onboarded into Evergreen
+            # (this is how Taktical Digital / DTCo / Score More Clients stayed invisible and
+            # dragged every agency-wide total down). Add a minimal roster row so their stats
+            # flow immediately; a proper niche/knowledge onboarding can follow.
+            added = 0
+            if not only_slug:
+                cur.execute("select airtable_client_id from client_roster where airtable_client_id is not null")
+                have = {r[0] for r in cur.fetchall()}
+                for rec in recs:
+                    f = rec["fields"]
+                    status_label = (f.get("Client Status") or "").strip()
+                    # ONLY auto-add ACTIVE clients (missing active clients silently break every
+                    # agency total). Never auto-add churned/paused ones — pulling historical
+                    # churned clients into Evergreen is a deliberate call, not an automatic one.
+                    if rec["id"] in have or status_label.lower() != "active":
+                        continue
+                    name = f.get("Client Name")
+                    name = name[0] if isinstance(name, list) else name
+                    if not name:
+                        continue
+                    slug = re.sub(r"[^a-z0-9]+", "_", str(name).lower()).strip("_")
+                    cur.execute(
+                        """insert into client_roster(slug, client, airtable_client_id, status,
+                             churn_status, onboarded_at)
+                           values (%s,%s,%s,'active',%s,%s)
+                           on conflict (slug) do update set
+                             airtable_client_id = excluded.airtable_client_id""",
+                        (slug, name, rec["id"], status_label or None, f.get("Client Onboarding Date")),
+                    )
+                    added += 1
+                    print(f"  + added new ACTIVE client from CRM: {name} ({slug})")
+                conn.commit()
+        print(f"churn-sync: matched={matched} unmatched={unmatched} now-past={flipped} new-added={added}")
     finally:
         conn.close()
 
