@@ -51,8 +51,17 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     const variants = all.filter((v) => v.reached >= floor).sort((a, b) => b.positive_rate_pct - a.positive_rate_pct);
     const minorCollapsed = all.length - variants.length;
 
+    // A rate on a small arm is directional, not a winner. Flag it so we never declare a
+    // winner on thin reach (e.g. 6/26). Need a decent sample on BOTH compared arms.
+    const MIN_CONFIDENT_REACH = 50;
+    const minArmReach = variants.length ? Math.min(...variants.map((v) => v.reached)) : 0;
+    const thin = variants.length >= 2 && minArmReach < MIN_CONFIDENT_REACH;
+    const confidence = variants.length < 2 ? "n/a" : thin ? "directional" : "ok";
+
     const verdict = variants.length >= 2
-      ? `${variants[0].variant} wins at ${variants[0].positive_rate_pct}% positive (reached ${variants[0].reached}) vs ${variants[variants.length - 1].variant} at ${variants[variants.length - 1].positive_rate_pct}% (reached ${variants[variants.length - 1].reached})`
+      ? (thin
+          ? `DIRECTIONAL ONLY (thin sample — smallest arm reached just ${minArmReach}, need ~${MIN_CONFIDENT_REACH}+): ${variants[0].variant} is ahead at ${variants[0].positive_rate_pct}% (reached ${variants[0].reached}) vs ${variants[variants.length - 1].variant} ${variants[variants.length - 1].positive_rate_pct}% (reached ${variants[variants.length - 1].reached}) — do NOT call a winner yet.`
+          : `${variants[0].variant} wins at ${variants[0].positive_rate_pct}% positive (reached ${variants[0].reached}) vs ${variants[variants.length - 1].variant} at ${variants[variants.length - 1].positive_rate_pct}% (reached ${variants[variants.length - 1].reached})`)
       : variants.length === 1
       ? "one dominant variant on this campaign (no real A/B split detected — likely one arm or heavy personalization)"
       : "not enough attributed reach to compare";
@@ -61,6 +70,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
       client: slug, campaign,
       significant_variants: variants.length,
       minor_variants_collapsed: minorCollapsed,
+      confidence, min_arm_reached: minArmReach,
       verdict, variants,
     });
   } catch (e: any) {

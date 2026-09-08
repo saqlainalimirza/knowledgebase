@@ -58,6 +58,17 @@ All bodies JSON. Full endpoint field-lists (if ever needed) live in the `evergre
   - **Campaign lifetime `sent`** (on `campaigns`, used by `/report`) counts LEADS, not messages.
     On SMS ~2 texts go per lead, so daily-feed messages ≈ 2× a campaign's lead-based sent.
 - **positive rate** = PRs ÷ sent. **positive-per-SMS** = PRs ÷ daily-feed messages (via `/period`).
+- **Two different denominators — never compare them naively:** `/period` and `/monthly`
+  `pr_per_send_pct` is **per MESSAGE** (÷ daily-feed texts); `/benchmarks` `positive_rate` is
+  **per LEAD** (÷ campaigns.sent). Same client can read ~0.41% per message and ~0.83% per lead.
+  When comparing to a benchmark, put both on the SAME denominator or say which you used.
+- **Feed lag / partial windows:** `/period` returns `data_through`, `partial`, `no_data_yet`.
+  If `no_data_yet` is true, the window is entirely after the feed — report it as "not
+  available yet, feed only through {data_through}", do NOT present the near-zero number as
+  real. If `partial`, say it's partial (e.g. "this week so far, through {data_through}").
+- **power_requests are available per window** in `/period` (and per client), and `all_time`
+  is a valid window — so "power requests last week" and "meetings booked all time" no longer
+  need a lifetime-only fallback.
 - Campaign totals are **deduped**: many Airtable records share one campaign name; the API
   already rolls them into one logical campaign (sent summed, stats counted once). Never sum
   raw campaign rows yourself.
@@ -74,7 +85,7 @@ All bodies JSON. Full endpoint field-lists (if ever needed) live in the `evergre
 | KPI targets / account manager / campaign status (Airtable-native view) | `GET /api/clients/{slug}/stats` — but its `periods` sent is an Airtable rollup that can LAG/undercount; for period sent + positive-per-SMS use `/period` instead |
 | "copy + stats of {client}'s campaigns" (filter SMS/email/name) | `GET /api/clients/{slug}/report?channel=sms&q=BD` |
 | "how is {campaign} doing / is it worth running" | `GET /api/clients/{slug}/report` → find the campaign row (sent, positives, power_requests, booked, power_rate_pct, vs_client_avg, live_copy) |
-| "which VARIANT / CTA arm inside {campaign} won" | `GET /api/clients/{slug}/variant-performance?campaign={name}` |
+| "which VARIANT / CTA arm inside {campaign} won" | `GET /api/clients/{slug}/variant-performance?campaign={name}` — the AUTHORITY (recovered from what was actually sent). Check `confidence`: if `directional`, do NOT declare a winner. |
 | "which copy / variant performed better for {client}" | `GET /api/clients/{slug}/copy-performance` |
 | "month-by-month trend / PR per SMS by month / which months peaked / was summer slow" | `GET /api/clients/{slug}/monthly?months=12&channel=sms` |
 | "is this number good or bad (vs peers)" | `GET /api/clients/{slug}/benchmarks` |
@@ -92,7 +103,9 @@ big_leap, go_fish, redo, growth_lab, leadgenix, digital_resource, scaletopia, se
 - `GET /api/clients/{slug}/stats` — live from Airtable. `stats.periods` has `"Today"`,
   `"This Week"`, `"This Month"`, `"All Time"`, each `{sent:{sms,email,total}, positives:{...},
   booked:{...}, conversion}`; `kpi` targets; `activeCampaigns {sms,email}`; live `campaigns`
-  with `status` (ACTIVE/COMPLETED/PAUSED). `source` block names the Airtable record used.
+  with `status`. Real values from the sender are **PROCESSING** (live / actively sending),
+  **COMPLETED**, **PAUSED** — there is no literal "ACTIVE"; treat PROCESSING as live/running.
+  `source` block names the Airtable record used.
 - `GET /api/clients/{slug}/report?channel=&q=&granularity=day|week` — per campaign: `sent,
   positives, power_requests, booked, power_rate_pct, vs_client_avg, live_copy, source_rows`,
   and for email: `replies, bounces, reply_rate_pct, bounce_rate_pct` (deliverability/engagement;
@@ -101,8 +114,11 @@ big_leap, go_fish, redo, growth_lab, leadgenix, digital_resource, scaletopia, se
 - `GET /api/clients/{slug}/variant-performance?campaign={name}` — which arm won, recovered
   from the sent copy. `{verdict, variants:[{variant, reached, positives, positive_rate_pct,
   sample_message}]}`. If reach is thin it SAYS "not enough reach" — never invent a winner.
-- `GET /api/clients/{slug}/copy-performance` — per (campaign, variant) positives, with the
-  reconstructed copy label. `GET /api/clients/{slug}/benchmarks` — client rate vs niche/overall.
+- `GET /api/clients/{slug}/copy-performance` — per (campaign, variant) positives, using the
+  SAVED copy label (A/B). NOTE: this can DISAGREE with `/variant-performance` (which groups by
+  the variant recovered from the actual sent message) — they group differently and can name
+  opposite winners. For "which variant won", trust `/variant-performance`; use this only for
+  saved-copy-level detail, and never present the two as one comparison. `GET /api/clients/{slug}/benchmarks` — client rate vs niche/overall.
 - `GET /api/clients/{slug}/replies` (reply-reason analytics) / `POST
   /api/clients/{slug}/reply-diagnosis` (why a campaign fails: opt-out / wrong-contact / etc.).
 - `GET /api/period?window=today|this_week|last_week|this_month|last_month|last_7d|last_30d&channel=sms|email&by=client`
