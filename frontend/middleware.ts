@@ -1,45 +1,71 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// API-key gate for the Evergreen API.
-// - Programmatic callers (Claude via the skills, curl, other services) MUST send the key as
-//   `Authorization: Bearer <EVERGREEN_API_KEY>` (or `x-api-key: <key>`), else 401.
-// - The dashboard's own browser requests are same-origin, which browsers stamp with
-//   `Sec-Fetch-Site: same-origin` (a forbidden header JS cannot set), so the UI keeps working
-//   without shipping the secret to the browser.
-// - Slack's webhook and the internal cron trigger carry their own auth, so they're exempt.
+// Unified auth for Evergreen.
+//
+//  - Programmatic callers (Claude via the skills, curl, services) send
+//    `Authorization: Bearer <key>` (or `x-api-key: <key>`). Valid keys are the
+//    comma-separated list in EVERGREEN_API_KEY (mirrors the api_keys table in Supabase).
+//  - The dashboard is behind a simple email + password login (HTTP Basic, no 2FA), from
+//    DASH_USER / DASH_PASS. Once the browser has logged in it resends those creds on every
+//    same-origin request, so the dashboard's own /api fetches are authorized too — no secret
+//    is ever shipped into the page.
+//  - Slack's webhook and the internal cron trigger carry their own auth, so they're exempt.
+//  - Fails closed: if nothing is configured on the server, access is denied, never open.
+
 const EXEMPT = [/^\/api\/slack\/events/, /^\/api\/cron\//];
+
+function apiKeys(): string[] {
+  return (process.env.EVERGREEN_API_KEY || "").split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+function basicOk(header: string): boolean {
+  if (!header.startsWith("Basic ")) return false;
+  const user = process.env.DASH_USER;
+  const pass = process.env.DASH_PASS;
+  if (!user || !pass) return false;
+  try {
+    const idx = atob(header.slice(6)).indexOf(":");
+    const u = atob(header.slice(6)).slice(0, idx);
+    const p = atob(header.slice(6)).slice(idx + 1);
+    return u === user && p === pass;
+  } catch {
+    return false;
+  }
+}
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (EXEMPT.some((re) => re.test(pathname))) return NextResponse.next();
-  if (req.method === "OPTIONS") return NextResponse.next(); // CORS preflight
+  if (req.method === "OPTIONS") return NextResponse.next();
 
-  // dashboard (same-origin browser fetch) — allowed without a key
-  const site = req.headers.get("sec-fetch-site");
-  if (site === "same-origin" || site === "same-site") return NextResponse.next();
-
-  const expected = process.env.EVERGREEN_API_KEY;
-  if (!expected) {
-    // fail closed: never run open if the key isn't configured on the server
-    return NextResponse.json(
-      { error: "server misconfigured: EVERGREEN_API_KEY not set" },
-      { status: 503 }
-    );
-  }
-
+  const isApi = pathname.startsWith("/api/");
   const auth = req.headers.get("authorization") || "";
+
+  // 1) programmatic API key
   const provided = auth.startsWith("Bearer ")
     ? auth.slice(7).trim()
     : (req.headers.get("x-api-key") || "").trim();
+  const keys = apiKeys();
+  if (provided && keys.includes(provided)) return NextResponse.next();
 
-  if (provided !== expected) {
-    return NextResponse.json(
-      { error: "unauthorized — send Authorization: Bearer <EVERGREEN_API_KEY>" },
-      { status: 401 }
-    );
+  // 2) dashboard login (also authorizes the dashboard's own same-origin /api fetches)
+  if (basicOk(auth)) return NextResponse.next();
+
+  // 3) not authorized
+  const configured = keys.length > 0 || (process.env.DASH_USER && process.env.DASH_PASS);
+  if (isApi) {
+    if (!configured) {
+      return NextResponse.json({ error: "server misconfigured: no auth set (EVERGREEN_API_KEY / DASH_USER)" }, { status: 503 });
+    }
+    return NextResponse.json({ error: "unauthorized — send Authorization: Bearer <EVERGREEN_API_KEY>" }, { status: 401 });
   }
-  return NextResponse.next();
+  // a dashboard page: prompt the browser for the login
+  return new NextResponse("Authentication required", {
+    status: 401,
+    headers: { "WWW-Authenticate": 'Basic realm="Evergreen", charset="UTF-8"' },
+  });
 }
 
-export const config = { matcher: ["/api/:path*"] };
+// Everything except Next's static assets. Covers the dashboard pages AND /api.
+export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico|robots.txt).*)"] };
