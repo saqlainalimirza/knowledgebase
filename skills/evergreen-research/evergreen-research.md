@@ -27,9 +27,13 @@ For the target client, fetch these FOUR in parallel, then hand the writer ONE st
 brief. Evergreen returns the facts; the copywriter skill turns them into copy. Your job is to
 make the evidence tight and honest, not to write.
 
-1. **Proven winners + WHY** — `POST /api/search {"type":"copies","query":"<angle>","status":"winner"}`.
-   Lead with the ones that have a real `why_it_worked` and real performance (`weight` high,
-   not `aged`). A winner with no `why_it_worked` is weaker evidence — mark it as such.
+1. **Proven winners + WHY + REAL RESULTS** — `POST /api/search {"type":"copies","query":"<angle>","status":"winner"}`.
+   Every copy comes back with its **actual numbers attached**: `sent`, `positives` (PRs),
+   `booked` (meetings), `positive_rate`, `sent_per_positive`, `power_requests`. **Always show
+   the writer the results next to the copy** — "this exact copy: 857 sent → 37 PRs, 3 meetings
+   (4.3%)" — not just "this won". Lead with high `positive_rate`/high `weight`, real
+   `why_it_worked`, not `aged`. A winner with no `why_it_worked` or no `sent` is weaker
+   evidence — mark it as such.
 2. **This week's objections** — `GET /api/clients/{slug}/replies` (`no_examples` + `by_category_recent`). What people actually reply, so the copy can pre-empt it.
 3. **The client's voice/identity** — `GET /api/clients/{slug}` `materials`, or `POST /api/search {"type":"materials"}` (positioning/voice/pricing).
 4. **Saved guidelines** — `GET /api/guidelines?client={slug}` (standing rules/preferences; newer wins).
@@ -38,12 +42,17 @@ make the evidence tight and honest, not to write.
 phrasing and past-client copies unless nothing else fits. Then give the writer a clean brief:
 
 ```
-WINNERS (proven): <copy> — why it worked: <why_it_worked> — <perf if linked>
+WINNERS (proven): <copy>
+   results: <sent> sent → <positives> PRs, <booked> meetings (<positive_rate>%)
+   why it worked: <why_it_worked>
 OBJECTIONS (this week): <category>: <what they say>
 VOICE: <positioning / how this client talks>
 GUIDELINES: <standing rules>
 GAPS: <what evidence is thin or missing — say it plainly>
 ```
+
+The results line is the point: the writer should see which copy actually pulled PRs and
+meetings and at what rate, so it copies what converted, not what merely sounds good.
 
 **Be honest about thin evidence.** If there are few winners-with-why for this client/angle,
 SAY so and widen to the niche (`route:true` / clusters) rather than padding with weak matches.
@@ -58,7 +67,9 @@ Body: `{ "type": <below>, "query": "...", "limit": 10, "route": true, "niche": "
 
 Types + key fields:
 - `copies` — `status, variant, lever, pattern, t1, t2, unique_mechanism, cta, why_it_worked,
-  why_it_failed` (+ perf when linked). **Read why_it_worked/why_it_failed.** `status` filter: winner|loser.
+  why_it_failed` **PLUS real results attached: `sent, positives (PRs), booked (meetings),
+  positive_rate, sent_per_positive, power_requests`.** Read why_it_worked/why_it_failed AND
+  surface the results. `status` filter: winner|loser.
 - `pains` — `kind (pain|lingo|dream|belief|objection), persona, item_text, confidence`.
 - `case_studies` — `subject_brand, tier (S..D), after_state, unique_mechanism`. Prefer S/A/B.
 - `components` — swipeable parts: `component_type (disarmer|identity|case_line|unique_mechanism|relevance|cta), verdict`.
