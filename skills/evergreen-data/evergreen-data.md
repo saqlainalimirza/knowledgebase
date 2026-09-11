@@ -15,6 +15,7 @@ covers: how to **fetch** from every endpoint, how to **read the quality signals*
 **save** findings back.
 
 **Base URL (live):** `https://knowledgebase-production-f52e.up.railway.app`
+**Full live endpoint index:** `GET /api/docs` (every endpoint, params, and which group it belongs to). Formal spec: `GET /api/openapi`.
 All paths below are relative to it. All bodies are JSON (`Content-Type: application/json`).
 Independent calls can be fired in parallel. Machine-readable spec: `GET /api/openapi`.
 

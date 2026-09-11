@@ -15,6 +15,7 @@ How they fit together: `evergreen-research` (evidence in/out) + `evergreen-stats
 feed the **copywriter skill** (writes). Three separate jobs.
 
 **Base URL (live):** `https://knowledgebase-production-f52e.up.railway.app`
+**Full live endpoint index:** `GET /api/docs` (every endpoint, params, and which group it belongs to). Formal spec: `GET /api/openapi`.
 All bodies JSON. Independent calls can run in parallel. Use Evergreen first; only fall back to
 GHL/Airtable/Smartlead MCP for something Evergreen genuinely lacks, and never bulk-pull.
 

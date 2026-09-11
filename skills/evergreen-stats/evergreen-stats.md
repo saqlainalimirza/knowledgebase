@@ -11,6 +11,7 @@ evidence/findings use the **evergreen-research** skill, and the actual copywriti
 **separate copywriter skill** that consumes what Evergreen returns. Never write copy from here.
 
 **Base URL (live):** `https://knowledgebase-production-f52e.up.railway.app`
+**Full live endpoint index:** `GET /api/docs` (every endpoint, params, and which group it belongs to). Formal spec: `GET /api/openapi`.
 All bodies JSON. Full endpoint field-lists (if ever needed) live in the `evergreen-data` reference.
 
 ---
