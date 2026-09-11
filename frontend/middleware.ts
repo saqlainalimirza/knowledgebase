@@ -42,10 +42,20 @@ async function verify(origin: string, payload: object, cacheKey: string): Promis
   return ok;
 }
 
+// Behind Railway's proxy, req.nextUrl.origin can resolve to localhost, so a self-fetch to it
+// hits nothing. Build the base from the forwarded host headers the request actually arrived on.
+function selfBase(req: NextRequest): string {
+  const proto = req.headers.get("x-forwarded-proto") || "https";
+  const host =
+    req.headers.get("x-forwarded-host") || req.headers.get("host") || req.nextUrl.host;
+  return `${proto}://${host}`;
+}
+
 export async function middleware(req: NextRequest) {
-  const { pathname, origin } = req.nextUrl;
+  const { pathname } = req.nextUrl;
   if (EXEMPT.some((re) => re.test(pathname))) return NextResponse.next();
   if (req.method === "OPTIONS") return NextResponse.next();
+  const origin = selfBase(req);
 
   const isApi = pathname.startsWith("/api/");
   const auth = req.headers.get("authorization") || "";
