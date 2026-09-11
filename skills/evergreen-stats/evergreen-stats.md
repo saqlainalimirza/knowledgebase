@@ -12,6 +12,7 @@ evidence/findings use the **evergreen-research** skill, and the actual copywriti
 
 **Base URL (live):** `https://knowledgebase-production-f52e.up.railway.app`
 **Full live endpoint index:** `GET /api/docs` (every endpoint, params, and which group it belongs to). Formal spec: `GET /api/openapi`.
+**Auth (required):** every call must send `Authorization: Bearer <EVERGREEN_API_KEY>` or it returns 401. The key is supplied via your environment / a local secret note -- it is NOT stored in this skill. Never paste the key into a committed file.
 All bodies JSON. Full endpoint field-lists (if ever needed) live in the `evergreen-data` reference.
 
 ---
