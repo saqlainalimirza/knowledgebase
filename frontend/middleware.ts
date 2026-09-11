@@ -11,11 +11,11 @@ import type { NextRequest } from "next/server";
 //  - Slack's webhook, the cron trigger, and the internal auth-verify route are exempt.
 //
 // Edge middleware can't use the pg driver, so it verifies each credential through the
-// Node-runtime route /api/_auth/verify (which reads api_keys) and caches the yes/no answer
+// Node-runtime route /api/authgate/verify (which reads api_keys) and caches the yes/no answer
 // briefly. Add/revoke a key or change the dashboard password by editing a DB row — no redeploy.
 // Fails closed: if the DB/verify is unreachable, nothing is authorized.
 
-const EXEMPT = [/^\/api\/slack\/events/, /^\/api\/cron\//, /^\/api\/_auth\//];
+const EXEMPT = [/^\/api\/slack\/events/, /^\/api\/cron\//, /^\/api\/authgate\//];
 
 const TTL_MS = 60_000;
 type Entry = { ok: boolean; exp: number };
@@ -28,7 +28,7 @@ async function verify(origin: string, payload: object, cacheKey: string): Promis
   if (hit && hit.exp > now) return hit.ok;
   let ok = false;
   try {
-    const r = await fetch(`${origin}/api/_auth/verify`, {
+    const r = await fetch(`${origin}/api/authgate/verify`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
