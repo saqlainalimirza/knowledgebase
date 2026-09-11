@@ -21,16 +21,33 @@ GHL/Airtable/Smartlead MCP for something Evergreen genuinely lacks, and never bu
 
 ---
 
-# WHEN THE COPYWRITER NEEDS A BRIEF (the evidence pull)
+# THE COPY BRIEF (the evidence pull the writer needs)
 
-For the target client, fetch these FOUR in parallel and hand the findings to the writer.
-This is the evidence to write FROM, not a stale local file. Evergreen returns the facts; the
-copywriter skill turns them into copy.
+For the target client, fetch these FOUR in parallel, then hand the writer ONE structured
+brief. Evergreen returns the facts; the copywriter skill turns them into copy. Your job is to
+make the evidence tight and honest, not to write.
 
-1. **Winners** — `POST /api/search {"type":"copies","query":"<angle>","status":"winner"}`; read `why_it_worked`.
-2. **This week's objections** — `GET /api/clients/{slug}/replies` (`no_examples` + `by_category_recent`). What people actually reply.
+1. **Proven winners + WHY** — `POST /api/search {"type":"copies","query":"<angle>","status":"winner"}`.
+   Lead with the ones that have a real `why_it_worked` and real performance (`weight` high,
+   not `aged`). A winner with no `why_it_worked` is weaker evidence — mark it as such.
+2. **This week's objections** — `GET /api/clients/{slug}/replies` (`no_examples` + `by_category_recent`). What people actually reply, so the copy can pre-empt it.
 3. **The client's voice/identity** — `GET /api/clients/{slug}` `materials`, or `POST /api/search {"type":"materials"}` (positioning/voice/pricing).
 4. **Saved guidelines** — `GET /api/guidelines?client={slug}` (standing rules/preferences; newer wins).
+
+**Rank, then hand off.** Order winners by real performance, not cosine score. Drop `aged`
+phrasing and past-client copies unless nothing else fits. Then give the writer a clean brief:
+
+```
+WINNERS (proven): <copy> — why it worked: <why_it_worked> — <perf if linked>
+OBJECTIONS (this week): <category>: <what they say>
+VOICE: <positioning / how this client talks>
+GUIDELINES: <standing rules>
+GAPS: <what evidence is thin or missing — say it plainly>
+```
+
+**Be honest about thin evidence.** If there are few winners-with-why for this client/angle,
+SAY so and widen to the niche (`route:true` / clusters) rather than padding with weak matches.
+Never invent a proof point to fill the brief — that is the one thing that poisons the copy.
 
 ---
 
