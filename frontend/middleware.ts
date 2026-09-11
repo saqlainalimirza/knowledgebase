@@ -1,64 +1,84 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Unified auth for Evergreen.
+// Unified auth for Evergreen. The AUTHORITY is the DB (the api_keys table), not env vars:
+//  - API callers (Claude via the skills, curl, services) send `Authorization: Bearer <key>`
+//    (or `x-api-key: <key>`). Valid keys are rows in api_keys where kind='api_key' and active.
+//  - The dashboard is behind a simple email+password login (HTTP Basic, no 2FA): the row in
+//    api_keys where kind='dashboard' (owner=email, key=password). Once the browser has logged
+//    in it resends the creds on every same-origin request, so the dashboard's own /api fetches
+//    are authorized too — no secret is ever shipped into the page.
+//  - Slack's webhook, the cron trigger, and the internal auth-verify route are exempt.
 //
-//  - Programmatic callers (Claude via the skills, curl, services) send
-//    `Authorization: Bearer <key>` (or `x-api-key: <key>`). Valid keys are the
-//    comma-separated list in EVERGREEN_API_KEY (mirrors the api_keys table in Supabase).
-//  - The dashboard is behind a simple email + password login (HTTP Basic, no 2FA), from
-//    DASH_USER / DASH_PASS. Once the browser has logged in it resends those creds on every
-//    same-origin request, so the dashboard's own /api fetches are authorized too — no secret
-//    is ever shipped into the page.
-//  - Slack's webhook and the internal cron trigger carry their own auth, so they're exempt.
-//  - Fails closed: if nothing is configured on the server, access is denied, never open.
+// Edge middleware can't use the pg driver, so it verifies each credential through the
+// Node-runtime route /api/_auth/verify (which reads api_keys) and caches the yes/no answer
+// briefly. Add/revoke a key or change the dashboard password by editing a DB row — no redeploy.
+// Fails closed: if the DB/verify is unreachable, nothing is authorized.
 
-const EXEMPT = [/^\/api\/slack\/events/, /^\/api\/cron\//];
+const EXEMPT = [/^\/api\/slack\/events/, /^\/api\/cron\//, /^\/api\/_auth\//];
 
-function apiKeys(): string[] {
-  return (process.env.EVERGREEN_API_KEY || "").split(",").map((s) => s.trim()).filter(Boolean);
-}
+const TTL_MS = 60_000;
+type Entry = { ok: boolean; exp: number };
+// module-scope cache; survives within a warm edge instance
+const cache = new Map<string, Entry>();
 
-function basicOk(header: string): boolean {
-  if (!header.startsWith("Basic ")) return false;
-  const user = process.env.DASH_USER;
-  const pass = process.env.DASH_PASS;
-  if (!user || !pass) return false;
+async function verify(origin: string, payload: object, cacheKey: string): Promise<boolean> {
+  const now = Date.now();
+  const hit = cache.get(cacheKey);
+  if (hit && hit.exp > now) return hit.ok;
+  let ok = false;
   try {
-    const idx = atob(header.slice(6)).indexOf(":");
-    const u = atob(header.slice(6)).slice(0, idx);
-    const p = atob(header.slice(6)).slice(idx + 1);
-    return u === user && p === pass;
+    const r = await fetch(`${origin}/api/_auth/verify`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    ok = r.status === 200;
   } catch {
-    return false;
+    ok = false;
   }
+  // cache negatives briefly too, to blunt brute-force chatter; positives for TTL_MS
+  cache.set(cacheKey, { ok, exp: now + (ok ? TTL_MS : 5_000) });
+  return ok;
 }
 
-export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+export async function middleware(req: NextRequest) {
+  const { pathname, origin } = req.nextUrl;
   if (EXEMPT.some((re) => re.test(pathname))) return NextResponse.next();
   if (req.method === "OPTIONS") return NextResponse.next();
 
   const isApi = pathname.startsWith("/api/");
   const auth = req.headers.get("authorization") || "";
 
-  // 1) programmatic API key
+  // 1) programmatic API key (Bearer or x-api-key)
   const provided = auth.startsWith("Bearer ")
     ? auth.slice(7).trim()
     : (req.headers.get("x-api-key") || "").trim();
-  const keys = apiKeys();
-  if (provided && keys.includes(provided)) return NextResponse.next();
+  if (provided && (await verify(origin, { type: "key", cred: provided }, "k:" + provided))) {
+    return NextResponse.next();
+  }
 
-  // 2) dashboard login (also authorizes the dashboard's own same-origin /api fetches)
-  if (basicOk(auth)) return NextResponse.next();
+  // 2) dashboard login (HTTP Basic) — also authorizes the dashboard's own same-origin /api fetches
+  if (auth.startsWith("Basic ")) {
+    try {
+      const raw = atob(auth.slice(6));
+      const i = raw.indexOf(":");
+      const user = raw.slice(0, i);
+      const pass = raw.slice(i + 1);
+      if (await verify(origin, { type: "dash", user, cred: pass }, "d:" + raw)) {
+        return NextResponse.next();
+      }
+    } catch {
+      /* fall through to 401 */
+    }
+  }
 
   // 3) not authorized
-  const configured = keys.length > 0 || (process.env.DASH_USER && process.env.DASH_PASS);
   if (isApi) {
-    if (!configured) {
-      return NextResponse.json({ error: "server misconfigured: no auth set (EVERGREEN_API_KEY / DASH_USER)" }, { status: 503 });
-    }
-    return NextResponse.json({ error: "unauthorized — send Authorization: Bearer <EVERGREEN_API_KEY>" }, { status: 401 });
+    return NextResponse.json(
+      { error: "unauthorized — send Authorization: Bearer <api key>" },
+      { status: 401 },
+    );
   }
   // a dashboard page: prompt the browser for the login
   return new NextResponse("Authentication required", {
