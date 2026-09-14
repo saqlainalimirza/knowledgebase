@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { q, one } from "@/lib/db";
+import { verifySession } from "@/lib/session";
 
 // Node-runtime auth check, backed by the api_keys table (the DB is the authority — not env).
 // The edge middleware calls this to validate a presented credential; it never returns the
@@ -41,6 +42,10 @@ export async function POST(req: Request) {
         [user, cred],
       );
       if (row) return NextResponse.json({ ok: true });
+    } else if (type === "session") {
+      // cred is a signed session cookie value minted by /api/authgate/login
+      const s = await verifySession(cred);
+      if (s) return NextResponse.json({ ok: true });
     }
   } catch {
     // DB unreachable -> fail closed
