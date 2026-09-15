@@ -27,3 +27,6 @@ next-env.d.ts
 # ---- misc ----
 .DS_Store
 *.log
+
+# Aaman's playbook is its own repo, not part of this one
+/Aaman-playbook/
