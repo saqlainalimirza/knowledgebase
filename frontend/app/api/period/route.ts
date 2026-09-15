@@ -37,13 +37,13 @@ export async function GET(req: Request) {
       q<any>(
         `select lower(coalesce(channel,'')) channel, count(*)::int prs,
                 count(*) filter (where lower(coalesce(positive_reply_category,''))='power request')::int power
-         from deals where deal_created_at::date between $1 and $2
+         from deals_dedup where deal_created_at::date between $1 and $2
            and ($3::text is null or lower(coalesce(channel,''))=$3) group by 1`,
         [r.start, r.end, chFilter]
       ),
       q<any>(
         `select lower(coalesce(channel,'')) channel, count(*)::int booked
-         from deals where meeting_booked_at::date between $1 and $2
+         from deals_dedup where meeting_booked_at::date between $1 and $2
            and ($3::text is null or lower(coalesce(channel,''))=$3) group by 1`,
         [r.start, r.end, chFilter]
       ),
@@ -55,7 +55,7 @@ export async function GET(req: Request) {
                     coalesce(dl.prs,0)::int prs
              from daily_stats ds
              left join lateral (
-               select count(*) prs from deals d
+               select count(*) prs from deals_dedup d
                where d.client_slug=ds.client_slug and d.deal_created_at::date between $1 and $2
                  and ($3::text is null or lower(coalesce(d.channel,''))=$3)
              ) dl on true

@@ -28,7 +28,7 @@ export async function GET() {
         q<any>(`select id, owner_client_slug as client_slug, subject_brand, tier from case_studies order by tier`),
         q<any>(`select id, client_slug, status, campaign_id from copies order by id desc`),
         q<any>(`select id, client_slug, offer_text, service, pattern from offers order by id`),
-        q<any>(`select client_slug, count(*)::int as total from deals group by client_slug`),
+        q<any>(`select client_slug, count(*)::int as total from deals_dedup group by client_slug`),
         q<any>(`select id, client_slug, company, job_title, variant, stage, campaign_id from deals
                 where lower(coalesce(stage,'')) = any($1) order by id`, [BOOKED]),
       ]);

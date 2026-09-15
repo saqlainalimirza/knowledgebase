@@ -54,15 +54,18 @@ def sync(slug):
                     bounce_by_rec[r["id"]] = int(f.get("Email Bounces") or 0)
 
             # 2) outcomes per campaign NAME from the DEALS table (a deal = a positive reply).
-            # PR = count of ALL deals for the campaign (no filtering — every deal counts).
-            # power_requests = ONLY 'power request'; booked = meeting booked / show / won.
+            # PR = count of deals for the campaign, from the deals_dedup VIEW: duplicate
+            # (client, email) records are collapsed to one there (same email under one client is
+            # a duplicate; same email under a different client is a real separate deal). See
+            # db/deals_dedup.sql for the rule. power_requests = ONLY 'power request';
+            # booked = meeting booked / show / won.
             cur.execute(
                 """select ca.name,
                      count(*) as pos,
                      count(*) filter (where lower(coalesce(d.positive_reply_category,'')) = 'power request') as power,
                      count(*) filter (where lower(coalesce(d.stage,'')) in ('meeting booked','show','won')
                                         or lower(coalesce(d.positive_reply_category,'')) = 'meeting booked') as booked
-                   from deals d join campaigns ca on ca.id = d.campaign_id
+                   from deals_dedup d join campaigns ca on ca.id = d.campaign_id
                    where d.client_slug = %s group by ca.name""",
                 (slug,),
             )

@@ -40,7 +40,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
       q<any>(
         `select lower(coalesce(channel,'')) channel, count(*)::int prs,
                 count(*) filter (where lower(coalesce(positive_reply_category,''))='power request')::int power
-         from deals
+         from deals_dedup
          where client_slug=$1 and deal_created_at::date between $2 and $3
            and ($4::text is null or lower(coalesce(channel,''))=$4)
          group by 1`,
@@ -48,7 +48,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
       ),
       q<any>(
         `select lower(coalesce(channel,'')) channel, count(*)::int booked
-         from deals
+         from deals_dedup
          where client_slug=$1 and meeting_booked_at::date between $2 and $3
            and ($4::text is null or lower(coalesce(channel,''))=$4)
          group by 1`,

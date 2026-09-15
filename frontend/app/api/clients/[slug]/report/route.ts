@@ -154,7 +154,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
       `select to_char(date_trunc('${gran}', deal_created_at), 'YYYY-MM-DD') as ${gran},
               count(*) filter (where positive_reply_category is not null)::int as positives,
               count(*) filter (where meeting_booked_at is not null)::int as booked
-       from deals
+       from deals_dedup
        where client_slug = $1 and deal_created_at is not null
        group by 1 order by 1 desc limit ${points}`,
       [slug]

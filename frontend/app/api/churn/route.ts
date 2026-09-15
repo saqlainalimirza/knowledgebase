@@ -44,7 +44,7 @@ export async function GET(req: Request) {
            count(*) filter (where r.churned_at is not null
              and deal_created_at >= r.churned_at - interval '120 days'
              and deal_created_at <  r.churned_at - interval '60 days') deals_prev60
-         from deals where client_slug = r.slug
+         from deals_dedup where client_slug = r.slug
        ) d on true
        where r.status = 'past'
          and ($1 = '' or lower(r.churn_status) = $1)

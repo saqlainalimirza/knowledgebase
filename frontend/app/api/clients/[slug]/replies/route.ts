@@ -27,7 +27,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
                 count(*) filter (where lower(coalesce(lead_category,'')) in ('neutral','ai error','out of office'))::int as neutral
          from contacts where client_slug=$1`, [slug, POSITIVE, NEGATIVE]),
       // lost_reason only exists on deals
-      q(`select lost_reason, count(*)::int as n from deals
+      q(`select lost_reason, count(*)::int as n from deals_dedup
          where client_slug=$1 and lost_reason is not null group by 1 order by n desc`, [slug]),
       q(`select to_char(date_trunc('week', created_at), 'YYYY-MM-DD') as week_start,
                 count(*)::int as replies,

@@ -38,7 +38,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
       // PRs: a deal IS a positive reply, bucket by the month it was created
       q<any>(
         `select to_char(deal_created_at,'YYYY-MM') ym, lower(coalesce(channel,'')) channel, count(*)::int prs
-         from deals
+         from deals_dedup
          where client_slug=$1 and deal_created_at is not null
            and to_char(deal_created_at,'YYYY-MM') >= ${since}
            and ($3::text is null or lower(coalesce(channel,''))=$3)
@@ -48,7 +48,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
       // meetings booked: the persistent event, not the transient current stage
       q<any>(
         `select to_char(meeting_booked_at,'YYYY-MM') ym, lower(coalesce(channel,'')) channel, count(*)::int booked
-         from deals
+         from deals_dedup
          where client_slug=$1 and meeting_booked_at is not null
            and to_char(meeting_booked_at,'YYYY-MM') >= ${since}
            and ($3::text is null or lower(coalesce(channel,''))=$3)
