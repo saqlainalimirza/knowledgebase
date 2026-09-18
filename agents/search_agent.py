@@ -143,7 +143,7 @@ SPECS = {
     ),
     "calls": (
         "call_chunks", "embedding",
-        "id, client_slug, chunk_text", "niche",
+        "id, client_slug, call_id, chunk_text", "niche",
     ),
     "case_studies": (
         "case_studies", "result_embedding",
@@ -207,7 +207,12 @@ def route_niches(cur, qvec, top=2, min_score=0.55):
     return [r for r in rows if r[1] >= min_score] or rows  # keep best even if below cutoff
 
 
-def run(stype, query, niche, status, limit, route=False, niche_id=None, sub_niche_id=None):
+# which column carries the client on each searchable table (default client_slug).
+# copy_components is cross-client (no client column) so a client filter can't apply.
+CLIENT_COL = {"case_studies": "owner_client_slug", "copy_components": None}
+
+
+def run(stype, query, niche, status, limit, route=False, niche_id=None, sub_niche_id=None, client=None):
     if stype not in SPECS:
         raise SystemExit(f"unknown type '{stype}'. one of {sorted(SPECS)}")
     table, vec, cols, niche_col = SPECS[stype]
@@ -219,6 +224,13 @@ def run(stype, query, niche, status, limit, route=False, niche_id=None, sub_nich
     params = []
     if stype == "guidelines":
         where.append("active = true")
+
+    # scope to one client when asked (default column client_slug; case_studies uses owner_client_slug)
+    if client:
+        ccol = CLIENT_COL.get(table, "client_slug")
+        if ccol:
+            where.append(f"{ccol} = %s")
+            params.append(client)
 
     # exact canonical filters (id-based, no fuzziness) — tables that carry the columns
     HAS_NICHE_ID = {"master_sheet_pains", "case_studies"}
@@ -295,6 +307,19 @@ def run(stype, query, niche, status, limit, route=False, niche_id=None, sub_nich
             rows = weight_pains(rows)
         elif stype == "case_studies" and rows:
             rows = weight_cases(rows)
+        elif stype == "calls" and rows:
+            # identify which recording each chunk came from (title/date/source)
+            cids = list({r.get("call_id") for r in rows if r.get("call_id")})
+            if cids:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "select id, title, call_date, source_call_id from client_calls where id = any(%s)",
+                        (cids,),
+                    )
+                    meta = {row[0]: {"call_title": row[1], "call_date": row[2],
+                                     "source_call_id": row[3]} for row in cur.fetchall()}
+                for r in rows:
+                    r.update(meta.get(r.get("call_id"), {}))
         print(json.dumps(
             {"type": stype, "query": query, "routed": [{"niche": n, "score": s} for n, s in routed],
              "results": rows},
@@ -314,6 +339,7 @@ if __name__ == "__main__":
     ap.add_argument("--route", action="store_true", help="route to the best niche(s) first, then search within")
     ap.add_argument("--niche-id", type=int, default=None, help="exact canonical niche filter")
     ap.add_argument("--sub-niche-id", type=int, default=None, help="exact canonical sub-niche filter")
+    ap.add_argument("--client", default=None, help="scope the search to one client slug")
     args = ap.parse_args()
     run(args.type, args.query, args.niche, args.status, args.limit, args.route,
-        args.niche_id, args.sub_niche_id)
+        args.niche_id, args.sub_niche_id, args.client)

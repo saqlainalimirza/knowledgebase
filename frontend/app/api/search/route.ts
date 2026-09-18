@@ -5,7 +5,7 @@ export const maxDuration = 120;
 
 export async function POST(req: Request) {
   try {
-    const { type, query, niche, status, limit, route, nicheId, subNicheId } = await req.json();
+    const { type, query, niche, status, limit, route, nicheId, subNicheId, client } = await req.json();
     if (!type || !query?.trim())
       return NextResponse.json({ error: "type and query are required" }, { status: 400 });
 
@@ -16,6 +16,8 @@ export async function POST(req: Request) {
     // exact canonical filters (stable ids from /api/niches)
     if (nicheId) args.push("--niche-id", String(nicheId));
     if (subNicheId) args.push("--sub-niche-id", String(subNicheId));
+    // scope to one client (e.g. only this client's sales-call chunks)
+    if (client) args.push("--client", String(client));
 
     const r = await runAgent(args[0], args.slice(1), 120000);
     if (!r.ok) return NextResponse.json({ error: r.output }, { status: 500 });
