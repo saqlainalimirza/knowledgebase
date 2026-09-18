@@ -64,9 +64,15 @@ Never invent a proof point to fill the brief — that is the one thing that pois
 # `POST /api/search` — the research workhorse (meaning-search only, never for counts)
 
 Body: `{ "type": <below>, "query": "...", "limit": 10, "route": true, "niche": "...",
-"nicheId": 1, "subNicheId": 3, "status": "winner" }`. `route:true` auto-scopes to the best niche.
+"nicheId": 1, "subNicheId": 3, "status": "winner", "client": "<slug>" }`. `route:true` auto-scopes to the best niche.
+**Pass `client` to scope the search to ONE client** — essential for `calls`/`deals`/`contacts`,
+which otherwise search EVERY client's chunks and return a cross-client mix ranked only by cosine.
 
 Types + key fields:
+- `calls` — semantic search over sales-call transcript chunks. **Always pass `client`** (e.g.
+  `{"type":"calls","client":"wise_digital","query":"why they're unhappy with SEO"}`) or read
+  one client's calls via `GET /api/clients/{slug}/calls?q=...`. Each hit now carries
+  `call_title, call_date, source_call_id` so you know which recording it came from.
 - `copies` — `status, variant, lever, pattern, t1, t2, unique_mechanism, cta, why_it_worked,
   why_it_failed` **PLUS real results attached: `sent, positives (PRs), booked (meetings),
   positive_rate, sent_per_positive, power_requests`.** Read why_it_worked/why_it_failed AND
@@ -85,6 +91,7 @@ Quality signals: `weight` (composite rank, higher = better), `confidence` (confi
 
 # Orientation & niche
 - `GET /api/clients/{slug}` — client detail: `pains, caseStudies, calls, campaigns, niche` brain, `guidelines`, `materials`.
+- `GET /api/clients/{slug}/calls` — list that client's sales calls; add `?q=...` to semantic-search WITHIN just that client's call chunks (the clean way to answer "what did {client}'s calls say about X").
 - `POST /api/clusters {"niche":"DTC ecom"}` — dominant pains across a niche (`client_count>1` = validated). `GET /api/niches` — canonical tree (ids for exact scoping).
 
 ---

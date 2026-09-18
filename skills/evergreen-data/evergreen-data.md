@@ -327,12 +327,15 @@ Body:
   "route": true,
   "niche": "DTC ecom",
   "nicheId": 1, "subNicheId": 3,
-  "status": "winner" }
+  "status": "winner",
+  "client": "wise_digital" }
 ```
 - `type` + `query` required. `limit` = the amount dial (everything is ranked, so small limits return the best few).
 - `route:true` = auto-match the query to the best niche first (recommended when no niche given).
 - `niche` = pin by niche text (skips routing). `nicheId`/`subNicheId` = EXACT canonical ids from `/api/niches` (work on pains + case_studies).
 - `status` = copies only (winner | loser | draft | neutral).
+- **`client` = scope to ONE client** (matches `client_slug`; `owner_client_slug` for case_studies). REQUIRED in practice for `calls`, and strongly advised for `deals`/`contacts` — without it the search spans EVERY client and cosine alone rarely surfaces the client you meant. `components` are cross-client, so `client` is ignored there.
+- For `calls`, each result also carries `call_title, call_date, source_call_id` (which recording the chunk came from). To browse or search one client's calls directly, use `GET /api/clients/{slug}/calls[?q=...]`.
 
 Response: `{ "type", "query", "routed": [{"niche","score"}], "results": [...] }`
 (`routed` shows which niche(s) the query was scoped to when `route:true`.)
