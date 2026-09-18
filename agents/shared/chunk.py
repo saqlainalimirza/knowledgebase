@@ -17,6 +17,9 @@ TS_RE = re.compile(r"^\s*\d{1,2}:\d{2}(?::\d{2})?\s*(?:[ap]\.?m\.?)?\s*(?:/\s*\d
                    re.IGNORECASE)
 # a plausible speaker-name line: 1-4 word-ish tokens, letters only (no sentence punctuation)
 NAME_LINE_RE = re.compile(r"^\s*[A-Za-z][A-Za-z.'\-]*(?:\s+[A-Za-z][A-Za-z.'\-]*){0,3}\s*$")
+# a line that STARTS with a timestamp and is followed by text on the same line:
+# "0:02\tAll right..." — a timestamped transcript with no speaker labels at all.
+LEAD_TS_RE = re.compile(r"^\s*\d{1,2}:\d{2}(?::\d{2})?\s+(?=\S)")
 TARGET_TOKENS = 400
 MAX_TOKENS = 512
 OVERLAP_TOKENS = 50
@@ -70,6 +73,28 @@ def _group_turns_timestamped(text):
     return turns if len(turns) >= 3 else None
 
 
+def _group_lines_timestamped(text):
+    """Timestamp-prefixed transcript with NO speaker labels: each line is
+    '0:02  text'. There is no speaker to recover, but we can still break on the
+    timestamps (utterance boundaries) and strip them, instead of blind char windows.
+    Returns a list of timestamp-stripped segments, or None if this shape isn't present."""
+    lines = text.splitlines()
+    if sum(1 for ln in lines if LEAD_TS_RE.match(ln)) < 5:
+        return None
+    segs, cur, started = [], [], False
+    for ln in lines:
+        if LEAD_TS_RE.match(ln):
+            started = True
+            if cur:
+                segs.append(" ".join(cur))
+            cur = [LEAD_TS_RE.sub("", ln).strip()]
+        elif started and ln.strip():
+            cur.append(ln.strip())
+    if cur:
+        segs.append(" ".join(cur))
+    return segs if len(segs) >= 5 else None
+
+
 def _overlap_tail(turns):
     tail, total = [], 0
     for t in reversed(turns):
@@ -117,9 +142,13 @@ def chunk_transcript(text):
                         if t.splitlines() and SPEAKER_RE.match(t.splitlines()[0]))
     if speaker_turns >= 3:
         return _pack(turns)
-    # 2) timestamped export layout (Fathom / Fireflies / Zoom)
+    # 2) timestamped export layout with speaker names (Fathom / Fireflies / Zoom)
     ts_turns = _group_turns_timestamped(text)
     if ts_turns:
         return _pack(ts_turns)
-    # 3) no speaker structure at all — blind windows
+    # 3) timestamp-prefixed lines, no speaker names — break on timestamps, strip them
+    ts_lines = _group_lines_timestamped(text)
+    if ts_lines:
+        return _pack(ts_lines)
+    # 4) no structure at all — blind windows
     return _fixed_windows(text)
