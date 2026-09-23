@@ -22,8 +22,12 @@ from connections.gemini import embed_query
 
 # cosine-similarity thresholds (score = 1 - distance; >0.75 is a strong match)
 DROP_LIKE_LOSER = 0.88     # near-duplicate of a known loser -> drop
-REWORK_LIKE_LOSER = 0.80   # clearly resembles a loser -> rework
+REWORK_LIKE_LOSER = 0.78   # clearly resembles a loser -> rework
+CAUTION_LIKE_LOSER = 0.72  # only cautions when it ALSO looks more like a loser than a winner
 KEEP_LIKE_WINNER = 0.80    # resembles a proven winner -> keep
+# NOTE: short SMS copies sit ~0.65-0.80 cosine to *something* by shared format, so an absolute
+# loser floor false-flags good copy. The CAUTION band is therefore RELATIVE: it fires only when
+# the draft resembles a loser MORE than any winner (sim_loser > sim_winner).
 
 
 def _fetch(cur, status, qvec, slug, niche, limit):
@@ -101,12 +105,19 @@ def run(client, t1, t2, limit=4):
                 + (f" (why it failed: {near_l['why_it_failed']})" if near_l and near_l.get('why_it_failed') else "")
                 + " — change what it shares with that loser before shipping."
             )
-        elif sim_w >= KEEP_LIKE_WINNER:
+        elif sim_w >= KEEP_LIKE_WINNER and sim_w >= sim_l:
             rate = f"{near_w['positive_rate']}" if near_w and near_w.get("positive_rate") is not None else "n/a"
             verdict, rec = "KEEP", (
                 f"~{round(sim_w*100)}% similar to a proven winner"
                 + (f" (positive_rate {rate})" if rate != "n/a" else "")
                 + " — leans on something that already works."
+            )
+        elif sim_l >= CAUTION_LIKE_LOSER and sim_l > sim_w:
+            verdict, rec = "CAUTION", (
+                f"~{round(sim_l*100)}% similar to a loser (and closer to that loser than to any "
+                f"winner)"
+                + (f" — why it failed: {near_l['why_it_failed']}" if near_l and near_l.get('why_it_failed') else "")
+                + ". Not a duplicate, but check you're not repeating what sank it."
             )
         else:
             verdict, rec = "TEST", (

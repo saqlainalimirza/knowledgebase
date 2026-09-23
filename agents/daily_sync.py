@@ -62,7 +62,7 @@ def _canonical_niches():
 
 def run(only=None):
     _ensure_log_table()
-    steps = only or ["churn", "campaigns", "stats", "sends", "deals", "contacts", "mine", "variants", "learnings", "slack", "tickets", "brains", "embeds"]
+    steps = only or ["churn", "campaigns", "stats", "sends", "deals", "contacts", "mine", "variants", "learnings", "seedlosers", "slack", "tickets", "brains", "embeds"]
     t0 = time.time()
     lines, ok = [], True
 
@@ -176,6 +176,22 @@ def run(only=None):
             lines.append(f"learnings: distilled ({total} across clients)")
         except Exception as e:
             ok = False; lines.append(f"learnings: FAILED {e}")
+
+    # seedlosers: grow the benchmark's loser corpus from dead-campaign performance so a bad
+    # new angle is actually caught. Runs after stats (needs campaign_rollup totals).
+    if "seedlosers" in steps:
+        try:
+            from loser_seed_agent import run as seed_run
+            conn2 = get_conn(); cur2 = conn2.cursor()
+            cur2.execute("select distinct client_slug from campaign_rollup")
+            owners = [r[0] for r in cur2.fetchall()]; conn2.close()
+            total = 0
+            for s in owners:
+                try: total += seed_run(s)
+                except Exception as e: lines.append(f"seedlosers {s}: ERR {e}")
+            lines.append(f"seedlosers: labeled {total} dead-campaign copies as losers")
+        except Exception as e:
+            ok = False; lines.append(f"seedlosers: FAILED {e}")
 
     if "slack" in steps:
         try:
