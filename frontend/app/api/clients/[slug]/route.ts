@@ -16,7 +16,7 @@ export async function GET(
     );
     if (!client) return NextResponse.json({ error: "not found" }, { status: 404 });
 
-    const [pains, painKinds, caseStudies, calls, campaigns, niche, guidelines, materials] = await Promise.all([
+    const [pains, painKinds, caseStudies, calls, campaigns, niche, guidelines, materials, learnings] = await Promise.all([
       q(
         `select id, kind, persona, item_text, confidence, source
          from master_sheet_pains where client_slug=$1
@@ -66,9 +66,16 @@ export async function GET(
          from materials where client_slug=$1 order by created_at desc`,
         [slug]
       ),
+      q(
+        `select id, campaign_id, dimension, winner_value, loser_value, winner_n, loser_n,
+                delta_pp, confidence, status, statement
+         from learnings where client_slug=$1 and active
+         order by (status='confirmed') desc, delta_pp desc nulls last, refreshed_at desc limit 50`,
+        [slug]
+      ),
     ]);
 
-    return NextResponse.json({ client, pains, painKinds, caseStudies, calls, campaigns, niche, guidelines, materials });
+    return NextResponse.json({ client, pains, painKinds, caseStudies, calls, campaigns, niche, guidelines, materials, learnings });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

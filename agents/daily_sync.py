@@ -62,7 +62,7 @@ def _canonical_niches():
 
 def run(only=None):
     _ensure_log_table()
-    steps = only or ["churn", "campaigns", "stats", "sends", "deals", "contacts", "mine", "variants", "slack", "tickets", "brains", "embeds"]
+    steps = only or ["churn", "campaigns", "stats", "sends", "deals", "contacts", "mine", "variants", "learnings", "slack", "tickets", "brains", "embeds"]
     t0 = time.time()
     lines, ok = [], True
 
@@ -163,6 +163,19 @@ def run(only=None):
             lines.append("variants: detected for new contacts")
         except Exception as e:
             ok = False; lines.append(f"variants: FAILED {e}")
+
+    # learnings: distill this run's A/B performance into durable learnings + auto-label
+    # copies. Runs AFTER variants (needs derived_variant); brains next run reads the labels.
+    if "learnings" in steps:
+        try:
+            from learnings_agent import run as learnings_run
+            total = 0
+            for s in slugs:
+                try: total += learnings_run(s)
+                except Exception as e: lines.append(f"learnings {s}: ERR {e}")
+            lines.append(f"learnings: distilled ({total} across clients)")
+        except Exception as e:
+            ok = False; lines.append(f"learnings: FAILED {e}")
 
     if "slack" in steps:
         try:

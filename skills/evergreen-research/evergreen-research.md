@@ -38,6 +38,15 @@ make the evidence tight and honest, not to write.
 2. **This week's objections** — `GET /api/clients/{slug}/replies` (`no_examples` + `by_category_recent`). What people actually reply, so the copy can pre-empt it.
 3. **The client's voice/identity** — `GET /api/clients/{slug}` `materials`, or `POST /api/search {"type":"materials"}` (positioning/voice/pricing).
 4. **Saved guidelines** — `GET /api/guidelines?client={slug}` (standing rules/preferences; newer wins).
+5. **Learnings (what real A/B performance proved)** — `GET /api/clients/{slug}/learnings`. Durable,
+   metric-backed bets distilled nightly ("variant V3 beat V1: 28.3% vs 22.9% on 53v258, confirmed").
+   `confirmed` = passed the significance gate; `proposed` = directional. Tell the writer which angle to
+   lean into — this is how past campaigns steer the next one.
+
+**Benchmark every draft before it ships** — `POST /api/benchmark-copy {client, t1, t2}` returns the
+nearest winners (+ real rates), nearest losers (+ why_it_failed), similarity, and a KEEP/REWORK/DROP/
+TEST verdict. A draft that mirrors a known loser must be reworked, not shipped. (The `campaign-director`
+skill fires this automatically; surface it whenever copy is being checked.)
 
 **Rank, then hand off.** Order winners by real performance, not cosine score. Drop `aged`
 phrasing and past-client copies unless nothing else fits. Then give the writer a clean brief:
