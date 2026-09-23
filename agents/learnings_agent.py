@@ -17,6 +17,7 @@ Usage:
   python learnings_agent.py --all
 """
 import os
+import re
 import sys
 import json
 import argparse
@@ -34,10 +35,13 @@ MAP_SIM = 0.80             # how close an arm's opener must be to a copy to auto
 
 
 def _snippet(text, n=90):
-    """A short, clean opener snippet from a 240-char conversation sample."""
+    """A short, CLEAN opener snippet from a conversation sample — strips the send-log
+    wrapper 'Outbound - <date>, <Client> said: <opener>' so the real first line survives."""
     s = " ".join((text or "").split())
-    # drop a leading "Speaker:" / "You:" label if present
-    if ":" in s[:20]:
+    m = re.search(r'\bsaid:\s*(.+)', s)          # "... said: <opener>"  (the log wrapper)
+    if m:
+        s = m.group(1).strip()
+    elif ":" in s[:18]:                           # or a bare "Speaker:" label
         s = s.split(":", 1)[1].strip()
     return (s[:n] + "…") if len(s) > n else s
 
@@ -75,7 +79,7 @@ def _upsert_learning(cur, slug, cid, winner, loser, delta, conf, statement, evid
              (client_slug, campaign_id, dimension, winner_value, loser_value, metric,
               winner_n, loser_n, delta_pp, confidence, status, statement, evidence,
               source, active, embedding, refreshed_at, updated_at)
-           values (%s,%s,'variant',%s,%s,'positive_rate',%s,%s,%s,%s,%s,%s,%s::jsonb,
+           values (%s,%s,'variant',%s,%s,'reply_positive_rate',%s,%s,%s,%s,%s,%s,%s::jsonb,
                    'auto',true,null,now(),now())
            on conflict (client_slug, coalesce(campaign_id,0), dimension,
                         coalesce(winner_value,''), coalesce(loser_value,''))
@@ -150,9 +154,14 @@ def run(slug):
                 if delta < MIN_DELTA_PP:
                     continue
                 win_opener = _snippet(w["sample"])
-                statement = (f"{name}: variant {w['variant']} beat {l['variant']} — "
-                             f"{w['rate']}% vs {l['rate']}% positive "
-                             f"({w['reached']} vs {l['reached']} reached), {conf}."
+                # IMPORTANT: this rate is positives / REPLIERS (reply quality), NOT / sends.
+                # variant-performance attributes only leads that replied, so it can't give a
+                # send-based rate. Label it plainly so a 62%-of-repliers is never read as a
+                # 62% send rate (the real send-based positive rate is a fraction of a percent).
+                statement = (f"{name}: variant {w['variant']} beat {l['variant']} on reply quality — "
+                             f"{w['rate']}% vs {l['rate']}% of REPLIES were positive "
+                             f"({w['reached']} vs {l['reached']} repliers), {conf}. "
+                             f"(reply-quality, not a send rate)"
                              + (f' Winning opener: "{win_opener}"' if win_opener else ""))
                 evidence = {"campaign": name, "winner": w["variant"], "loser": l["variant"],
                             "source": "variant-performance", "winning_opener": win_opener}

@@ -27,20 +27,28 @@ KEEP_LIKE_WINNER = 0.80    # resembles a proven winner -> keep
 
 
 def _fetch(cur, status, qvec, slug, niche, limit):
-    # nearest copies of a given status, client + niche first then anywhere, with real perf.
+    # nearest copies of a given status, with real perf. NOTE: we filter by status FIRST
+    # (a tiny set — ~tens of winners/losers) and order by the computed score in the outer
+    # query. Doing `order by embedding <=> v limit k` directly makes pgvector use its
+    # APPROXIMATE index, which returns FEWER than k (often 0) on a small filtered set — that
+    # was the "losers: []" bug. This exact-scan restructure fixes it.
     cur.execute(
-        """select c.id, c.client_slug, c.t1, c.t2, c.lever, c.pattern, c.cta,
-                  c.why_it_worked, c.why_it_failed,
-                  1 - (c.full_copy_embedding <=> %s::vector) as score,
-                  p.positive_rate, p.sent, p.positives, p.booked, p.power_rate,
-                  (c.client_slug = %s) as same_client,
-                  (c.niche is not distinct from %s) as same_niche
-           from copies c
-           left join copy_performance p on p.copy_id = c.id
-           where c.full_copy_embedding is not null and c.status = %s
-           order by c.full_copy_embedding <=> %s::vector
+        """select id, client_slug, t1, t2, lever, pattern, cta, why_it_worked, why_it_failed,
+                  score, positive_rate, sent, positives, booked, power_rate, same_client, same_niche
+           from (
+             select c.id, c.client_slug, c.t1, c.t2, c.lever, c.pattern, c.cta,
+                    c.why_it_worked, c.why_it_failed,
+                    1 - (c.full_copy_embedding <=> %s::vector) as score,
+                    p.positive_rate, p.sent, p.positives, p.booked, p.power_rate,
+                    (c.client_slug = %s) as same_client,
+                    (c.niche is not distinct from %s) as same_niche
+             from copies c
+             left join copy_performance p on p.copy_id = c.id
+             where c.full_copy_embedding is not null and c.status = %s
+           ) t
+           order by score desc
            limit %s""",
-        (qvec, slug, niche, status, qvec, limit),
+        (qvec, slug, niche, status, limit),
     )
     out = []
     for r in cur.fetchall():
@@ -72,6 +80,8 @@ def run(client, t1, t2, limit=4):
                 niche = row[0] if row else None
             winners = _fetch(cur, "winner", qvec, client, niche, limit)
             losers = _fetch(cur, "loser", qvec, client, niche, limit)
+            cur.execute("select count(*) from copies where status='loser' and full_copy_embedding is not null")
+            loser_corpus = cur.fetchone()[0] or 0
 
         sim_w = max([w["score"] for w in winners], default=0.0)
         sim_l = max([l["score"] for l in losers], default=0.0)
@@ -103,11 +113,16 @@ def run(client, t1, t2, limit=4):
                 "no strong match to a known winner or loser — genuinely novel, worth testing "
                 "but unproven."
             )
+        # honesty: a thin loser corpus means "no loser match" is NOT a clean bill of health.
+        if loser_corpus < 25 and sim_l < REWORK_LIKE_LOSER:
+            rec += (f" NOTE: only {loser_corpus} losers are on file, so this was not really "
+                    f"checked against a loser corpus — absence of a match is not proof it's safe.")
 
         print(json.dumps({
             "client": client, "draft": {"t1": t1, "t2": t2},
             "similarity_to_winner": round(sim_w, 4),
             "similarity_to_loser": round(sim_l, 4),
+            "loser_corpus_size": loser_corpus,
             "verdict": verdict, "recommendation": rec,
             "nearest_winner": near_w, "nearest_loser": near_l,
             "winners": winners, "losers": losers,
