@@ -30,7 +30,16 @@ POSITIVE = ['positive', 'power request', 'meeting booked', 'more info request',
             'email me request', 'maybe', 'referral request']
 MIN_CONFIDENT_REACH = 50   # mirror variant-performance route
 MIN_DELTA_PP = 1.0         # ignore arms that are effectively tied
-MAP_SIM = 0.85             # how close an arm's opener must be to a copy to auto-label it
+MAP_SIM = 0.80             # how close an arm's opener must be to a copy to auto-label it
+
+
+def _snippet(text, n=90):
+    """A short, clean opener snippet from a 240-char conversation sample."""
+    s = " ".join((text or "").split())
+    # drop a leading "Speaker:" / "You:" label if present
+    if ":" in s[:20]:
+        s = s.split(":", 1)[1].strip()
+    return (s[:n] + "…") if len(s) > n else s
 
 
 def _variant_perf(cur, slug, campaign_name):
@@ -81,24 +90,25 @@ def _upsert_learning(cur, slug, cid, winner, loser, delta, conf, statement, evid
     )
 
 
-def _nearest_copy(cur, cid, vec):
+def _nearest_copy(cur, ids, vec):
     cur.execute(
         """select id, status_source, 1 - (t1_embedding <=> %s::vector) as s
-           from copies where campaign_id = %s and t1_embedding is not null
+           from copies where campaign_id = any(%s) and t1_embedding is not null
            order by t1_embedding <=> %s::vector limit 1""",
-        (vec, cid, vec),
+        (vec, ids, vec),
     )
     return cur.fetchone()
 
 
-def _auto_label(cur, cid, winner, loser):
+def _auto_label(cur, ids, winner, loser):
     """Only on confident campaigns: map each arm's opener to a campaign copy and flip
-    status, never overwriting a manual label, only on a strong (>=MAP_SIM) unambiguous match."""
-    cur.execute("select count(*) from copies where campaign_id=%s and t1_embedding is not null", (cid,))
+    status, never overwriting a manual label, only on a strong (>=MAP_SIM) unambiguous match.
+    `ids` = every campaign row sharing this campaign name (copies link to any of them)."""
+    cur.execute("select count(*) from copies where campaign_id = any(%s) and t1_embedding is not null", (ids,))
     if (cur.fetchone()[0] or 0) < 2:
         return 0
-    wn = _nearest_copy(cur, cid, embed_query(winner["sample"])) if winner["sample"] else None
-    ln = _nearest_copy(cur, cid, embed_query(loser["sample"])) if loser["sample"] else None
+    wn = _nearest_copy(cur, ids, embed_query(winner["sample"])) if winner["sample"] else None
+    ln = _nearest_copy(cur, ids, embed_query(loser["sample"])) if loser["sample"] else None
     if not wn or not ln or wn[0] == ln[0]:
         return 0
     n = 0
@@ -128,10 +138,10 @@ def run(slug):
         with conn.cursor() as cur:
             # dedupe same-name campaign records (Airtable keeps many rows per logical campaign);
             # variant-performance groups by name, so one learning per NAME, keyed to a stable id.
-            cur.execute("select min(id) as id, name from campaigns "
+            cur.execute("select min(id) as id, array_agg(id) as ids, name from campaigns "
                         "where client_slug=%s and name is not null group by name", (slug,))
             campaigns = cur.fetchall()
-            for cid, name in campaigns:
+            for cid, ids, name in campaigns:
                 vp = _variant_perf(cur, slug, name)
                 if not vp:
                     continue
@@ -139,16 +149,18 @@ def run(slug):
                 delta = round(w["rate"] - l["rate"], 1)
                 if delta < MIN_DELTA_PP:
                     continue
+                win_opener = _snippet(w["sample"])
                 statement = (f"{name}: variant {w['variant']} beat {l['variant']} — "
                              f"{w['rate']}% vs {l['rate']}% positive "
-                             f"({w['reached']} vs {l['reached']} reached), {conf}.")
+                             f"({w['reached']} vs {l['reached']} reached), {conf}."
+                             + (f' Winning opener: "{win_opener}"' if win_opener else ""))
                 evidence = {"campaign": name, "winner": w["variant"], "loser": l["variant"],
-                            "source": "variant-performance", "winner_sample": w["sample"][:200]}
+                            "source": "variant-performance", "winning_opener": win_opener}
                 _upsert_learning(cur, slug, cid, w, l, delta, conf, statement, evidence)
                 n_learn += 1
                 if conf == "ok":
                     try:
-                        n_label += _auto_label(cur, cid, w, l)
+                        n_label += _auto_label(cur, ids, w, l)
                     except Exception as e:
                         print(f"  auto-label skip ({name}): {e}")
         conn.commit()
