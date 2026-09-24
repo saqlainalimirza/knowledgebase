@@ -101,6 +101,7 @@ Quality signals: `weight` (composite rank, higher = better), `confidence` (confi
 # Orientation & niche
 - `GET /api/clients/{slug}` — client detail: `pains, caseStudies, calls, campaigns, niche` brain, `guidelines`, `materials`.
 - `GET /api/clients/{slug}/calls` — list that client's sales calls; add `?q=...` to semantic-search WITHIN just that client's call chunks (the clean way to answer "what did {client}'s calls say about X").
+- `GET /api/clients/{slug}/call-insights` — **for open-ended DISCOVERY, use this, not chunk search.** A whole-transcript synthesis (terminology, angles, objections, pains, dream outcomes, notable quotes) read from the FULL calls in one pass, so you get what's actually in them instead of only chunks near the queries you thought to ask. Chunk search is for "find X"; this is for "tell me what's in the calls." Rebuild on demand: `POST /api/agents/call-synth {client}`.
 - `POST /api/clusters {"niche":"DTC ecom"}` — dominant pains across a niche (`client_count>1` = validated). `GET /api/niches` — canonical tree (ids for exact scoping).
 
 ---

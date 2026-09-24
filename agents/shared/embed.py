@@ -26,6 +26,7 @@ REGISTRY = [
     ("slack_messages",     "embedding",                  "text"),
     ("guidelines",         "embedding",                  "guideline_text"),
     ("learnings",          "embedding",                  "statement"),
+    ("call_insights",      "embedding",                  "summary"),
     ("client_drafts",      "embedding",                  "concat_ws(' ', title, content)"),
     ("material_chunks",    "embedding",                  "chunk_text"),
     # contacts: embed only the meaningful/positive categories (cost control). Negatives

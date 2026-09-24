@@ -49,6 +49,7 @@ export async function GET() {
       { m: "GET", path: "/api/clients/{slug}/contacts", summary: "Categorized reply threads (incl. negatives). Read the actual conversations.", params: "category" },
       { m: "GET", path: "/api/clients/{slug}/copies", summary: "A client's stored copies.", params: "slug" },
       { m: "GET", path: "/api/clients/{slug}/calls", summary: "List a client's sales calls; ?q= semantic-searches WITHIN just that client's call chunks (the clean way to ask 'what did {client}'s calls say about X').", params: "q, limit" },
+      { m: "GET", path: "/api/clients/{slug}/call-insights", summary: "Whole-call synthesis for DISCOVERY: terminology, angles, objections, pains, dream outcomes, notable quotes read from the FULL transcripts (not query-bounded chunk search). Use this to learn what's IN the calls without guessing search queries. Rebuild: POST /api/agents/call-synth {client}.", params: "slug" },
       { m: "POST", path: "/api/benchmark-copy", summary: "Score a DRAFT vs real winners/losers: nearest winners (+rates), nearest losers (+why_it_failed), similarity, and a KEEP/REWORK/DROP/TEST verdict. Fire on every draft before it ships.", params: "body: {client, t1, t2, limit}" },
       { m: "GET", path: "/api/clients/{slug}/deals", summary: "Live deals for a client from Airtable, every field exposed.", params: "slug" },
       { m: "POST", path: "/api/clusters", summary: "Dominant pains across a niche (client_count>1 = validated across clients).", params: "body: {niche}" },

@@ -62,7 +62,7 @@ def _canonical_niches():
 
 def run(only=None):
     _ensure_log_table()
-    steps = only or ["churn", "campaigns", "stats", "sends", "deals", "contacts", "mine", "variants", "learnings", "seedlosers", "slack", "tickets", "brains", "embeds"]
+    steps = only or ["churn", "campaigns", "stats", "sends", "deals", "contacts", "mine", "variants", "learnings", "seedlosers", "callinsights", "slack", "tickets", "brains", "embeds"]
     t0 = time.time()
     lines, ok = [], True
 
@@ -192,6 +192,28 @@ def run(only=None):
             lines.append(f"seedlosers: labeled {total} dead-campaign copies as losers")
         except Exception as e:
             ok = False; lines.append(f"seedlosers: FAILED {e}")
+
+    # callinsights: whole-call synthesis (terminology/angles/objections) from FULL transcripts,
+    # so discovery isn't bounded by chunk-search queries. LLM per client, so only re-run clients
+    # whose transcripts changed since the last synthesis (or were never synthesized).
+    if "callinsights" in steps:
+        try:
+            from call_synth_agent import run as callsynth_run
+            conn3 = get_conn(); cur3 = conn3.cursor()
+            cur3.execute(
+                """select cc.client_slug from client_calls cc
+                   left join call_insights ci on ci.client_slug = cc.client_slug
+                   where cc.raw_transcript is not null
+                   group by cc.client_slug, ci.refreshed_at
+                   having ci.refreshed_at is null or max(cc.updated_at) > ci.refreshed_at"""
+            )
+            stale = [r[0] for r in cur3.fetchall()]; conn3.close()
+            for s in stale:
+                try: callsynth_run(s)
+                except Exception as e: lines.append(f"callinsights {s}: ERR {e}")
+            lines.append(f"callinsights: refreshed {len(stale)} clients")
+        except Exception as e:
+            ok = False; lines.append(f"callinsights: FAILED {e}")
 
     if "slack" in steps:
         try:
