@@ -20,7 +20,8 @@ from connections.supabase import get_conn
 from connections.gemini import extract_json
 from shared.embed import embed_all
 
-CHAR_BUDGET = 400_000   # ~100k tokens; covers ~8-15 full calls, caps cost/latency
+CHAR_BUDGET = 150_000   # ~37k tokens total — fast enough to not time out the Gemini request
+PER_CALL_CAP = 25_000   # cap each call so the budget spans MORE calls (breadth for discovery)
 REQUIRED_KEYS = {"terminology", "angles", "objections", "pains", "dream_outcomes",
                  "notable_quotes", "summary"}
 
@@ -66,7 +67,7 @@ def gather(cur, slug):
     for scid, title, tx in cur.fetchall():
         if total >= CHAR_BUDGET:
             break
-        take = tx[: max(0, CHAR_BUDGET - total)]
+        take = tx[: min(PER_CALL_CAP, max(0, CHAR_BUDGET - total))]
         blocks.append(f"### CALL: {title or scid} ({scid})\n{take}")
         used.append(scid)
         total += len(take)
