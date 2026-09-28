@@ -1,0 +1,163 @@
+{
+  "phase": 1,
+  "source": "BENCHMARK-CASES.md (Aaman, 2026-09-27)",
+  "note": "Ground truth on mechanism/copy is Aaman's answer. auto=true means graders.py can score it deterministically; auto=false needs Aaman (JUDGE) or a semantic check. required_skills drives the PIPELINE-FIRED precondition: if the trace does not show these fired, the case is VOID, not failed.",
+  "cases": [
+    {
+      "id": "M-01", "category": "mechanism", "grade_type": "JUDGE", "auto": false,
+      "required_skills": ["case-study-developer", "mechanism-wordsmith"],
+      "input": "DTCo. Case studies BRUNT and ARMRA. Client website fetched. Name the mechanism.",
+      "right": "Story-based creative builds a community, so customers keep buying after the spend stops. Agency-performed.",
+      "wrong": "(seen) 'Post-Ozempic opportunity' / 'Replaced their entire marketing team' — outcomes or positioning, not the mechanism.",
+      "why": "The mechanism is the thing the agency does, not an outcome or positioning.",
+      "pass_rule": "Output names community or retained-audience-after-spend as the mechanism = 1."
+    },
+    {
+      "id": "M-02", "category": "mechanism", "grade_type": "MCQ", "auto": true,
+      "required_skills": ["mechanism-wordsmith"],
+      "input": "Two candidate mechanisms. (a) 'get your founder on camera' (b) 'we built them an owned audience'. Which ships cold?",
+      "right": "(b). Agency-performed and portable.",
+      "wrong": "(seen) (a). Killed by Aaman on the DTCo run.",
+      "why": "A client-performed mechanism invites 'I can't do that' before 'is this real'. Keep the proof, gate the mechanism.",
+      "pass_rule": "Answers (b) = 1.",
+      "check": { "type": "mcq", "correct": "b" }
+    },
+    {
+      "id": "M-03", "category": "mechanism", "grade_type": "JUDGE", "auto": false,
+      "required_skills": ["case-study-developer", "mechanism-wordsmith"],
+      "input": "Chamber and Transparent Labs. Master sheet says 'micro content plus paid media plus the right strategy'. Website available.",
+      "right": "Goes to the website, finds the humor angle, sharpens to 'making their ads actually entertaining' (W1).",
+      "wrong": "(plausible) Lifts the master sheet line, which has no bite.",
+      "why": "Owners file real IP under 'higher-level stuff' and write generic on the sheet. The master sheet is usually the thinnest source.",
+      "pass_rule": "Output names humor or entertainment as the mechanism AND cites the website = 1.",
+      "redline": true
+    },
+    {
+      "id": "M-04", "category": "mechanism", "grade_type": "CONTAINS", "auto": false,
+      "required_skills": ["mechanism-wordsmith"],
+      "input": "Generate mechanism options for a client.",
+      "right": "At least 10 variations, each referenced to a winner.",
+      "wrong": "(seen) mechanism-wordsmith hard rule 'never produce more than 7'. Aaman asked for 45 and had to override.",
+      "why": "The strategist's floor is above the skill's ceiling. Breadth is the whole point of this stage.",
+      "pass_rule": "Variant count >= 10 AND each carries a winner reference = 1.",
+      "check": { "type": "count_and_ref", "min_variants": 10, "each_needs": "winner_reference" }
+    },
+    {
+      "id": "M-05", "category": "mechanism", "grade_type": "MCQ", "auto": true,
+      "required_skills": ["mechanism-wordsmith"],
+      "input": "SEO offer for a local business. No distinctive method exists. What goes in the mechanism slot?",
+      "right": "Omit it. Carry on case study plus relevance.",
+      "wrong": "(plausible) Invent one.",
+      "why": "An invented mechanism scores zero. Correct omission is not penalised. W8/W9/W10 ship with no mechanism.",
+      "pass_rule": "Answers omit = 1.",
+      "check": { "type": "mcq", "correct": "omit" }
+    },
+    {
+      "id": "M-06", "category": "mechanism", "grade_type": "MCQ", "auto": true,
+      "required_skills": ["mechanism-wordsmith"],
+      "input": "'I used to lead digital ad strategy at Google.' Mechanism or not?",
+      "right": "Not a mechanism. It is authority.",
+      "wrong": "(plausible) Treats it as the mechanism.",
+      "why": "W7 is carried by authority; its actual mechanism is weak. Mislabelling makes the system copy the wrong part of a winner.",
+      "pass_rule": "Answers authority = 1.",
+      "check": { "type": "mcq", "correct": "authority" }
+    },
+    {
+      "id": "M-07", "category": "mechanism", "grade_type": "JUDGE", "auto": false,
+      "required_skills": ["mechanism-wordsmith"],
+      "input": "Kynship. Candidate mechanism: 'reporting on contribution margin instead of ROAS'.",
+      "right": "Reject for cold SMS. Too technical; the reader must be educated before they can care.",
+      "wrong": "(seen) Shipped as L5 and L6. Both lost.",
+      "why": "A mechanism that needs explaining blows the SMS budget and loads the reader. Idea fine; channel wrong.",
+      "pass_rule": "Rejects with 'needs explaining' or equivalent = 1."
+    },
+    {
+      "id": "CP-01", "category": "copy", "grade_type": "CONTAINS", "auto": false,
+      "required_skills": ["sms-draft", "voice-profile", "qa-gate"],
+      "input": "Draft T1/T2 for any client.",
+      "right": "No variant ships at relevance rung 0.",
+      "wrong": "(plausible) 'could do the same for {{company}} in {{niche}}', 'saw {{company}} and had a few ideas'.",
+      "why": "Rung 0 is the unaided default; the enforced floor sits above it. Every variant must name its rung and the enrichment paying for it.",
+      "pass_rule": "Zero variants at rung 0, and each names its rung plus enrichment = 1. S-tier case is the only exemption.",
+      "check": { "type": "no_rung_0", "each_needs": "rung_and_enrichment" }
+    },
+    {
+      "id": "CP-02", "category": "copy", "grade_type": "CONTAINS", "auto": true,
+      "required_skills": ["sms-draft", "qa-gate"],
+      "input": "Draft the T2 CTA for a cold SMS.",
+      "right": "Keeps the ask in-thread.",
+      "wrong": "(seen) 'could I drop you an email w more info?' Went 0 for 11 meetings in July. In-thread 'pay on results' booked 5 in one week at the same reply rate.",
+      "why": "Reply rate measures the hook, not where the reply goes. An email handoff moves a hot thread to a cold channel and it dies.",
+      "pass_rule": "T2 contains no email-handoff ask = 1.",
+      "check": { "type": "must_not_match", "patterns": ["drop you an email", "send you an email", "shoot you an email", "email you", "over email", "via email", "by email", "email w", "email with more"] }
+    },
+    {
+      "id": "CP-03", "category": "copy", "grade_type": "JUDGE", "auto": false,
+      "required_skills": ["sms-draft", "voice-profile", "qa-gate"],
+      "input": "Go Fish, TikTok Shop offer. Two openers. (a) 'most fashion brands pay Meta...' (b) 'noticed {{company}} isn't really running TikTok Shop lives'.",
+      "right": "(b). W18 shipped, got human replies and a converted call from 360 sends.",
+      "wrong": "(seen) (a) is the L1 shape. Same client, same offer, lost. Got STOPs.",
+      "why": "An observation about a person reads human and gets a reply. A thesis about the category reads like a blast and gets STOP.",
+      "pass_rule": "Picks (b) AND names relevance, not proof strength, as the reason = 1."
+    },
+    {
+      "id": "CP-04", "category": "copy", "grade_type": "MCQ", "auto": true,
+      "required_skills": ["sms-draft", "qa-gate"],
+      "input": "Local painters. Available result: '31 leads in 30 days'. Ship it or not?",
+      "right": "Do not ship. Too weak, and leads is the wrong unit. Painters judge on booked jobs.",
+      "wrong": "(seen) Shipped as L8. Same capacity shape as W4 winner, but W4 had a real number in the right unit.",
+      "why": "Same structure, different proof strength, opposite outcome. Structure is not what carried W4.",
+      "pass_rule": "Rejects AND names both the size and the unit = 1.",
+      "check": { "type": "mcq", "correct": "do_not_ship" }
+    },
+    {
+      "id": "CP-05", "category": "copy", "grade_type": "JUDGE", "auto": false,
+      "required_skills": ["sms-draft", "voice-profile", "qa-gate"],
+      "input": "'Hey {{first_name}}. A bit random but {{company_name}} isn't showing up on ChatGPT for commercial terms like \"{{relevant_search_term}}\".'",
+      "right": "Flag it. The relevance hook is genuinely strong but the phrasing reads AI-written.",
+      "wrong": "(seen) Shipped as L2. Lost.",
+      "why": "The hook was right and the human read killed it. The system must separate those two judgments on one line.",
+      "pass_rule": "Flags phrasing while crediting the hook = 1. Rejecting the whole thing = 0.",
+      "redline": true
+    },
+    {
+      "id": "CP-06", "category": "copy", "grade_type": "CONTAINS", "auto": true,
+      "required_skills": ["sms-draft", "qa-gate"],
+      "input": "Any drafted variant.",
+      "right": "T1 and T2 within logged winner char ranges.",
+      "wrong": "(seen) W2 at 292 chars, flagged as a trim candidate.",
+      "why": "Cheap deterministic check. Free.",
+      "pass_rule": "Both within range = 1.",
+      "check": { "type": "char_range", "note": "ranges from logged winners; fill from winners.csv at run time", "t1_max_hint": 320, "t2_max_hint": 320 }
+    },
+    {
+      "id": "CP-07", "category": "copy", "grade_type": "CONTAINS", "auto": false,
+      "required_skills": ["sms-draft", "qa-gate"],
+      "input": "FOMO lever, no competitor named in the brief.",
+      "right": "Uses {{competitor}} as a merge var, or a no-name FOMO frame.",
+      "wrong": "(plausible) Invents a plausible competitor name.",
+      "why": "A fabricated competitor is a hallucination that ships to a real person who will know it is wrong.",
+      "pass_rule": "No unsourced proper noun in the competitor slot = 1.",
+      "check": { "type": "competitor_slot_sourced" }
+    },
+    {
+      "id": "CP-08", "category": "copy", "grade_type": "JUDGE", "auto": false,
+      "required_skills": ["sms-draft", "voice-profile", "qa-gate"],
+      "input": "A variant reads well but repeats a T2 pattern already used by another variant.",
+      "right": "Differentiate upstream: change the case, angle, lever or proof detail. Or cut one variant.",
+      "wrong": "(seen) Bolted on a generic reaction line to force distinctness. Also cut a load-bearing 'in 3 months' to satisfy a number-density flag.",
+      "why": "The line must read like one human texting one person. Mechanical constraints sit below that, never above. Two variants wanting the same T2 means they are too close.",
+      "pass_rule": "Fix is applied upstream, not to the line = 1."
+    },
+    {
+      "id": "CP-09", "category": "copy", "grade_type": "JUDGE", "auto": false,
+      "required_skills": ["sms-draft", "voice-profile", "qa-gate"],
+      "input": "Go Fish. Prospect is a small boutique. Proofs: Willow Boutique $126k last month, EZ Bombs $5M last quarter.",
+      "right": "Willow. On-niche and size-matched.",
+      "wrong": "(plausible) EZ Bombs, because the number is bigger.",
+      "why": "'$5m/quarter' on a tiny boutique reads aspirational and irrelevant. Swap only the case to a size-matched peer with its native-unit number.",
+      "pass_rule": "Picks Willow AND names size-match = 1.",
+      "redline": true
+    }
+  ]
+}

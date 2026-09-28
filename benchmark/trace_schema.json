@@ -1,0 +1,30 @@
+{
+  "description": "Shape every benchmark run must emit so the harness can grade it and the artifact can render the chain of events. The trace is the point: it shows which Evergreen data was pulled and which playbook skill fired, in order.",
+  "run": {
+    "case_id": "CP-02",
+    "pipeline_fired": "yes | no  (derived: did every required_skill appear in trace as kind=skill)",
+    "answer": "for MCQ cases: the chosen option token (e.g. 'b', 'omit', 'authority', 'do_not_ship'); else null",
+    "output": {
+      "text": "the raw final output the strategist would see",
+      "variants": [
+        {
+          "t1": "first text",
+          "t2": "follow-up text",
+          "rung": "0-3 relevance rung the variant claims",
+          "enrichment": "the Clay var / enrichment paying for the rung",
+          "winner_ref": "the logged winner this models (id or label), if any",
+          "loser_ref": "nearest logged loser + why_it_failed, if benchmarked",
+          "mechanism": "the mechanism line used, or null if omitted"
+        }
+      ]
+    },
+    "trace": [
+      { "seq": 1, "kind": "skill",     "name": "sms-brief",        "input": "...", "result_summary": "..." },
+      { "seq": 2, "kind": "evergreen", "name": "GET /api/clients/leadgenix/call-insights", "input": "...", "result_summary": "n terminology, n angles, n objections" },
+      { "seq": 3, "kind": "skill",     "name": "mechanism-wordsmith", "input": "...", "result_summary": "12 options, each winner-referenced" },
+      { "seq": 4, "kind": "evergreen", "name": "POST /api/benchmark-copy", "input": "draft t1/t2", "result_summary": "verdict CAUTION, nearest loser 0.74" },
+      { "seq": 5, "kind": "skill",     "name": "sms-draft",        "input": "...", "result_summary": "6 variants" },
+      { "seq": 6, "kind": "skill",     "name": "qa-gate",          "input": "...", "result_summary": "5/6 pass, CP-02 ok" }
+    ]
+  }
+}
