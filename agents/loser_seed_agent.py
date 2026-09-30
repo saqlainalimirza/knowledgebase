@@ -24,6 +24,7 @@ from connections.supabase import get_conn
 
 MIN_SENT = 800
 POS_FLOOR = 0.0015   # 0.15% positive-per-send
+WINNER_SIM = 0.88    # don't seed a "loser" whose shape is >=this similar to a known winner
 
 
 def run(slug):
@@ -43,6 +44,10 @@ def run(slug):
                 rate = round(100.0 * (pos or 0) / sent, 3) if sent else 0
                 why = (f"auto (dead campaign): {pos or 0} positives on {sent} sent "
                        f"({rate}%), 0 meetings booked")
+                # CRITICAL guard: never label a copy a loser if its SHAPE matches a known
+                # winner (>=WINNER_SIM). A dead campaign that ran a proven winning shape died
+                # from list/targeting, not the copy - labeling it poisons the benchmark corpus
+                # (it then flags the winning shape as a loser). "Presence in a loser is not guilt."
                 cur.execute(
                     """update copies co
                        set status='loser', status_source='auto', status_labeled_at=now(),
@@ -51,8 +56,12 @@ def run(slug):
                        where co.campaign_id = ca.id and ca.client_slug = %s and ca.name = %s
                          and co.full_copy_embedding is not null
                          and co.status in ('draft','neutral')
+                         and not exists (
+                           select 1 from copies wi
+                           where wi.status='winner' and wi.full_copy_embedding is not null
+                             and 1 - (wi.full_copy_embedding <=> co.full_copy_embedding) >= %s)
                        returning co.id""",
-                    (why, slug, name),
+                    (why, slug, name, WINNER_SIM),
                 )
                 n += len(cur.fetchall())
         conn.commit()

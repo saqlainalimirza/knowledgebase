@@ -93,17 +93,21 @@ def run(client, t1, t2, limit=4):
         near_w = winners[0] if winners else None
 
         # verdict — loser caution takes precedence, then winner resemblance, else novel
-        if sim_l >= DROP_LIKE_LOSER:
+        # "Presence in a loser is not guilt." A winning shape often shares a topic with a losing
+        # one (same offer), so a high loser-similarity ALONE isn't a reason to rework. Only flag
+        # DROP/REWORK/CAUTION when the draft actually leans loser (closer to a loser than to any
+        # winner). A draft closer to a winner is KEEP even if it grazes a loser on topic.
+        if sim_l > sim_w and sim_l >= DROP_LIKE_LOSER:
             verdict, rec = "DROP", (
-                f"~{round(sim_l*100)}% similar to a known loser"
-                + (f" (why it failed: {near_l['why_it_failed']})" if near_l and near_l.get('why_it_failed') else "")
-                + " — near-duplicate of something that already failed."
+                f"~{round(sim_l*100)}% similar to a known loser (and closer to it than to any winner)"
+                + (f" — why it failed: {near_l['why_it_failed']}" if near_l and near_l.get('why_it_failed') else "")
+                + ". Near-duplicate of something that already failed."
             )
-        elif sim_l >= REWORK_LIKE_LOSER:
+        elif sim_l > sim_w and sim_l >= REWORK_LIKE_LOSER:
             verdict, rec = "REWORK", (
-                f"~{round(sim_l*100)}% similar to a loser"
-                + (f" (why it failed: {near_l['why_it_failed']})" if near_l and near_l.get('why_it_failed') else "")
-                + " — change what it shares with that loser before shipping."
+                f"~{round(sim_l*100)}% similar to a loser (and closer to it than to any winner)"
+                + (f" — why it failed: {near_l['why_it_failed']}" if near_l and near_l.get('why_it_failed') else "")
+                + ". Change what it shares with that loser before shipping."
             )
         elif sim_w >= KEEP_LIKE_WINNER and sim_w >= sim_l:
             rate = f"{near_w['positive_rate']}" if near_w and near_w.get("positive_rate") is not None else "n/a"
